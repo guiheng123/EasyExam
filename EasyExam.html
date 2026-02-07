@@ -42,7 +42,6 @@
             transition: all 0.3s ease;
         }
 
-        /* PC/平板端：智能卡片尺寸 */
         @media (min-width: 768px) {
             .container {
                 width: 90%;
@@ -55,7 +54,6 @@
             body { background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%); }
         }
 
-        /* --- 视图切换 --- */
         .view-section {
             display: none;
             flex-direction: column;
@@ -66,7 +64,6 @@
         .view-section.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* --- 头部 --- */
         .header {
             padding: 15px 25px;
             display: flex;
@@ -85,7 +82,6 @@
         }
         .back-icon:hover { background-color: #f5f5f5; }
 
-        /* --- 首页 (保持 g.html 原有风格，仅容器适配) --- */
         .home-layout {
             flex: 1;
             padding: 30px;
@@ -95,7 +91,7 @@
             justify-content: center;
             overflow-y: auto;
         }
-        #setup-panel { width: 100%; max-width: 400px; text-align: center; }
+        #setup-panel { width: 100%; max-width: 500px; text-align: center; }
         .tab-group { display: flex; background: #f1f5f9; padding: 4px; border-radius: 10px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 8px; font-size: 14px; font-weight: 600; color: #6b7280; cursor: pointer; border-radius: 8px; transition: 0.2s; }
         .tab-btn.active { background: #fff; color: var(--primary-color); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
@@ -103,18 +99,72 @@
         .input-area.active { display: block; animation: fadeIn 0.2s; }
         .upload-zone { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; box-sizing: border-box; border: 2px dashed #e2e8f0; border-radius: var(--border-radius); padding: 40px 20px; cursor: pointer; transition: 0.2s; background: #f8fafc; min-height: 140px; }
         .upload-zone:hover { border-color: var(--primary-color); background: #eff6ff; }
-        .paste-box { width: 100%; height: 150px; padding: 12px; border: 1px solid #e2e8f0; border-radius: var(--border-radius); resize: none; font-family: monospace; font-size: 13px; box-sizing: border-box; background: #f8fafc; }
+        .paste-box { width: 100%; height: 200px; padding: 12px; border: 1px solid #e2e8f0; border-radius: var(--border-radius); resize: none; font-family: monospace; font-size: 13px; box-sizing: border-box; background: #f8fafc; }
         .paste-box:focus { outline: none; border-color: var(--primary-color); background: #fff; }
-        #ready-panel { display: none; text-align: center; width: 100%; max-width: 360px; animation: slideUp 0.3s ease; }
+        
+        .format-hint {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+            text-align: left;
+            font-size: 12px;
+            color: #92400e;
+            line-height: 1.6;
+        }
+        .format-hint code {
+            background: #fef3c7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        .error-msg {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 13px;
+            text-align: left;
+            display: none;
+        }
+        
+        #ready-panel { display: none; text-align: center; width: 100%; max-width: 400px; animation: slideUp 0.3s ease; }
         @keyframes slideUp { from { transform: translateY(15px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .file-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        
+        .shuffle-options {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .shuffle-options label {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        .shuffle-options input[type="checkbox"] {
+            margin-right: 8px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
         .action-btn { width: 100%; padding: 12px; border-radius: 10px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 12px; }
         .btn-primary { background: var(--primary-color); color: white; }
         .btn-primary:hover { background: var(--primary-hover); }
         .btn-outline { background: transparent; border: 1px solid #e2e8f0; color: #6b7280; }
         .btn-outline:hover { border-color: #6b7280; color: var(--text-main); background: #f8fafc; }
 
-        /* --- 答题页 (采用 settings.html 风格) --- */
         .quiz-content { flex: 1; padding: 20px 30px; overflow-y: auto; display: flex; flex-direction: column; }
         
         @media (min-width: 768px) {
@@ -166,7 +216,6 @@
         .btn-next { background-color: var(--primary-color); color: white; }
         .btn-next:hover { background-color: var(--primary-hover); }
 
-        /* --- 汇总页 (保持 g.html 原有风格，仅容器适配) --- */
         .result-layout { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
         .score-circle-box { position: relative; width: 140px; height: 140px; margin-bottom: 20px; }
         .circle-bg { fill: none; stroke: #f1f5f9; stroke-width: 5; }
@@ -192,32 +241,63 @@
             
             <div id="setup-panel">
                 <div class="tab-group">
-                    <div class="tab-btn active" onclick="setTab('file')">文件导入</div>
-                    <div class="tab-btn" onclick="setTab('paste')">文本粘贴</div>
+                    <div class="tab-btn active" onclick="setTab('simple')">简易格式</div>
+                    <div class="tab-btn" onclick="setTab('json')">JSON格式</div>
                 </div>
 
-                <div id="area-file" class="input-area active">
-                    <input type="file" id="fileInput" accept=".json">
-                    <label for="fileInput" class="upload-box upload-zone">
-                        <div style="font-size: 20px; margin-bottom: 8px; color: #cbd5e1;">📂</div>
-                        <div style="font-size: 14px; font-weight: 500; color: var(--text-secondary);">点击选择 JSON</div>
-                    </label>
+                <div id="area-simple" class="input-area active">
+                    <textarea id="simpleInput" class="paste-box" placeholder="在此粘贴题目..."></textarea>
+                    <div class="format-hint">
+                        <strong>📋 简易格式示例：</strong><br>
+                        <code>Q:</code> 题目内容<br>
+                        <code>A:</code> 选项1<br>
+                        <code>B:</code> 选项2<br>
+                        <code>C:</code> 选项3<br>
+                        <code>D:</code> 选项4<br>
+                        <code>答案:</code> A<br>
+                        <code>解析:</code> 解析内容(可选)<br>
+                        <code>---</code> (题目分隔符)<br>
+                        <small style="color:#666; display:block; margin-top:8px;">💡 提示：每题用 --- 分隔，答案可用"答案:"或"ANSWER:"</small>
+                    </div>
+                    <div id="errorMsg" class="error-msg"></div>
+                    <button class="action-btn btn-primary" onclick="handleSimpleParse()">解析题目</button>
                 </div>
 
-                <div id="area-paste" class="input-area">
-                    <textarea id="pasteInput" class="paste-box" placeholder='在此粘贴 JSON 题库数据...'></textarea>
-                    <button class="action-btn btn-primary" onclick="handlePaste()">解析</button>
+                <div id="area-json" class="input-area">
+                    <textarea id="jsonInput" class="paste-box" placeholder='粘贴 JSON 格式题库...'></textarea>
+                    <div class="format-hint">
+                        <strong>📋 JSON格式示例：</strong><br>
+                        <code>[{"q":"题目","o":["A","B","C","D"],"a":0,"e":"解析"}]</code><br>
+                        <small style="color:#666; display:block; margin-top:8px;">
+                            q=题目, o=选项数组, a=答案索引(0-3), e=解析(可选)
+                        </small>
+                    </div>
+                    <div id="errorMsgJson" class="error-msg"></div>
+                    <button class="action-btn btn-primary" onclick="handleJsonParse()">解析题目</button>
                 </div>
             </div>
 
             <div id="ready-panel">
                 <div class="file-card">
                     <div style="color: var(--correct-text); font-size: 24px; margin-bottom: 8px;">✓</div>
-                    <div id="sourceName" style="font-weight: 600; margin-bottom: 4px;">--</div>
+                    <div style="font-weight: 600; margin-bottom: 4px;">题库已加载</div>
                     <div style="color: var(--text-secondary); font-size: 13px;">共 <span id="qCount">0</span> 道题目</div>
                 </div>
+                
+                <div class="shuffle-options">
+                    <div style="font-weight: 600; margin-bottom: 8px; color: var(--text-main);">🎲 打乱选项</div>
+                    <label>
+                        <input type="checkbox" id="shuffleQuestions" checked>
+                        打乱题目顺序
+                    </label>
+                    <label>
+                        <input type="checkbox" id="shuffleOptions" checked>
+                        打乱选项顺序
+                    </label>
+                </div>
+                
                 <button class="action-btn btn-primary" onclick="startQuiz()">开始答题</button>
-                <button class="action-btn btn-outline" onclick="resetImport()">取消 / 重新导入</button>
+                <button class="action-btn btn-outline" onclick="resetImport()">重新导入</button>
             </div>
         </div>
     </div>
@@ -280,6 +360,7 @@
 
 <script>
     let questions = [];
+    let originalQuestions = [];
     let userAnswers = [];
     let currentIndex = 0;
     let isReviewMode = false;
@@ -288,60 +369,189 @@
     function setTab(mode) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.input-area').forEach(a => a.classList.remove('active'));
-        if (mode === 'file') {
+        if (mode === 'simple') {
             document.querySelectorAll('.tab-btn')[0].classList.add('active');
-            document.getElementById('area-file').classList.add('active');
+            document.getElementById('area-simple').classList.add('active');
         } else {
             document.querySelectorAll('.tab-btn')[1].classList.add('active');
-            document.getElementById('area-paste').classList.add('active');
+            document.getElementById('area-json').classList.add('active');
         }
     }
 
-    document.getElementById('fileInput').addEventListener('change', function(e) {
-        if (e.target.files.length) {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = (e) => tryParse(e.target.result, file.name);
-            reader.readAsText(file);
-        }
-    });
-
-    function handlePaste() {
-        const txt = document.getElementById('pasteInput').value;
-        if(!txt.trim()) return alert("请先粘贴内容");
-        tryParse(txt, "粘贴文本");
+    function showError(msg, isJson = false) {
+        const errorEl = isJson ? document.getElementById('errorMsgJson') : document.getElementById('errorMsg');
+        errorEl.textContent = '❌ ' + msg;
+        errorEl.style.display = 'block';
+        setTimeout(() => { errorEl.style.display = 'none'; }, 5000);
     }
 
-    function tryParse(jsonStr, sourceName) {
+    // 简易格式解析
+    function handleSimpleParse() {
+        const text = document.getElementById('simpleInput').value.trim();
+        if (!text) {
+            showError('请先粘贴题目内容');
+            return;
+        }
+
         try {
-            const data = JSON.parse(jsonStr);
-            if (Array.isArray(data) && data.length > 0) {
-                questions = data;
-                document.getElementById('sourceName').innerText = sourceName.length > 15 ? sourceName.substring(0,12)+"..." : sourceName;
-                document.getElementById('qCount').innerText = questions.length;
-                
-                document.getElementById('setup-panel').style.display = 'none';
-                document.getElementById('ready-panel').style.display = 'block';
-            } else {
-                alert("格式错误：必须是题目数组");
+            const blocks = text.split(/---+/).filter(b => b.trim());
+            if (blocks.length === 0) {
+                showError('未找到有效题目，请用 --- 分隔每道题');
+                return;
+            }
+
+            const parsed = [];
+            for (let i = 0; i < blocks.length; i++) {
+                const lines = blocks[i].split('\n').map(l => l.trim()).filter(l => l);
+                const q = { question: '', options: [], correctIndex: -1, explanation: '' };
+
+                for (const line of lines) {
+                    if (line.match(/^Q[:：]/i)) {
+                        q.question = line.replace(/^Q[:：]/i, '').trim();
+                    } else if (line.match(/^[A-D][:：]/i)) {
+                        q.options.push(line.replace(/^[A-D][:：]/i, '').trim());
+                    } else if (line.match(/^(答案|ANSWER)[:：]/i)) {
+                        const ans = line.replace(/^(答案|ANSWER)[:：]/i, '').trim().toUpperCase();
+                        q.correctIndex = ans.charCodeAt(0) - 65; // A=0, B=1...
+                    } else if (line.match(/^(解析|EXPLAIN)[:：]/i)) {
+                        q.explanation = line.replace(/^(解析|EXPLAIN)[:：]/i, '').trim();
+                    }
+                }
+
+                // 验证
+                if (!q.question) {
+                    showError(`第 ${i + 1} 题缺少题目 (Q:)`);
+                    return;
+                }
+                if (q.options.length < 2) {
+                    showError(`第 ${i + 1} 题选项不足 (至少需要A、B两个选项)`);
+                    return;
+                }
+                if (q.correctIndex < 0 || q.correctIndex >= q.options.length) {
+                    showError(`第 ${i + 1} 题答案无效或缺失`);
+                    return;
+                }
+
+                parsed.push(q);
+            }
+
+            if (parsed.length > 0) {
+                originalQuestions = parsed;
+                showReady(parsed.length);
             }
         } catch (e) {
-            alert("解析失败，请检查 JSON 格式");
+            showError('解析失败：' + e.message);
         }
+    }
+
+    // JSON格式解析
+    function handleJsonParse() {
+        const text = document.getElementById('jsonInput').value.trim();
+        if (!text) {
+            showError('请先粘贴JSON内容', true);
+            return;
+        }
+
+        try {
+            const data = JSON.parse(text);
+            if (!Array.isArray(data) || data.length === 0) {
+                showError('JSON必须是非空数组', true);
+                return;
+            }
+
+            const parsed = [];
+            for (let i = 0; i < data.length; i++) {
+                const item = data[i];
+                
+                // 支持两种格式
+                let q;
+                if (item.q && item.o && item.a !== undefined) {
+                    // 简化格式
+                    q = {
+                        question: item.q,
+                        options: item.o,
+                        correctIndex: item.a,
+                        explanation: item.e || ''
+                    };
+                } else if (item.question && item.options && item.correctIndex !== undefined) {
+                    // 完整格式
+                    q = item;
+                } else {
+                    showError(`第 ${i + 1} 项格式错误`, true);
+                    return;
+                }
+
+                if (!Array.isArray(q.options) || q.options.length < 2) {
+                    showError(`第 ${i + 1} 项选项不足`, true);
+                    return;
+                }
+                if (q.correctIndex < 0 || q.correctIndex >= q.options.length) {
+                    showError(`第 ${i + 1} 项答案索引无效`, true);
+                    return;
+                }
+
+                parsed.push(q);
+            }
+
+            if (parsed.length > 0) {
+                originalQuestions = parsed;
+                showReady(parsed.length);
+            }
+        } catch (e) {
+            showError('JSON解析失败：' + e.message, true);
+        }
+    }
+
+    function showReady(count) {
+        document.getElementById('qCount').innerText = count;
+        document.getElementById('setup-panel').style.display = 'none';
+        document.getElementById('ready-panel').style.display = 'block';
     }
 
     function resetImport() {
         questions = [];
+        originalQuestions = [];
         userAnswers = [];
         isReviewMode = false;
-        document.getElementById('fileInput').value = '';
-        document.getElementById('pasteInput').value = '';
+        document.getElementById('simpleInput').value = '';
+        document.getElementById('jsonInput').value = '';
         document.getElementById('setup-panel').style.display = 'block';
         document.getElementById('ready-panel').style.display = 'none';
         switchView('homeView');
     }
 
-    // --- 2. 答题逻辑 ---
+    // --- 2. 打乱逻辑 ---
+    function shuffleArray(arr) {
+        const newArr = [...arr];
+        for (let i = newArr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+        }
+        return newArr;
+    }
+
+    function prepareQuestions() {
+        questions = JSON.parse(JSON.stringify(originalQuestions));
+
+        // 打乱题目顺序
+        if (document.getElementById('shuffleQuestions').checked) {
+            questions = shuffleArray(questions);
+        }
+
+        // 打乱选项顺序
+        if (document.getElementById('shuffleOptions').checked) {
+            questions.forEach(q => {
+                const correctOption = q.options[q.correctIndex];
+                const indices = q.options.map((_, i) => i);
+                const shuffledIndices = shuffleArray(indices);
+                
+                q.options = shuffledIndices.map(i => q.options[i]);
+                q.correctIndex = q.options.indexOf(correctOption);
+            });
+        }
+    }
+
+    // --- 3. 答题逻辑 ---
     function switchView(id) {
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -353,6 +563,7 @@
     }
 
     function startQuiz() {
+        prepareQuestions();
         currentIndex = 0;
         userAnswers = new Array(questions.length).fill(null);
         isReviewMode = false;
@@ -364,23 +575,22 @@
         const q = questions[currentIndex];
         const record = userAnswers[currentIndex];
 
-        // 进度更新
         document.getElementById('progressText').innerText = `${currentIndex + 1} / ${questions.length}`;
-        
-        // 内容渲染
         document.getElementById('questionText').innerText = q.question;
+        
         const container = document.getElementById('optionsContainer');
         container.innerHTML = '';
         document.getElementById('analysisBox').style.display = 'none';
 
         q.options.forEach((opt, idx) => {
             const btn = document.createElement('div');
-            btn.className = 'option-item'; // <--- UPDATED CLASS
+            btn.className = 'option-item';
             btn.innerText = opt;
 
             if (record) {
                 btn.classList.add('disabled');
-                if (idx === q.correctIndex) btn.classList.add('correct');
+                if (idx === q.correctIndex) btn.classList
+.add('correct');
                 if (idx === record.selectedIndex && !record.isCorrect) btn.classList.add('wrong');
             } else {
                 btn.onclick = () => handleAnswer(idx, btn);
@@ -390,7 +600,6 @@
 
         if (record) showAnalysis(q.explanation);
         
-        // 底部按钮
         const prev = document.getElementById('prevBtn');
         const next = document.getElementById('nextBtn');
         prev.style.visibility = currentIndex === 0 ? 'hidden' : 'visible';
@@ -409,7 +618,7 @@
         const isCorrect = (idx === q.correctIndex);
         userAnswers[currentIndex] = { selectedIndex: idx, isCorrect };
 
-        const allOpts = document.querySelectorAll('.option-item'); // <--- UPDATED SELECTOR
+        const allOpts = document.querySelectorAll('.option-item');
         allOpts.forEach(o => o.classList.add('disabled'));
 
         if (isCorrect) el.classList.add('correct');
@@ -424,13 +633,11 @@
         if(txt) {
             document.getElementById('analysisContent').innerText = txt;
             document.getElementById('analysisBox').style.display = 'block';
-            // 自动滚动到底部以便查看解析
             setTimeout(() => {
                 const rightPanel = document.querySelector('.quiz-right-panel');
                 if (rightPanel) {
                     rightPanel.scrollTop = rightPanel.scrollHeight;
                 } else {
-                    // Fallback for mobile view
                     document.querySelector('.quiz-content').scrollTop = document.querySelector('.quiz-content').scrollHeight;
                 }
             }, 100);
@@ -440,7 +647,7 @@
     function prevQ() { if(currentIndex>0) { currentIndex--; renderQ(); } }
     function nextQ() { if(currentIndex<questions.length-1) { currentIndex++; renderQ(); } }
 
-    // --- 3. 汇总逻辑 ---
+    // --- 4. 汇总逻辑 ---
     function showResult() {
         switchView('resultView');
         

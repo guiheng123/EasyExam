@@ -1,686 +1,949 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>极简答题系统 Pro</title>
-    <style>
-        :root {
-            --primary-color: #4e6ef2;
-            --primary-hover: #405bd4;
-            --bg-color: #f0f2f5;
-            --card-bg: #ffffff;
-            --text-main: #333333;
-            --text-secondary: #666666;
-            --correct-color: #e5f9e7;
-            --correct-text: #2ba471;
-            --wrong-color: #feebeb;
-            --wrong-text: #d93025;
-            --border-radius: 16px;
-            --shadow-md: 0 8px 30px rgba(0,0,0,0.08);
-        }
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+   <title>极简答题系统 Pro</title>
+   <style>
+       :root {
+           --primary-color: #4e6ef2;
+           --primary-hover: #405bd4;
+           --bg-color: #f0f2f5;
+           --card-bg: #ffffff;
+           --text-main: #333333;
+           --text-secondary: #666666;
+           --correct-color: #e5f9e7;
+           --correct-text: #2ba471;
+           --wrong-color: #feebeb;
+           --wrong-text: #d93025;
+           --border-radius: 16px;
+           --shadow-md: 0 8px 30px rgba(0,0,0,0.08);
+       }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
+       * { box-sizing: border-box; }
 
-        .container {
-            width: 100%;
-            height: 100vh;
-            background-color: var(--card-bg);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
+       body {
+           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+           background-color: var(--bg-color);
+           color: var(--text-main);
+           margin: 0;
+           display: flex;
+           justify-content: center;
+           align-items: center;
+           min-height: 100vh;
+       }
 
-        @media (min-width: 768px) {
-            .container {
-                width: 90%;
-                max-width: 1000px;
-                height: 85vh;
-                max-height: 800px;
-                border-radius: 20px;
-                box-shadow: var(--shadow-md);
-            }
-            body { background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%); }
-        }
+       .container {
+           width: 100%;
+           height: 100vh;
+           background-color: var(--card-bg);
+           display: flex;
+           flex-direction: column;
+           position: relative;
+           overflow: hidden;
+           transition: all 0.3s ease;
+       }
 
-        .view-section {
-            display: none;
-            flex-direction: column;
-            height: 100%;
-            width: 100%;
-            animation: fadeIn 0.3s ease;
-        }
-        .view-section.active { display: flex; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+       @media (min-width: 768px) {
+           .container {
+               width: 90%;
+               max-width: 1000px;
+               height: 85vh;
+               max-height: 800px;
+               border-radius: 20px;
+               box-shadow: var(--shadow-md);
+           }
+           body { background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%); }
+       }
 
-        .header {
-            padding: 15px 25px;
-            display: flex;
-            align-items: center;
-            font-size: 18px;
-            font-weight: 700;
-            border-bottom: 1px solid #f0f0f0;
-            background: #fff;
-            flex-shrink: 0;
-            z-index: 10;
-        }
-        .back-icon { 
-            margin-right: 15px; font-size: 20px; cursor: pointer; padding: 5px; 
-            border-radius: 50%; transition: background 0.2s;
-            color: var(--text-secondary);
-        }
-        .back-icon:hover { background-color: #f5f5f5; }
+       .view-section {
+           display: none;
+           flex-direction: column;
+           height: 100%;
+           width: 100%;
+           animation: fadeIn 0.3s ease;
+       }
 
-        .home-layout {
-            flex: 1;
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            overflow-y: auto;
-        }
-        #setup-panel { width: 100%; max-width: 500px; text-align: center; }
-        .tab-group { display: flex; background: #f1f5f9; padding: 4px; border-radius: 10px; margin-bottom: 20px; }
-        .tab-btn { flex: 1; padding: 8px; font-size: 14px; font-weight: 600; color: #6b7280; cursor: pointer; border-radius: 8px; transition: 0.2s; }
-        .tab-btn.active { background: #fff; color: var(--primary-color); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .input-area { display: none; }
-        .input-area.active { display: block; animation: fadeIn 0.2s; }
-        .upload-zone { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; box-sizing: border-box; border: 2px dashed #e2e8f0; border-radius: var(--border-radius); padding: 40px 20px; cursor: pointer; transition: 0.2s; background: #f8fafc; min-height: 140px; }
-        .upload-zone:hover { border-color: var(--primary-color); background: #eff6ff; }
-        .paste-box { width: 100%; height: 200px; padding: 12px; border: 1px solid #e2e8f0; border-radius: var(--border-radius); resize: none; font-family: monospace; font-size: 13px; box-sizing: border-box; background: #f8fafc; }
-        .paste-box:focus { outline: none; border-color: var(--primary-color); background: #fff; }
-        
-        .format-hint {
-            background: #fffbeb;
-            border: 1px solid #fde68a;
-            border-radius: 8px;
-            padding: 12px;
-            margin-top: 10px;
-            text-align: left;
-            font-size: 12px;
-            color: #92400e;
-            line-height: 1.6;
-        }
-        .format-hint code {
-            background: #fef3c7;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: monospace;
-        }
-        
-        .error-msg {
-            background: #fee;
-            border: 1px solid #fcc;
-            color: #c33;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 10px;
-            font-size: 13px;
-            text-align: left;
-            display: none;
-        }
-        
-        #ready-panel { display: none; text-align: center; width: 100%; max-width: 400px; animation: slideUp 0.3s ease; }
-        @keyframes slideUp { from { transform: translateY(15px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .file-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        
-        .shuffle-options {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            text-align: left;
-        }
-        .shuffle-options label {
-            display: flex;
-            align-items: center;
-            margin: 8px 0;
-            cursor: pointer;
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-        .shuffle-options input[type="checkbox"] {
-            margin-right: 8px;
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-        
-        .action-btn { width: 100%; padding: 12px; border-radius: 10px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 12px; }
-        .btn-primary { background: var(--primary-color); color: white; }
-        .btn-primary:hover { background: var(--primary-hover); }
-        .btn-outline { background: transparent; border: 1px solid #e2e8f0; color: #6b7280; }
-        .btn-outline:hover { border-color: #6b7280; color: var(--text-main); background: #f8fafc; }
+       .view-section.active { display: flex; }
 
-        .quiz-content { flex: 1; padding: 20px 30px; overflow-y: auto; display: flex; flex-direction: column; }
-        
-        @media (min-width: 768px) {
-            .quiz-layout-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; height: 100%; }
-            .quiz-left-panel { border-right: 1px solid #eee; padding-right: 20px; display: flex; flex-direction: column; }
-            .quiz-right-panel { padding-left: 10px; overflow-y: auto; }
-            .question-text { font-size: 20px; }
-        }
-        @media (max-width: 767px) {
-            .quiz-layout-wrapper { display: flex; flex-direction: column; }
-            .question-text { font-size: 17px; }
-        }
+       @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .quiz-meta-info {
-            color: #888; 
-            font-size: 13px; 
-            margin-bottom: 10px;
-        }
-        .quiz-meta-info #progressText {
-            color: var(--primary-color);
-            font-weight: bold;
-        }
+       .header {
+           padding: 15px 25px;
+           display: flex;
+           align-items: center;
+           font-size: 18px;
+           font-weight: 700;
+           border-bottom: 1px solid #f0f0f0;
+           background: #fff;
+           flex-shrink: 0;
+           z-index: 10;
+       }
 
-        .question-text { line-height: 1.6; margin-bottom: 20px; font-weight: 600; color: #222; }
-        .options-list { display: flex; flex-direction: column; gap: 12px; }
-        .option-item {
-            background-color: #f7f8fa;
-            padding: 16px 20px;
-            border-radius: 12px;
-            font-size: 16px;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: all 0.2s;
-        }
-        .option-item:hover:not(.disabled) { background-color: #ebedf0; }
-        .option-item.correct { background-color: var(--correct-color); color: var(--correct-text); border-color: var(--correct-text); font-weight: 500; }
-        .option-item.wrong { background-color: var(--wrong-color); color: var(--wrong-text); border-color: var(--wrong-text); }
-        .disabled { pointer-events: none; }
+       .back-icon {
+           margin-right: 15px;
+           font-size: 20px;
+           cursor: pointer;
+           padding: 5px;
+           border-radius: 50%;
+           transition: background 0.2s;
+           color: var(--text-secondary);
+       }
 
-        .analysis-box {
-            margin-top: 20px; padding: 15px; background-color: #fff8e1; border-radius: 8px;
-            font-size: 14px; color: #666; display: none; line-height: 1.6; border: 1px solid #ffeeba;
-        }
+       .back-icon:hover { background-color: #f5f5f5; }
 
-        .quiz-footer { padding: 20px 30px; border-top: 1px solid #f0f0f0; background: #fff; display: flex; gap: 20px; flex-shrink: 0; }
-        .nav-btn { flex: 1; padding: 14px; border-radius: 30px; font-size: 16px; font-weight: 700; border: none; cursor: pointer; transition: background-color 0.2s; }
-        .btn-prev { background-color: #f5f5f5; color: #666; }
-        .btn-prev:hover { background-color: #e9e9e9; }
-        .btn-next { background-color: var(--primary-color); color: white; }
-        .btn-next:hover { background-color: var(--primary-hover); }
+       .home-layout {
+           flex: 1;
+           padding: 30px;
+           display: flex;
+           flex-direction: column;
+           align-items: center;
+           justify-content: center;
+           overflow-y: auto;
+       }
 
-        .result-layout { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
-        .score-circle-box { position: relative; width: 140px; height: 140px; margin-bottom: 20px; }
-        .circle-bg { fill: none; stroke: #f1f5f9; stroke-width: 5; }
-        .circle-bar { fill: none; stroke: var(--primary-color); stroke-width: 5; stroke-linecap: round; stroke-dasharray: 400; stroke-dashoffset: 400; transition: stroke-dashoffset 1s ease; }
-        .score-val { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 36px; font-weight: 800; color: var(--text-main); }
-        .result-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(32px, 1fr)); gap: 8px; width: 100%; max-width: 400px; margin-top: 10px; }
-        .grid-dot { aspect-ratio: 1; border-radius: 6px; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; background: #f1f5f9; color: #94a3b8; cursor: pointer; transition: 0.2s; }
-        .grid-dot:hover { transform: scale(1.1); }
-        .grid-dot.correct { background: var(--correct-color); color: var(--correct-text); }
-        .grid-dot.wrong { background: var(--wrong-color); color: var(--wrong-text); }
+       #setup-panel {
+           width: 100%;
+           max-width: 600px;
+           text-align: center;
+       }
 
-        input[type="file"] { display: none; }
-    </style>
+       /* Tab切换 */
+       .tab-group {
+           display: flex;
+           background: #f1f5f9;
+           padding: 4px;
+           border-radius: 10px;
+           margin-bottom: 20px;
+       }
+
+       .tab-btn {
+           flex: 1;
+           padding: 8px;
+           font-size: 14px;
+           font-weight: 600;
+           color: #6b7280;
+           cursor: pointer;
+           border-radius: 8px;
+           transition: 0.2s;
+           border: none;
+           background: transparent;
+       }
+
+       .tab-btn.active {
+           background: #fff;
+           color: var(--primary-color);
+           box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+       }
+
+       /* 输入区域 */
+       .input-area { display: none; }
+       .input-area.active { display: block; animation: fadeIn 0.2s; }
+
+       /* 文件上传区域 */
+       .upload-zone {
+           border: 2px dashed #e2e8f0;
+           border-radius: 16px;
+           padding: 40px 20px;
+           background: #f8fafc;
+           cursor: pointer;
+           transition: all 0.2s;
+       }
+
+       .upload-zone:hover { border-color: var(--primary-color); background: #f0f7ff; }
+       .upload-zone.drag-over { border-color: var(--primary-color); background: #e0edff; }
+
+       .upload-icon { font-size: 32px; margin-bottom: 10px; }
+       .upload-text { font-size: 14px; color: var(--text-secondary); margin-bottom: 5px; }
+       .upload-hint { font-size: 12px; color: #94a3b8; }
+
+       /* 文本粘贴框 */
+       .paste-box {
+           width: 100%;
+           height: 180px;
+           padding: 12px;
+           border: 1px solid #e2e8f0;
+           border-radius: 12px;
+           resize: none;
+           font-family: monospace;
+           font-size: 13px;
+           background: #f8fafc;
+       }
+
+       .paste-box:focus { outline: none; border-color: var(--primary-color); background: #fff; }
+
+       /* 格式提示 */
+       .format-hint {
+           background: #fffbeb;
+           border: 1px solid #fde68a;
+           border-radius: 8px;
+           padding: 12px;
+           margin-top: 10px;
+           text-align: left;
+           font-size: 12px;
+           color: #92400e;
+           line-height: 1.6;
+           margin-bottom: 10px;
+       }
+
+       .format-hint code { background: #fef3c7; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+
+       /* 子Tab（简单/JSON） */
+       .sub-tab { display: flex; gap: 10px; margin-bottom: 10px; justify-content: center; }
+       .sub-tab-btn {
+           padding: 6px 16px;
+           font-size: 12px;
+           border: 1px solid #e2e8f0;
+           background: white;
+           border-radius: 20px;
+           cursor: pointer;
+           color: #6b7280;
+       }
+       .sub-tab-btn.active { border-color: var(--primary-color); color: var(--primary-color); background: #f0f7ff; }
+
+       /* 错误提示 */
+       .error-msg {
+           background: #fee;
+           border: 1px solid #fcc;
+           color: #c33;
+           padding: 10px;
+           border-radius: 8px;
+           margin-top: 10px;
+           font-size: 13px;
+           text-align: left;
+           display: none;
+       }
+
+       .action-btn {
+           width: 100%;
+           padding: 12px;
+           border-radius: 10px;
+           border: none;
+           font-size: 15px;
+           font-weight: 600;
+           cursor: pointer;
+           transition: 0.2s;
+           margin-top: 10px;
+       }
+
+       .btn-primary { background: var(--primary-color); color: white; }
+       .btn-primary:hover { background: var(--primary-hover); }
+       .btn-outline { background: transparent; border: 1px solid #e2e8f0; color: #6b7280; margin-top: 8px; }
+       .btn-outline:hover { border-color: #6b7280; color: var(--text-main); background: #f8fafc; }
+
+       /* 准备就绪面板 */
+       #ready-panel {
+           display: none;
+           text-align: center;
+           width: 100%;
+           max-width: 400px;
+           animation: slideUp 0.3s ease;
+       }
+
+       @keyframes slideUp { from { transform: translateY(15px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+       .file-card {
+           background: white;
+           border: 1px solid #e2e8f0;
+           border-radius: 16px;
+           padding: 20px;
+           margin-bottom: 20px;
+           box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+       }
+
+       .shuffle-options {
+           background: #f8fafc;
+           border: 1px solid #e2e8f0;
+           border-radius: 12px;
+           padding: 15px;
+           margin-bottom: 15px;
+           text-align: left;
+       }
+
+       .shuffle-options label { display: flex; align-items: center; margin: 8px 0; cursor: pointer; font-size: 14px; color: var(--text-secondary); }
+       .shuffle-options input[type="checkbox"] { margin-right: 8px; width: 16px; height: 16px; accent-color: var(--primary-color); }
+
+       /* 答题页面 */
+       .quiz-content {
+           flex: 1;
+           padding: 20px 30px;
+           overflow-y: auto;
+       }
+
+       @media (min-width: 768px) {
+           .quiz-layout-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; height: 100%; }
+           .quiz-left-panel { border-right: 1px solid #eee; padding-right: 20px; display: flex; flex-direction: column; }
+           .quiz-right-panel { padding-left: 10px; overflow-y: auto; }
+           .question-text { font-size: 20px; }
+       }
+
+       @media (max-width: 767px) {
+           .quiz-layout-wrapper { display: flex; flex-direction: column; }
+           .question-text { font-size: 17px; }
+       }
+
+       .quiz-meta-info { color: #888; font-size: 13px; margin-bottom: 10px; }
+       .quiz-meta-info #progressText { color: var(--primary-color); font-weight: bold; }
+       .question-text { line-height: 1.6; margin-bottom: 20px; font-weight: 600; color: #222; }
+       .options-list { display: flex; flex-direction: column; gap: 12px; }
+       .option-item {
+           background-color: #f7f8fa;
+           padding: 16px 20px;
+           border-radius: 12px;
+           font-size: 16px;
+           cursor: pointer;
+           border: 2px solid transparent;
+           transition: all 0.2s;
+       }
+       .option-item:hover:not(.disabled) { background-color: #ebedf0; }
+       .option-item.correct { background-color: var(--correct-color); color: var(--correct-text); border-color: var(--correct-text); font-weight: 500; }
+       .option-item.wrong { background-color: var(--wrong-color); color: var(--wrong-text); border-color: var(--wrong-text); }
+       .disabled { pointer-events: none; }
+       .analysis-box {
+           margin-top: 20px;
+           padding: 15px;
+           background-color: #fff8e1;
+           border-radius: 8px;
+           font-size: 14px;
+           color: #666;
+           display: none;
+           line-height: 1.6;
+           border: 1px solid #ffeeba;
+       }
+
+       .quiz-footer {
+           padding: 20px 30px;
+           border-top: 1px solid #f0f0f0;
+           background: #fff;
+           display: flex;
+           gap: 20px;
+           flex-shrink: 0;
+       }
+
+       .nav-btn {
+           flex: 1;
+           padding: 14px;
+           border-radius: 30px;
+           font-size: 16px;
+           font-weight: 700;
+           border: none;
+           cursor: pointer;
+           transition: background-color 0.2s;
+       }
+
+       .btn-prev { background-color: #f5f5f5; color: #666; }
+       .btn-prev:hover { background-color: #e9e9e9; }
+       .btn-next { background-color: var(--primary-color); color: white; }
+       .btn-next:hover { background-color: var(--primary-hover); }
+
+       /* 结果页 */
+       .result-layout {
+           flex: 1;
+           padding: 30px;
+           overflow-y: auto;
+           display: flex;
+           flex-direction: column;
+           align-items: center;
+       }
+
+       .score-circle-box { position: relative; width: 140px; height: 140px; margin-bottom: 20px; }
+       .circle-bg { fill: none; stroke: #f1f5f9; stroke-width: 5; }
+       .circle-bar { fill: none; stroke: var(--primary-color); stroke-width: 5; stroke-linecap: round; stroke-dasharray: 377; stroke-dashoffset: 377; transition: stroke-dashoffset 1s ease; }
+       .score-val { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 36px; font-weight: 800; color: var(--text-main); }
+
+       .result-grid {
+           display: grid;
+           grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+           gap: 8px;
+           width: 100%;
+           max-width: 400px;
+           margin-top: 10px;
+       }
+
+       .grid-dot {
+           aspect-ratio: 1;
+           border-radius: 6px;
+           font-size: 12px;
+           font-weight: 600;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           background: #f1f5f9;
+           color: #94a3b8;
+           cursor: pointer;
+           transition: 0.2s;
+       }
+       .grid-dot:hover { transform: scale(1.1); }
+       .grid-dot.correct { background: var(--correct-color); color: var(--correct-text); }
+       .grid-dot.wrong { background: var(--wrong-color); color: var(--wrong-text); }
+
+       .hidden { display: none; }
+   </style>
 </head>
 <body>
+   <div class="container">
+       <!-- 首页 -->
+       <div id="homeView" class="view-section active">
+           <div class="home-layout">
+               <div style="font-size: 40px; margin-bottom: 10px;">📝</div>
+               <h2 style="margin: 0 0 24px 0; color: var(--text-main); font-size: 20px;">极简答题 Pro</h2>
+               
+               <div id="setup-panel">
+                   <!-- 主Tab：文件 vs 粘贴 -->
+                   <div class="tab-group">
+                       <button class="tab-btn active" onclick="setTab('file')">📁 文件导入</button>
+                       <button class="tab-btn" onclick="setTab('paste')">📋 文本粘贴</button>
+                   </div>
 
-<div class="container">
+                   <!-- 文件导入区域 -->
+                   <div id="area-file" class="input-area active">
+                       <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                           <div class="upload-icon">📂</div>
+                           <div class="upload-text">点击选择文件或拖拽至此</div>
+                           <div class="upload-hint">支持 .txt .json 格式</div>
+                       </div>
+                       <input type="file" id="fileInput" accept=".txt,.json" class="hidden" onchange="handleFileSelect(event)">
+                       <div id="fileError" class="error-msg"></div>
+                   </div>
 
-    <div id="homeView" class="view-section active">
-        <div class="home-layout">
-            <div style="font-size: 40px; margin-bottom: 10px;">📝</div>
-            <h2 style="margin: 0 0 24px 0; color: var(--text-main); font-size: 20px;">极简答题 Pro</h2>
-            
-            <div id="setup-panel">
-                <div class="tab-group">
-                    <div class="tab-btn active" onclick="setTab('simple')">简易格式</div>
-                    <div class="tab-btn" onclick="setTab('json')">JSON格式</div>
-                </div>
+                   <!-- 文本粘贴区域 -->
+                   <div id="area-paste" class="input-area">
+                       <!-- 子Tab：简易 vs JSON -->
+                       <div class="sub-tab">
+                           <button class="sub-tab-btn active" onclick="setSubTab('simple')">简易格式</button>
+                           <button class="sub-tab-btn" onclick="setSubTab('json')">JSON格式</button>
+                       </div>
 
-                <div id="area-simple" class="input-area active">
-                    <textarea id="simpleInput" class="paste-box" placeholder="在此粘贴题目..."></textarea>
-                    <div class="format-hint">
-                        <strong>📋 简易格式示例：</strong><br>
-                        <code>Q:</code> 题目内容<br>
-                        <code>A:</code> 选项1<br>
-                        <code>B:</code> 选项2<br>
-                        <code>C:</code> 选项3<br>
-                        <code>D:</code> 选项4<br>
-                        <code>答案:</code> A<br>
-                        <code>解析:</code> 解析内容(可选)<br>
-                        <code>---</code> (题目分隔符)<br>
-                        <small style="color:#666; display:block; margin-top:8px;">💡 提示：每题用 --- 分隔，答案可用"答案:"或"ANSWER:"</small>
-                    </div>
-                    <div id="errorMsg" class="error-msg"></div>
-                    <button class="action-btn btn-primary" onclick="handleSimpleParse()">解析题目</button>
-                </div>
+                       <!-- 简易格式 -->
+                       <div id="sub-simple" class="input-area active">
+                           <textarea id="simpleInput" class="paste-box" placeholder="在此粘贴题目..."></textarea>
+                           <div class="format-hint">
+                               <strong>📝 简易格式示例：</strong><br>
+                               <code>Q:</code> 题目内容<br>
+                               <code>A:</code> 选项A内容<br>
+                               <code>B:</code> 选项B内容<br>
+                               <code>C:</code> 选项C内容<br>
+                               <code>D:</code> 选项D内容<br>
+                               <code>答案:</code> B<br>
+                               <code>解析:</code> 这是解析(可选)<br>
+                               <code>---</code> 分隔符<br><br>
+                               <small>💡 简易格式极大节省AI生成token，建议首选</small>
+                           </div>
+                           <button class="action-btn btn-primary" onclick="parseText('simple')">解析题目</button>
+                       </div>
 
-                <div id="area-json" class="input-area">
-                    <textarea id="jsonInput" class="paste-box" placeholder='粘贴 JSON 格式题库...'></textarea>
-                    <div class="format-hint">
-                        <strong>📋 JSON格式示例：</strong><br>
-                        <code>[{"q":"题目","o":["A","B","C","D"],"a":0,"e":"解析"}]</code><br>
-                        <small style="color:#666; display:block; margin-top:8px;">
-                            q=题目, o=选项数组, a=答案索引(0-3), e=解析(可选)
-                        </small>
-                    </div>
-                    <div id="errorMsgJson" class="error-msg"></div>
-                    <button class="action-btn btn-primary" onclick="handleJsonParse()">解析题目</button>
-                </div>
-            </div>
+                       <!-- JSON格式 -->
+                       <div id="sub-json" class="input-area">
+                           <textarea id="jsonInput" class="paste-box" placeholder='粘贴 JSON 格式题库...'></textarea>
+                           <div class="format-hint">
+                               <strong>📋 JSON格式示例：</strong><br>
+                               <code>[{"q":"题目","o":["A","B","C","D"],"a":1,"e":"解析"}]</code><br>
+                               <small>q=题目, o=选项数组, a=答案索引(0-3或字母), e=解析(可选)</small>
+                           </div>
+                           <button class="action-btn btn-primary" onclick="parseText('json')">解析题目</button>
+                       </div>
 
-            <div id="ready-panel">
-                <div class="file-card">
-                    <div style="color: var(--correct-text); font-size: 24px; margin-bottom: 8px;">✓</div>
-                    <div style="font-weight: 600; margin-bottom: 4px;">题库已加载</div>
-                    <div style="color: var(--text-secondary); font-size: 13px;">共 <span id="qCount">0</span> 道题目</div>
-                </div>
-                
-                <div class="shuffle-options">
-                    <div style="font-weight: 600; margin-bottom: 8px; color: var(--text-main);">🎲 打乱选项</div>
-                    <label>
-                        <input type="checkbox" id="shuffleQuestions" checked>
-                        打乱题目顺序
-                    </label>
-                    <label>
-                        <input type="checkbox" id="shuffleOptions" checked>
-                        打乱选项顺序
-                    </label>
-                </div>
-                
-                <button class="action-btn btn-primary" onclick="startQuiz()">开始答题</button>
-                <button class="action-btn btn-outline" onclick="resetImport()">重新导入</button>
-            </div>
-        </div>
-    </div>
+                       <div id="pasteError" class="error-msg"></div>
+                   </div>
+               </div>
 
-    <div id="quizView" class="view-section">
-        <div class="header">
-            <span class="back-icon" onclick="confirmExit()">←</span>
-            <span>答题中</span>
-        </div>
+               <!-- 准备就绪面板 -->
+               <div id="ready-panel">
+                   <div class="file-card">
+                       <div style="color: var(--correct-text); font-size: 24px; margin-bottom: 8px;">✓</div>
+                       <div style="font-weight: 600; margin-bottom: 4px;">题库已加载</div>
+                       <div style="color: var(--text-secondary); font-size: 13px;">共 <span id="qCount">0</span> 道题目</div>
+                   </div>
+                   <div class="shuffle-options">
+                       <div style="font-weight: 600; margin-bottom: 8px; color: var(--text-main);">🎲 答题设置</div>
+                       <label><input type="checkbox" id="shuffleQuestions" checked> 打乱题目顺序</label>
+                       <label><input type="checkbox" id="shuffleOptions" checked> 打乱选项顺序</label>
+                   </div>
+                   <button class="action-btn btn-primary" onclick="startQuiz()">开始答题</button>
+                   <button class="action-btn btn-outline" onclick="resetImport()">重新导入</button>
+               </div>
+           </div>
+       </div>
 
-        <div class="quiz-content">
-            <div class="quiz-layout-wrapper">
-                <div class="quiz-left-panel">
-                    <div class="quiz-meta-info">
-                        题目 <span id="progressText">1/10</span>
-                    </div>
-                    <div class="question-text" id="questionText">题目加载中...</div>
-                </div>
+       <!-- 答题页 -->
+       <div id="quizView" class="view-section">
+           <div class="header">
+               <span class="back-icon" onclick="confirmExit()">←</span>
+               <span>答题中</span>
+           </div>
+           <div class="quiz-content">
+               <div class="quiz-layout-wrapper">
+                   <div class="quiz-left-panel">
+                       <div class="quiz-meta-info">题目 <span id="progressText">1/10</span></div>
+                       <div class="question-text" id="questionText">题目加载中...</div>
+                   </div>
+                   <div class="quiz-right-panel">
+                       <div class="options-list" id="optionsContainer"></div>
+                       <div class="analysis-box" id="analysisBox">
+                           <div style="font-weight:bold; margin-bottom:5px; color:var(--text-main)">💡 解析：</div>
+                           <div id="analysisContent"></div>
+                       </div>
+                   </div>
+               </div>
+           </div>
+           <div class="quiz-footer">
+               <button class="nav-btn btn-prev" id="prevBtn" onclick="prevQ()">上一题</button>
+               <button class="nav-btn btn-next" id="nextBtn" onclick="nextQ()">下一题</button>
+           </div>
+       </div>
 
-                <div class="quiz-right-panel">
-                    <div class="options-list" id="optionsContainer"></div>
-                    <div class="analysis-box" id="analysisBox">
-                        <div style="font-weight:bold; margin-bottom:5px; color:var(--text-main)">💡 解析：</div>
-                        <div id="analysisContent"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
+       <!-- 结果页 -->
+       <div id="resultView" class="view-section">
+           <div class="header">
+               <div style="width:100%; text-align:center;">结果概览</div>
+           </div>
+           <div class="result-layout">
+               <div class="score-circle-box">
+                   <svg width="140" height="140" viewBox="0 0 140 140">
+                       <circle class="circle-bg" cx="70" cy="70" r="60"></circle>
+                       <circle class="circle-bar" id="scoreCircle" cx="70" cy="70" r="60"></circle>
+                   </svg>
+                   <div class="score-val"><span id="scoreVal">0</span><span style="font-size:14px; color:#999">%</span></div>
+               </div>
+               <div style="font-size:13px; color:var(--text-secondary); margin-bottom:15px;">题目回顾（点击可查看）</div>
+               <div class="result-grid" id="resultGrid"></div>
+               <button class="action-btn btn-outline" style="margin-top: 40px;" onclick="resetImport()">← 返回首页</button>
+           </div>
+       </div>
+   </div>
 
-        <div class="quiz-footer">
-            <button class="nav-btn btn-prev" id="prevBtn" onclick="prevQ()">上一题</button>
-            <button class="nav-btn btn-next" id="nextBtn" onclick="nextQ()">下一题</button>
-        </div>
-    </div>
+   <script>
+       let questions = [];
+       let originalQuestions = [];
+       let userAnswers = [];
+       let currentIndex = 0;
+       let isReviewMode = false;
 
-    <div id="resultView" class="view-section">
-        <div class="header">
-            <div class="header-title" style="width:100%; text-align:center;">结果概览</div>
-        </div>
+       // ========== 界面切换 ==========
+       function setTab(mode) {
+           const areas = document.querySelectorAll('.input-area');
+           const btns = document.querySelectorAll('.tab-group .tab-btn');
+           
+           btns.forEach(b => b.classList.remove('active'));
+           
+           if (mode === 'file') {
+               btns[0].classList.add('active');
+               document.getElementById('area-file').classList.add('active');
+               document.getElementById('area-paste').classList.remove('active');
+               hideErrors();
+           } else {
+               btns[1].classList.add('active');
+               document.getElementById('area-file').classList.remove('active');
+               document.getElementById('area-paste').classList.add('active');
+           }
+       }
 
-        <div class="result-layout">
-            <div class="score-circle-box">
-                <svg width="140" height="140" viewBox="0 0 140 140">
-                    <circle class="circle-bg" cx="70" cy="70" r="60"></circle>
-                    <circle class="circle-bar" id="scoreCircle" cx="70" cy="70" r="60"></circle>
-                </svg>
-                <div class="score-val"><span id="scoreVal">0</span><span style="font-size:14px; color:#999">%</span></div>
-            </div>
+       function setSubTab(mode) {
+           document.querySelectorAll('#area-paste .sub-tab-btn').forEach(b => b.classList.remove('active'));
+           
+           if (mode === 'simple') {
+               document.querySelectorAll('#area-paste .sub-tab-btn')[0].classList.add('active');
+               document.getElementById('sub-simple').classList.add('active');
+               document.getElementById('sub-json').classList.remove('active');
+           } else {
+               document.querySelectorAll('#area-paste .sub-tab-btn')[1].classList.add('active');
+               document.getElementById('sub-simple').classList.remove('active');
+               document.getElementById('sub-json').classList.add('active');
+           }
+           hideErrors();
+       }
 
-            <div style="font-size:13px; color:var(--text-secondary); margin-bottom:15px;">题目回顾</div>
-            <div class="result-grid" id="resultGrid"></div>
+       function hideErrors() {
+           document.getElementById('fileError').style.display = 'none';
+           document.getElementById('pasteError').style.display = 'none';
+       }
 
-            <button class="action-btn btn-outline" style="margin-top: 40px;" onclick="resetImport()">
-                ← 返回并导入新题库
-            </button>
-        </div>
-    </div>
+       // ========== 文件导入 ==========
+       const uploadZone = document.getElementById('uploadZone');
+       
+       uploadZone.addEventListener('dragover', (e) => {
+           e.preventDefault();
+           uploadZone.classList.add('drag-over');
+       });
+       
+       uploadZone.addEventListener('dragleave', () => {
+           uploadZone.classList.remove('drag-over');
+       });
+       
+       uploadZone.addEventListener('drop', (e) => {
+           e.preventDefault();
+           uploadZone.classList.remove('drag-over');
+           const files = e.dataTransfer.files;
+           if (files.length > 0) processFile(files[0]);
+       });
 
-</div>
+       function handleFileSelect(e) {
+           if (e.target.files.length > 0) processFile(e.target.files[0]);
+       }
 
-<script>
-    let questions = [];
-    let originalQuestions = [];
-    let userAnswers = [];
-    let currentIndex = 0;
-    let isReviewMode = false;
+       function processFile(file) {
+           const reader = new FileReader();
+           reader.onload = (e) => {
+               const content = e.target.result;
+               // 尝试JSON解析，失败则按简易格式解析
+               try {
+                   const json = JSON.parse(content);
+                   parseImportData(json, false);
+               } catch {
+                   parseSimpleContent(content, false);
+               }
+           };
+           reader.onerror = () => showError('文件读取失败', 'file');
+           reader.readAsText(file);
+       }
 
-    // --- 1. 导入逻辑 ---
-    function setTab(mode) {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.input-area').forEach(a => a.classList.remove('active'));
-        if (mode === 'simple') {
-            document.querySelectorAll('.tab-btn')[0].classList.add('active');
-            document.getElementById('area-simple').classList.add('active');
-        } else {
-            document.querySelectorAll('.tab-btn')[1].classList.add('active');
-            document.getElementById('area-json').classList.add('active');
-        }
-    }
+       // ========== 文本粘贴 ==========
+       function parseText(type) {
+           if (type === 'simple') {
+               const text = document.getElementById('simpleInput').value.trim();
+               if (!text) { showError('请先粘贴题目内容', 'paste'); return; }
+               parseSimpleContent(text, false);
+           } else {
+               const text = document.getElementById('jsonInput').value.trim();
+               if (!text) { showError('请先粘贴JSON内容', 'paste'); return; }
+               try {
+                   const json = JSON.parse(text);
+                   // 如果是数组，直接解析；如果是对象且有q字段，包装成数组
+                   if (Array.isArray(json)) {
+                       parseImportData(json, false);
+                   } else if (json.q || json.question) {
+                       parseImportData([json], false);
+                   } else {
+                       showError('JSON格式错误：应为数组或包含q/question的对象', 'paste');
+                   }
+               } catch(e) {
+                   showError('JSON解析失败：' + e.message, 'paste');
+               }
+           }
+       }
 
-    function showError(msg, isJson = false) {
-        const errorEl = isJson ? document.getElementById('errorMsgJson') : document.getElementById('errorMsg');
-        errorEl.textContent = '❌ ' + msg;
-        errorEl.style.display = 'block';
-        setTimeout(() => { errorEl.style.display = 'none'; }, 5000);
-    }
+       // ========== 简易格式解析 ==========
+       function parseSimpleContent(text, isCheck) {
+           // 支持 --- 或 === 或 三个以上 - = 作为分隔符
+           const blocks = text.split(/\n\s*(?:---+|===+)\s*\n/).filter(b => b.trim());
+           if (blocks.length === 0) {
+               if (!isCheck) showError('未找到有效题目，请使用 --- 或 === 分隔题目', 'paste');
+               return false;
+           }
 
-    // 简易格式解析
-    function handleSimpleParse() {
-        const text = document.getElementById('simpleInput').value.trim();
-        if (!text) {
-            showError('请先粘贴题目内容');
-            return;
-        }
+           const parsed = [];
+           const errors = [];
 
-        try {
-            const blocks = text.split(/---+/).filter(b => b.trim());
-            if (blocks.length === 0) {
-                showError('未找到有效题目，请用 --- 分隔每道题');
-                return;
-            }
+           for (let i = 0; i < blocks.length; i++) {
+               const lines = blocks[i].split('\n').map(l => l.trim()).filter(l => l);
+               if (lines.length === 0) continue;
 
-            const parsed = [];
-            for (let i = 0; i < blocks.length; i++) {
-                const lines = blocks[i].split('\n').map(l => l.trim()).filter(l => l);
-                const q = { question: '', options: [], correctIndex: -1, explanation: '' };
+               const q = { question: '', options: [], correctIndex: -1, explanation: '' };
 
-                for (const line of lines) {
-                    if (line.match(/^Q[:：]/i)) {
-                        q.question = line.replace(/^Q[:：]/i, '').trim();
-                    } else if (line.match(/^[A-D][:：]/i)) {
-                        q.options.push(line.replace(/^[A-D][:：]/i, '').trim());
-                    } else if (line.match(/^(答案|ANSWER)[:：]/i)) {
-                        const ans = line.replace(/^(答案|ANSWER)[:：]/i, '').trim().toUpperCase();
-                        q.correctIndex = ans.charCodeAt(0) - 65; // A=0, B=1...
-                    } else if (line.match(/^(解析|EXPLAIN)[:：]/i)) {
-                        q.explanation = line.replace(/^(解析|EXPLAIN)[:：]/i, '').trim();
-                    }
-                }
+               for (const line of lines) {
+                   // 匹配题目行（Q: 或 纯文本开头）
+                   if (line.match(/^Q[:：]\s*/i)) {
+                       q.question = line.replace(/^Q[:：]\s*/i, '');
+                   }
+                   // 匹配选项 A: B: C: D: 支持中英文冒号
+                   else if (line.match(/^[A-Da-d][:：、.]\s*/)) {
+                       const content = line.replace(/^[A-Da-d][:：、.]\s*/, '');
+                       q.options.push(content);
+                   }
+                   // 匹配答案（答案: 或 Answer:）
+                   else if (line.match(/^(答案|Answer)[:：]\s*/i)) {
+                       const ans = line.replace(/^(答案|Answer)[:：]\s*/i, '').trim();
+                       if (/^[A-Da-d]$/.test(ans)) {
+                           q.correctIndex = ans.toUpperCase().charCodeAt(0) - 65;
+                       } else if (/^\d+$/.test(ans)) {
+                           q.correctIndex = parseInt(ans);
+                       }
+                   }
+                   // 匹配解析
+                   else if (line.match(/^(解析|Explain|Note|注释)[:：]\s*/i)) {
+                       q.explanation = line.replace(/^(解析|Explain|Note|注释)[:：]\s*/i, '');
+                   }
+                   // 如果没有Q标记，第一行非选项内容作为题目
+                   else if (!q.question && !line.match(/^[A-Da-d][:：、.]/)) {
+                       q.question = line;
+                   }
+               }
 
-                // 验证
-                if (!q.question) {
-                    showError(`第 ${i + 1} 题缺少题目 (Q:)`);
-                    return;
-                }
-                if (q.options.length < 2) {
-                    showError(`第 ${i + 1} 题选项不足 (至少需要A、B两个选项)`);
-                    return;
-                }
-                if (q.correctIndex < 0 || q.correctIndex >= q.options.length) {
-                    showError(`第 ${i + 1} 题答案无效或缺失`);
-                    return;
-                }
+               // 验证
+               if (!q.question) errors.push(`第${i+1}题：缺少题目`);
+               else if (q.options.length < 2) errors.push(`第${i+1}题：选项不足（至少需要2个）`);
+               else if (q.correctIndex < 0 || q.correctIndex >= q.options.length) errors.push(`第${i+1}题：答案无效或缺失`);
+               else parsed.push(q);
+           }
 
-                parsed.push(q);
-            }
+           if (errors.length > 0) {
+               if (!isCheck) showError(errors.join('；'), 'paste');
+               return false;
+           }
 
-            if (parsed.length > 0) {
-                originalQuestions = parsed;
-                showReady(parsed.length);
-            }
-        } catch (e) {
-            showError('解析失败：' + e.message);
-        }
-    }
+           if (parsed.length > 0 && !isCheck) {
+               originalQuestions = parsed;
+               showReady(parsed.length);
+           }
+           return parsed.length > 0;
+       }
 
-    // JSON格式解析
-    function handleJsonParse() {
-        const text = document.getElementById('jsonInput').value.trim();
-        if (!text) {
-            showError('请先粘贴JSON内容', true);
-            return;
-        }
+       // ========== JSON格式解析 ==========
+       function parseImportData(data, isCheck) {
+           if (!Array.isArray(data)) {
+               if (!isCheck) showError('数据必须为数组格式', 'paste');
+               return false;
+           }
 
-        try {
-            const data = JSON.parse(text);
-            if (!Array.isArray(data) || data.length === 0) {
-                showError('JSON必须是非空数组', true);
-                return;
-            }
+           const parsed = [];
+           const errors = [];
 
-            const parsed = [];
-            for (let i = 0; i < data.length; i++) {
-                const item = data[i];
-                
-                // 支持两种格式
-                let q;
-                if (item.q && item.o && item.a !== undefined) {
-                    // 简化格式
-                    q = {
-                        question: item.q,
-                        options: item.o,
-                        correctIndex: item.a,
-                        explanation: item.e || ''
-                    };
-                } else if (item.question && item.options && item.correctIndex !== undefined) {
-                    // 完整格式
-                    q = item;
-                } else {
-                    showError(`第 ${i + 1} 项格式错误`, true);
-                    return;
-                }
+           for (let i = 0; i < data.length; i++) {
+               const item = data[i];
+               const q = { question: '', options: [], correctIndex: 0, explanation: '' };
 
-                if (!Array.isArray(q.options) || q.options.length < 2) {
-                    showError(`第 ${i + 1} 项选项不足`, true);
-                    return;
-                }
-                if (q.correctIndex < 0 || q.correctIndex >= q.options.length) {
-                    showError(`第 ${i + 1} 项答案索引无效`, true);
-                    return;
-                }
+               // 兼容多种字段名
+               if (item.q !== undefined) {
+                   q.question = item.q;
+                   q.options = Array.isArray(item.o) ? item.o : [];
+                   // 答案可能是数字或字母
+                   if (typeof item.a === 'string' && /^[A-Da-d]$/.test(item.a)) {
+                       q.correctIndex = item.a.toUpperCase().charCodeAt(0) - 65;
+                   } else {
+                       q.correctIndex = parseInt(item.a) || 0;
+                   }
+                   q.explanation = item.e || '';
+               } else if (item.question !== undefined) {
+                   q.question = item.question;
+                   q.options = Array.isArray(item.options) ? item.options : [];
+                   if (typeof item.correctIndex === 'string' && /^[A-Da-d]$/.test(item.correctIndex)) {
+                       q.correctIndex = item.correctIndex.toUpperCase().charCodeAt(0) - 65;
+                   } else {
+                       q.correctIndex = parseInt(item.correctIndex) || parseInt(item.answer) || 0;
+                   }
+                   q.explanation = item.explanation || item.explain || '';
+               } else {
+                   errors.push(`第${i+1}项：缺少必要的题目字段`);
+                   continue;
+               }
 
-                parsed.push(q);
-            }
+               if (!q.question) errors.push(`第${i+1}项：题目内容为空`);
+               else if (q.options.length < 2) errors.push(`第${i+1}项：选项不足2个`);
+               else if (q.correctIndex < 0 || q.correctIndex >= q.options.length) errors.push(`第${i+1}项：答案索引超出范围`);
+               else parsed.push(q);
+           }
 
-            if (parsed.length > 0) {
-                originalQuestions = parsed;
-                showReady(parsed.length);
-            }
-        } catch (e) {
-            showError('JSON解析失败：' + e.message, true);
-        }
-    }
+           if (errors.length > 0) {
+               if (!isCheck) showError(errors.join('；'), 'paste');
+               return false;
+           }
 
-    function showReady(count) {
-        document.getElementById('qCount').innerText = count;
-        document.getElementById('setup-panel').style.display = 'none';
-        document.getElementById('ready-panel').style.display = 'block';
-    }
+           if (parsed.length > 0 && !isCheck) {
+               originalQuestions = parsed;
+               showReady(parsed.length);
+           }
+           return parsed.length > 0;
+       }
 
-    function resetImport() {
-        questions = [];
-        originalQuestions = [];
-        userAnswers = [];
-        isReviewMode = false;
-        document.getElementById('simpleInput').value = '';
-        document.getElementById('jsonInput').value = '';
-        document.getElementById('setup-panel').style.display = 'block';
-        document.getElementById('ready-panel').style.display = 'none';
-        switchView('homeView');
-    }
+       // ========== 辅助功能 ==========
+       function showError(msg, type) {
+           const el = type === 'file' ? document.getElementById('fileError') : document.getElementById('pasteError');
+           el.textContent = msg;
+           el.style.display = 'block';
+           setTimeout(() => { el.style.display = 'none'; }, 5000);
+       }
 
-    // --- 2. 打乱逻辑 ---
-    function shuffleArray(arr) {
-        const newArr = [...arr];
-        for (let i = newArr.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
-        }
-        return newArr;
-    }
+       function showReady(count) {
+           document.getElementById('qCount').innerText = count;
+           document.getElementById('setup-panel').style.display = 'none';
+           document.getElementById('ready-panel').style.display = 'block';
+       }
 
-    function prepareQuestions() {
-        questions = JSON.parse(JSON.stringify(originalQuestions));
+       function resetImport() {
+           originalQuestions = [];
+           questions = [];
+           userAnswers = [];
+           currentIndex = 0;
+           isReviewMode = false;
+           
+           // 清空输入
+           document.getElementById('fileInput').value = '';
+           document.getElementById('simpleInput').value = '';
+           document.getElementById('jsonInput').value = '';
+           
+           // 重置界面
+           document.getElementById('setup-panel').style.display = 'block';
+           document.getElementById('ready-panel').style.display = 'none';
+           hideErrors();
+           switchView('homeView');
+       }
 
-        // 打乱题目顺序
-        if (document.getElementById('shuffleQuestions').checked) {
-            questions = shuffleArray(questions);
-        }
+       function switchView(id) {
+           document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+           document.getElementById(id).classList.add('active');
+       }
 
-        // 打乱选项顺序
-        if (document.getElementById('shuffleOptions').checked) {
-            questions.forEach(q => {
-                const correctOption = q.options[q.correctIndex];
-                const indices = q.options.map((_, i) => i);
-                const shuffledIndices = shuffleArray(indices);
-                
-                q.options = shuffledIndices.map(i => q.options[i]);
-                q.correctIndex = q.options.indexOf(correctOption);
-            });
-        }
-    }
+       // ========== 答题逻辑 ==========
+       function shuffleArray(arr) {
+           const newArr = [...arr];
+           for (let i = newArr.length - 1; i > 0; i--) {
+               const j = Math.floor(Math.random() * (i + 1));
+               [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+           }
+           return newArr;
+       }
 
-    // --- 3. 答题逻辑 ---
-    function switchView(id) {
-        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    }
+       function startQuiz() {
+           // 深拷贝并应用打乱
+           questions = JSON.parse(JSON.stringify(originalQuestions));
 
-    function confirmExit() {
-        if(isReviewMode) showResult();
-        else if(confirm("确定退出？进度将丢失。")) resetImport();
-    }
+           if (document.getElementById('shuffleQuestions').checked) {
+               questions = shuffleArray(questions);
+           }
 
-    function startQuiz() {
-        prepareQuestions();
-        currentIndex = 0;
-        userAnswers = new Array(questions.length).fill(null);
-        isReviewMode = false;
-        renderQ();
-        switchView('quizView');
-    }
+           if (document.getElementById('shuffleOptions').checked) {
+               questions.forEach(q => {
+                   const correctContent = q.options[q.correctIndex];
+                   q.options = shuffleArray(q.options);
+                   q.correctIndex = q.options.indexOf(correctContent);
+               });
+           }
 
-    function renderQ() {
-        const q = questions[currentIndex];
-        const record = userAnswers[currentIndex];
+           userAnswers = new Array(questions.length).fill(null);
+           currentIndex = 0;
+           isReviewMode = false;
+           renderQuestion();
+           switchView('quizView');
+       }
 
-        document.getElementById('progressText').innerText = `${currentIndex + 1} / ${questions.length}`;
-        document.getElementById('questionText').innerText = q.question;
-        
-        const container = document.getElementById('optionsContainer');
-        container.innerHTML = '';
-        document.getElementById('analysisBox').style.display = 'none';
+       function renderQuestion() {
+           const q = questions[currentIndex];
+           const record = userAnswers[currentIndex];
 
-        q.options.forEach((opt, idx) => {
-            const btn = document.createElement('div');
-            btn.className = 'option-item';
-            btn.innerText = opt;
+           document.getElementById('progressText').innerText = `${currentIndex + 1} / ${questions.length}`;
+           document.getElementById('questionText').innerText = q.question;
 
-            if (record) {
-                btn.classList.add('disabled');
-                if (idx === q.correctIndex) btn.classList
-.add('correct');
-                if (idx === record.selectedIndex && !record.isCorrect) btn.classList.add('wrong');
-            } else {
-                btn.onclick = () => handleAnswer(idx, btn);
-            }
-            container.appendChild(btn);
-        });
+           const container = document.getElementById('optionsContainer');
+           container.innerHTML = '';
+           document.getElementById('analysisBox').style.display = 'none';
 
-        if (record) showAnalysis(q.explanation);
-        
-        const prev = document.getElementById('prevBtn');
-        const next = document.getElementById('nextBtn');
-        prev.style.visibility = currentIndex === 0 ? 'hidden' : 'visible';
-        
-        if (isReviewMode) {
-            next.innerText = "返回结果";
-            next.onclick = showResult;
-        } else {
-            next.innerText = (currentIndex === questions.length - 1) ? "提交" : "下一题";
-            next.onclick = (currentIndex === questions.length - 1) ? showResult : nextQ;
-        }
-    }
+           q.options.forEach((opt, idx) => {
+               const btn = document.createElement('div');
+               btn.className = 'option-item';
+               btn.innerText = String.fromCharCode(65 + idx) + '. ' + opt;
 
-    function handleAnswer(idx, el) {
-        const q = questions[currentIndex];
-        const isCorrect = (idx === q.correctIndex);
-        userAnswers[currentIndex] = { selectedIndex: idx, isCorrect };
+               if (record) {
+                   btn.classList.add('disabled');
+                   if (idx === q.correctIndex) btn.classList.add('correct');
+                   if (idx === record.selectedIndex && idx !== q.correctIndex) btn.classList.add('wrong');
+               } else {
+                   btn.onclick = () => handleAnswer(idx, btn);
+               }
+               container.appendChild(btn);
+           });
 
-        const allOpts = document.querySelectorAll('.option-item');
-        allOpts.forEach(o => o.classList.add('disabled'));
+           if (record && q.explanation) showAnalysis(q.explanation);
+           updateNavButtons();
+       }
 
-        if (isCorrect) el.classList.add('correct');
-        else {
-            el.classList.add('wrong');
-            allOpts[q.correctIndex].classList.add('correct');
-        }
-        showAnalysis(q.explanation);
-    }
+       function handleAnswer(idx, el) {
+           const q = questions[currentIndex];
+           const isCorrect = idx === q.correctIndex;
+           userAnswers[currentIndex] = { selectedIndex: idx, isCorrect };
 
-    function showAnalysis(txt) {
-        if(txt) {
-            document.getElementById('analysisContent').innerText = txt;
-            document.getElementById('analysisBox').style.display = 'block';
-            setTimeout(() => {
-                const rightPanel = document.querySelector('.quiz-right-panel');
-                if (rightPanel) {
-                    rightPanel.scrollTop = rightPanel.scrollHeight;
-                } else {
-                    document.querySelector('.quiz-content').scrollTop = document.querySelector('.quiz-content').scrollHeight;
-                }
-            }, 100);
-        }
-    }
+           const allOpts = document.querySelectorAll('.option-item');
+           allOpts.forEach(o => o.classList.add('disabled'));
 
-    function prevQ() { if(currentIndex>0) { currentIndex--; renderQ(); } }
-    function nextQ() { if(currentIndex<questions.length-1) { currentIndex++; renderQ(); } }
+           if (isCorrect) {
+               el.classList.add('correct');
+           } else {
+               el.classList.add('wrong');
+               allOpts[q.correctIndex].classList.add('correct');
+           }
 
-    // --- 4. 汇总逻辑 ---
-    function showResult() {
-        switchView('resultView');
-        
-        let correct = 0;
-        userAnswers.forEach(u => { if(u && u.isCorrect) correct++; });
-        const pct = questions.length ? Math.round((correct / questions.length) * 100) : 0;
+           if (q.explanation) showAnalysis(q.explanation);
+           updateNavButtons();
+       }
 
-        const circle = document.getElementById('scoreCircle');
-        const circumference = 2 * Math.PI * 60;
-        const offset = circumference - (pct / 100) * circumference;
-        
-        circle.style.strokeDasharray = circumference;
-        circle.style.strokeDashoffset = circumference;
-        circle.getBoundingClientRect();
-        circle.style.strokeDashoffset = offset;
+       function showAnalysis(txt) {
+           document.getElementById('analysisContent').innerText = txt;
+           document.getElementById('analysisBox').style.display = 'block';
+       }
 
-        document.getElementById('scoreVal').innerText = pct;
+       function updateNavButtons() {
+           const prev = document.getElementById('prevBtn');
+           const next = document.getElementById('nextBtn');
+           const isLast = currentIndex === questions.length - 1;
 
-        const grid = document.getElementById('resultGrid');
-        grid.innerHTML = '';
-        questions.forEach((q, i) => {
-            const d = document.createElement('div');
-            d.className = 'grid-dot';
-            d.innerText = i + 1;
-            const ans = userAnswers[i];
-            if(ans) {
-                if(ans.isCorrect) d.classList.add('correct');
-                else d.classList.add('wrong');
-            }
-            d.onclick = () => { currentIndex = i; isReviewMode = true; renderQ(); switchView('quizView'); };
-            grid.appendChild(d);
-        });
-    }
-</script>
+           prev.style.visibility = currentIndex === 0 ? 'hidden' : 'visible';
+
+           if (isReviewMode) {
+               next.innerText = '返回结果';
+               next.onclick = showResult;
+           } else {
+               next.innerText = isLast ? '提交' : '下一题';
+               next.onclick = isLast ? showResult : nextQ;
+           }
+       }
+
+       function prevQ() {
+           if (currentIndex > 0) {
+               currentIndex--;
+               renderQuestion();
+           }
+       }
+
+       function nextQ() {
+           if (currentIndex < questions.length - 1) {
+               currentIndex++;
+               renderQuestion();
+           }
+       }
+
+       function confirmExit() {
+           if (isReviewMode) {
+               showResult();
+           } else if (confirm('确定退出？当前进度将丢失。')) {
+               resetImport();
+           }
+       }
+
+       function showResult() {
+           switchView('resultView');
+           isReviewMode = false;
+
+           let correct = 0;
+           userAnswers.forEach(u => { if (u && u.isCorrect) correct++; });
+           const pct = questions.length ? Math.round((correct / questions.length) * 100) : 0;
+
+           const circle = document.getElementById('scoreCircle');
+           const circumference = 2 * Math.PI * 60;
+           const offset = circumference - (pct / 100) * circumference;
+           circle.style.strokeDasharray = circumference;
+           circle.style.strokeDashoffset = circumference;
+           setTimeout(() => { circle.style.strokeDashoffset = offset; }, 50);
+
+           document.getElementById('scoreVal').innerText = pct;
+
+           const grid = document.getElementById('resultGrid');
+           grid.innerHTML = '';
+           questions.forEach((q, i) => {
+               const dot = document.createElement('div');
+               dot.className = 'grid-dot';
+               dot.innerText = i + 1;
+               const ans = userAnswers[i];
+               if (ans) {
+                   dot.classList.add(ans.isCorrect ? 'correct' : 'wrong');
+               }
+               dot.onclick = () => {
+                   currentIndex = i;
+                   isReviewMode = true;
+                   renderQuestion();
+                   switchView('quizView');
+               };
+               grid.appendChild(dot);
+           });
+       }
+   </script>
 </body>
 </html>

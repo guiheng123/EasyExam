@@ -1,2113 +1,2471 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-   <meta charset="UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-   <title>极简答题系统 Pro</title>
-   <style>
-       :root {
-           --primary-color: #4e6ef2;
-           --primary-hover: #405bd4;
-           --bg-color: #f0f2f5;
-           --card-bg: #ffffff;
-           --text-main: #333333;
-           --text-secondary: #666666;
-           --correct-color: #e5f9e7;
-           --correct-text: #2ba471;
-           --wrong-color: #feebeb;
-           --wrong-text: #d93025;
-           --border-radius: 16px;
-           --shadow-md: 0 8px 30px rgba(0,0,0,0.08);
-       }
-
-       * { box-sizing: border-box; }
-
-       body {
-           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-           background-color: var(--bg-color);
-           color: var(--text-main);
-           margin: 0;
-           display: flex;
-           justify-content: center;
-           align-items: center;
-           min-height: 100vh;
-       }
-
-       .container {
-           width: 100%;
-           height: 100vh;
-           background-color: var(--card-bg);
-           display: flex;
-           flex-direction: column;
-           position: relative;
-           overflow: hidden;
-           transition: all 0.3s ease;
-       }
-
-       @media (min-width: 768px) {
-           .container {
-               width: 90%;
-               max-width: 1000px;
-               height: 85vh;
-               max-height: 800px;
-               border-radius: 20px;
-               box-shadow: var(--shadow-md);
-           }
-           body { background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%); }
-       }
-
-       .view-section {
-           display: none;
-           flex-direction: column;
-           height: 100%;
-           width: 100%;
-           animation: fadeIn 0.3s ease;
-       }
-
-       .view-section.active { display: flex; }
-
-       @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-       .header {
-           padding: 15px 25px;
-           display: flex;
-           align-items: center;
-           font-size: 18px;
-           font-weight: 700;
-           border-bottom: 1px solid #f0f0f0;
-           background: #fff;
-           flex-shrink: 0;
-           z-index: 10;
-       }
-
-       .back-icon {
-           margin-right: 15px;
-           font-size: 20px;
-           cursor: pointer;
-           padding: 5px;
-           border-radius: 50%;
-           transition: background 0.2s;
-           color: var(--text-secondary);
-       }
-
-       .back-icon:hover { background-color: #f5f5f5; }
-
-       .home-layout {
-           flex: 1;
-           padding: 30px;
-           display: flex;
-           flex-direction: column;
-           align-items: center;
-           justify-content: center;
-           overflow-y: auto;
-       }
-
-       #setup-panel {
-           width: 100%;
-           max-width: 600px;
-           text-align: center;
-       }
-
-       /* Tab切换 */
-       .tab-group {
-           display: flex;
-           background: #f1f5f9;
-           padding: 4px;
-           border-radius: 10px;
-           margin-bottom: 20px;
-       }
-
-       .tab-btn {
-           flex: 1;
-           padding: 8px;
-           font-size: 14px;
-           font-weight: 600;
-           color: #6b7280;
-           cursor: pointer;
-           border-radius: 8px;
-           transition: 0.2s;
-           border: none;
-           background: transparent;
-       }
-
-       .tab-btn.active {
-           background: #fff;
-           color: var(--primary-color);
-           box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-       }
-
-       /* 输入区域 */
-       .input-area { display: none; }
-       .input-area.active { display: block; animation: fadeIn 0.2s; }
-
-       /* 文件上传区域 */
-       .upload-zone {
-           border: 2px dashed #e2e8f0;
-           border-radius: 16px;
-           padding: 40px 20px;
-           background: #f8fafc;
-           cursor: pointer;
-           transition: all 0.2s;
-       }
-
-       .upload-zone:hover { border-color: var(--primary-color); background: #f0f7ff; }
-       .upload-zone.drag-over { border-color: var(--primary-color); background: #e0edff; }
-
-       .upload-icon { font-size: 32px; margin-bottom: 10px; }
-       .upload-text { font-size: 14px; color: var(--text-secondary); margin-bottom: 5px; }
-       .upload-hint { font-size: 12px; color: #94a3b8; }
-
-       /* 文本粘贴框 */
-       .paste-box {
-           width: 100%;
-           height: 200px;
-           padding: 12px;
-           border: 1px solid #e2e8f0;
-           border-radius: 12px;
-           resize: vertical;
-           font-family: monospace;
-           font-size: 13px;
-           background: #f8fafc;
-           margin-bottom: 10px;
-       }
-
-       .paste-box:focus { outline: none; border-color: var(--primary-color); background: #fff; }
-
-       /* 子Tab（预设/自定义） */
-       .sub-tab { 
-           display: flex; 
-           gap: 8px; 
-           margin-bottom: 15px; 
-           justify-content: center;
-           flex-wrap: wrap;
-       }
-       .sub-tab-btn {
-           padding: 8px 20px;
-           font-size: 13px;
-           font-weight: 600;
-           border: 1px solid #e2e8f0;
-           background: white;
-           border-radius: 20px;
-           cursor: pointer;
-           color: #6b7280;
-           transition: all 0.2s;
-       }
-       .sub-tab-btn.active { 
-           border-color: var(--primary-color); 
-           color: var(--primary-color); 
-           background: #f0f7ff;
-           box-shadow: 0 2px 4px rgba(78, 110, 242, 0.1);
-       }
-
-       /* 预设格式卡片 */
-       .preset-list {
-           display: grid;
-           grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-           gap: 12px;
-           margin-bottom: 15px;
-       }
-
-       .preset-card {
-           border: 2px solid #e2e8f0;
-           border-radius: 12px;
-           padding: 14px;
-           cursor: pointer;
-           transition: all 0.2s;
-           background: white;
-           text-align: left;
-           position: relative;
-       }
-
-       .preset-card:hover {
-           border-color: var(--primary-color);
-           box-shadow: 0 4px 12px rgba(78, 110, 242, 0.15);
-           transform: translateY(-2px);
-       }
-
-       .preset-card.selected {
-           border-color: var(--primary-color);
-           background: #f0f7ff;
-       }
-
-       .preset-card-title {
-           font-weight: 600;
-           font-size: 15px;
-           margin-bottom: 6px;
-           color: var(--text-main);
-       }
-
-       .preset-card-desc {
-           font-size: 12px;
-           color: var(--text-secondary);
-           line-height: 1.5;
-           margin-bottom: 8px;
-       }
-
-       .preset-card-example-btn {
-           display: inline-block;
-           padding: 4px 10px;
-           background: #f1f5f9;
-           border-radius: 6px;
-           font-size: 11px;
-           color: var(--primary-color);
-           cursor: pointer;
-           margin-top: 4px;
-           transition: 0.2s;
-       }
-
-       .preset-card-example-btn:hover {
-           background: #e0edff;
-       }
-
-       /* 例题模态框 */
-       .modal-overlay {
-           display: none;
-           position: fixed;
-           top: 0;
-           left: 0;
-           right: 0;
-           bottom: 0;
-           background: rgba(0, 0, 0, 0.5);
-           z-index: 1000;
-           align-items: center;
-           justify-content: center;
-           animation: fadeIn 0.2s;
-       }
-
-       .modal-overlay.active {
-           display: flex;
-       }
-
-       .modal-content {
-           background: white;
-           border-radius: 16px;
-           max-width: 600px;
-           width: 90%;
-           max-height: 80vh;
-           overflow-y: auto;
-           padding: 0;
-           animation: slideUp 0.3s;
-       }
-
-       @keyframes slideUp {
-           from { transform: translateY(20px); opacity: 0; }
-           to { transform: translateY(0); opacity: 1; }
-       }
-
-       .modal-header {
-           padding: 20px;
-           border-bottom: 1px solid #f0f0f0;
-           display: flex;
-           justify-content: space-between;
-           align-items: center;
-           position: sticky;
-           top: 0;
-           background: white;
-           z-index: 1;
-       }
-
-       .modal-title {
-           font-size: 18px;
-           font-weight: 600;
-           color: var(--text-main);
-       }
-
-       .modal-close {
-           cursor: pointer;
-           font-size: 24px;
-           color: var(--text-secondary);
-           width: 32px;
-           height: 32px;
-           display: flex;
-           align-items: center;
-           justify-content: center;
-           border-radius: 50%;
-           transition: 0.2s;
-       }
-
-       .modal-close:hover {
-           background: #f5f5f5;
-       }
-
-       .modal-body {
-           padding: 20px;
-       }
-
-       .example-section {
-           background: #f8fafc;
-           border-radius: 8px;
-           padding: 15px;
-           margin-bottom: 15px;
-       }
-
-       .example-title {
-           font-size: 13px;
-           font-weight: 600;
-           color: var(--text-main);
-           margin-bottom: 8px;
-       }
-
-       .example-code {
-           background: #1e293b;
-           color: #e2e8f0;
-           padding: 12px;
-           border-radius: 6px;
-           font-family: 'Courier New', monospace;
-           font-size: 12px;
-           line-height: 1.6;
-           white-space: pre-wrap;
-           overflow-x: auto;
-       }
-
-       .copy-example-btn {
-           margin-top: 10px;
-           padding: 8px 16px;
-           background: var(--primary-color);
-           color: white;
-           border: none;
-           border-radius: 6px;
-           cursor: pointer;
-           font-size: 12px;
-           transition: 0.2s;
-       }
-
-       .copy-example-btn:hover {
-           background: var(--primary-hover);
-       }
-
-       /* 自定义格式编辑器 - 重新设计 */
-       .custom-format-container {
-           text-align: left;
-       }
-
-       .custom-mode-switch {
-           display: flex;
-           gap: 10px;
-           margin-bottom: 20px;
-           background: #f8fafc;
-           padding: 8px;
-           border-radius: 10px;
-       }
-
-       .mode-btn {
-           flex: 1;
-           padding: 10px;
-           border: 2px solid transparent;
-           background: white;
-           border-radius: 8px;
-           cursor: pointer;
-           font-size: 13px;
-           font-weight: 600;
-           color: var(--text-secondary);
-           transition: 0.2s;
-           text-align: center;
-       }
-
-       .mode-btn.active {
-           border-color: var(--primary-color);
-           color: var(--primary-color);
-           background: #f0f7ff;
-       }
-
-       .mode-desc {
-           font-size: 11px;
-           display: block;
-           margin-top: 4px;
-           font-weight: normal;
-       }
-
-       .custom-simple-mode,
-       .custom-advanced-mode {
-           display: none;
-       }
-
-       .custom-simple-mode.active,
-       .custom-advanced-mode.active {
-           display: block;
-       }
-
-       /* 简单模式 */
-       .simple-format-builder {
-           background: #f8fafc;
-           border: 1px solid #e2e8f0;
-           border-radius: 12px;
-           padding: 20px;
-       }
-
-       .format-field {
-           margin-bottom: 16px;
-       }
-
-       .format-field label {
-           display: flex;
-           align-items: center;
-           font-size: 13px;
-           font-weight: 600;
-           margin-bottom: 6px;
-           color: var(--text-main);
-       }
-
-       .help-icon {
-           margin-left: 6px;
-           display: inline-flex;
-           align-items: center;
-           justify-content: center;
-           width: 16px;
-           height: 16px;
-           background: #e2e8f0;
-           color: var(--text-secondary);
-           border-radius: 50%;
-           font-size: 11px;
-           cursor: help;
-       }
-
-       .format-field input {
-           width: 100%;
-           padding: 10px 12px;
-           border: 1px solid #e2e8f0;
-           border-radius: 8px;
-           font-size: 13px;
-           transition: 0.2s;
-       }
-
-       .format-field input:focus {
-           outline: none;
-           border-color: var(--primary-color);
-           box-shadow: 0 0 0 3px rgba(78, 110, 242, 0.1);
-       }
-
-       .format-field-help {
-           font-size: 11px;
-           color: #94a3b8;
-           margin-top: 4px;
-           line-height: 1.4;
-       }
-
-       .quick-templates {
-           display: grid;
-           grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-           gap: 8px;
-           margin-top: 8px;
-       }
-
-       .template-chip {
-           padding: 6px 10px;
-           background: white;
-           border: 1px solid #e2e8f0;
-           border-radius: 6px;
-           font-size: 11px;
-           cursor: pointer;
-           text-align: center;
-           transition: 0.2s;
-       }
-
-       .template-chip:hover {
-           border-color: var(--primary-color);
-           color: var(--primary-color);
-       }
-
-       /* 高级模式 */
-       .advanced-format-editor {
-           background: #f8fafc;
-           border: 1px solid #e2e8f0;
-           border-radius: 12px;
-           padding: 20px;
-       }
-
-       .regex-field {
-           margin-bottom: 20px;
-       }
-
-       .regex-input-group {
-           position: relative;
-       }
-
-       .regex-input {
-           font-family: 'Courier New', monospace;
-           background: #1e293b;
-           color: #e2e8f0;
-           border: 2px solid #334155;
-       }
-
-       .regex-input:focus {
-           border-color: var(--primary-color);
-       }
-
-       .regex-test-btn {
-           margin-top: 8px;
-           padding: 6px 12px;
-           background: #334155;
-           color: white;
-           border: none;
-           border-radius: 6px;
-           cursor: pointer;
-           font-size: 12px;
-       }
-
-       .regex-test-btn:hover {
-           background: #475569;
-       }
-
-       /* 保存的格式列表 */
-       .saved-formats {
-           margin-top: 20px;
-       }
-
-       .saved-formats-title {
-           font-size: 14px;
-           font-weight: 600;
-           margin-bottom: 12px;
-           color: var(--text-main);
-       }
-
-       .saved-format-item {
-           display: flex;
-           justify-content: space-between;
-           align-items: center;
-           padding: 12px;
-           background: white;
-           border: 1px solid #e2e8f0;
-           border-radius: 8px;
-           margin-bottom: 8px;
-           transition: 0.2s;
-       }
-
-       .saved-format-item:hover {
-           border-color: #cbd5e1;
-           box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-       }
-
-       .saved-format-info {
-           flex: 1;
-       }
-
-       .saved-format-name {
-           font-size: 13px;
-           font-weight: 600;
-           color: var(--text-main);
-           margin-bottom: 2px;
-       }
-
-       .saved-format-meta {
-           font-size: 11px;
-           color: var(--text-secondary);
-       }
-
-       .saved-format-actions {
-           display: flex;
-           gap: 6px;
-       }
-
-       .icon-btn {
-           padding: 6px 10px;
-           border: none;
-           background: #f1f5f9;
-           cursor: pointer;
-           font-size: 12px;
-           color: var(--text-secondary);
-           border-radius: 6px;
-           transition: 0.2s;
-       }
-
-       .icon-btn:hover {
-           background: #e2e8f0;
-           color: var(--text-main);
-       }
-
-       .icon-btn.primary {
-           background: var(--primary-color);
-           color: white;
-       }
-
-       .icon-btn.primary:hover {
-           background: var(--primary-hover);
-       }
-
-       /* 错误提示 */
-       .error-msg {
-           background: #fee;
-           border: 1px solid #fcc;
-           color: #c33;
-           padding: 10px;
-           border-radius: 8px;
-           margin-top: 10px;
-           font-size: 13px;
-           text-align: left;
-           display: none;
-       }
-
-       .action-btn {
-           width: 100%;
-           padding: 12px;
-           border-radius: 10px;
-           border: none;
-           font-size: 15px;
-           font-weight: 600;
-           cursor: pointer;
-           transition: 0.2s;
-           margin-top: 10px;
-       }
-
-       .btn-primary { background: var(--primary-color); color: white; }
-       .btn-primary:hover { background: var(--primary-hover); }
-       .btn-outline { background: transparent; border: 1px solid #e2e8f0; color: #6b7280; margin-top: 8px; }
-       .btn-outline:hover { border-color: #6b7280; color: var(--text-main); background: #f8fafc; }
-
-       /* 准备就绪面板 */
-       #ready-panel {
-           display: none;
-           text-align: center;
-           width: 100%;
-           max-width: 400px;
-           animation: slideUp 0.3s ease;
-       }
-
-       .file-card {
-           background: white;
-           border: 1px solid #e2e8f0;
-           border-radius: 16px;
-           padding: 20px;
-           margin-bottom: 20px;
-           box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-       }
-
-       .shuffle-options {
-           background: #f8fafc;
-           border: 1px solid #e2e8f0;
-           border-radius: 12px;
-           padding: 15px;
-           margin-bottom: 15px;
-           text-align: left;
-       }
-
-       .shuffle-options label { display: flex; align-items: center; margin: 8px 0; cursor: pointer; font-size: 14px; color: var(--text-secondary); }
-       .shuffle-options input[type="checkbox"] { margin-right: 8px; width: 16px; height: 16px; accent-color: var(--primary-color); }
-
-       /* 答题页面 */
-       .quiz-content {
-           flex: 1;
-           padding: 20px 30px;
-           overflow-y: auto;
-       }
-
-       @media (min-width: 768px) {
-           .quiz-layout-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; height: 100%; }
-           .quiz-left-panel { border-right: 1px solid #eee; padding-right: 20px; display: flex; flex-direction: column; }
-           .quiz-right-panel { padding-left: 10px; overflow-y: auto; }
-           .question-text { font-size: 20px; }
-       }
-
-       @media (max-width: 767px) {
-           .quiz-layout-wrapper { display: flex; flex-direction: column; }
-           .question-text { font-size: 17px; }
-       }
-
-       .quiz-meta-info { color: #888; font-size: 13px; margin-bottom: 10px; }
-       .quiz-meta-info #progressText { color: var(--primary-color); font-weight: bold; }
-       .question-text { line-height: 1.6; margin-bottom: 20px; font-weight: 600; color: #222; }
-       .options-list { display: flex; flex-direction: column; gap: 12px; }
-       .option-item {
-           background-color: #f7f8fa;
-           padding: 16px 20px;
-           border-radius: 12px;
-           font-size: 16px;
-           cursor: pointer;
-           border: 2px solid transparent;
-           transition: all 0.2s;
-       }
-       .option-item:hover:not(.disabled) { background-color: #ebedf0; }
-       .option-item.correct { background-color: var(--correct-color); color: var(--correct-text); border-color: var(--correct-text); font-weight: 500; }
-       .option-item.wrong { background-color: var(--wrong-color); color: var(--wrong-text); border-color: var(--wrong-text); }
-       .disabled { pointer-events: none; }
-       .analysis-box {
-           margin-top: 20px;
-           padding: 15px;
-           background-color: #fff8e1;
-           border-radius: 8px;
-           font-size: 14px;
-           color: #666;
-           display: none;
-           line-height: 1.6;
-           border: 1px solid #ffeeba;
-       }
-
-       .quiz-footer {
-           padding: 20px 30px;
-           border-top: 1px solid #f0f0f0;
-           background: #fff;
-           display: flex;
-           gap: 20px;
-           flex-shrink: 0;
-       }
-
-       .nav-btn {
-           flex: 1;
-           padding: 14px;
-           border-radius: 30px;
-           font-size: 16px;
-           font-weight: 700;
-           border: none;
-           cursor: pointer;
-           transition: background-color 0.2s;
-       }
-
-       .btn-prev { background-color: #f5f5f5; color: #666; }
-       .btn-prev:hover { background-color: #e9e9e9; }
-       .btn-next { background-color: var(--primary-color); color: white; }
-       .btn-next:hover { background-color: var(--primary-hover); }
-
-       /* 结果页 */
-       .result-layout {
-           flex: 1;
-           padding: 30px;
-           overflow-y: auto;
-           display: flex;
-           flex-direction: column;
-           align-items: center;
-       }
-
-       .score-circle-box { position: relative; width: 140px; height: 140px; margin-bottom: 20px; }
-       .circle-bg { fill: none; stroke: #f1f5f9; stroke-width: 5; }
-       .circle-bar { fill: none; stroke: var(--primary-color); stroke-width: 5; stroke-linecap: round; stroke-dasharray: 377; stroke-dashoffset: 377; transition: stroke-dashoffset 1s ease; }
-       .score-val { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 36px; font-weight: 800; color: var(--text-main); }
-
-       .result-grid {
-           display: grid;
-           grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
-           gap: 8px;
-           width: 100%;
-           max-width: 400px;
-           margin-top: 10px;
-       }
-
-       .grid-dot {
-           aspect-ratio: 1;
-           border-radius: 6px;
-           font-size: 12px;
-           font-weight: 600;
-           display: flex;
-           align-items: center;
-           justify-content: center;
-           background: #f1f5f9;
-           color: #94a3b8;
-           cursor: pointer;
-           transition: 0.2s;
-       }
-       .grid-dot:hover { transform: scale(1.1); }
-       .grid-dot.correct { background: var(--correct-color); color: var(--correct-text); }
-       .grid-dot.wrong { background: var(--wrong-color); color: var(--wrong-text); }
-
-       .hidden { display: none; }
-   </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>极简答题系统 Pro</title>
+    <style>
+        :root {
+            --primary-color: #4e6ef2;
+            --primary-hover: #405bd4;
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-secondary: #666666;
+            --correct-color: #e5f9e7;
+            --correct-text: #2ba471;
+            --wrong-color: #feebeb;
+            --wrong-text: #d93025;
+            --border-radius: 16px;
+            --shadow-md: 0 8px 30px rgba(0,0,0,0.08);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 767px) {
+            body {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                overflow: hidden;
+                height: 100vh;
+            }
+            .container {
+                width: 100%;
+                height: 100vh;
+                overflow: hidden;
+            }
+        }
+
+        @media (min-width: 768px) {
+            body {
+                background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+                background-attachment: fixed;
+                display: flex;
+                justify-content: center;
+                padding: 40px 0;
+            }
+            .container {
+                width: 90%;
+                max-width: 1000px;
+                border-radius: 20px;
+                box-shadow: var(--shadow-md);
+                min-height: min(85vh, 700px);
+            }
+            .container:has(#homeView.active) { height: auto; }
+            .container:has(#quizView.active),
+            .container:has(#resultView.active) { height: min(85vh, 800px); }
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .view-section {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @media (max-width: 767px) { .view-section { height: 100%; } }
+        @media (min-width: 768px) {
+            #homeView { height: auto; min-height: 500px; }
+            #quizView, #resultView { height: 100%; }
+        }
+
+        .view-section.active { display: flex; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes scaleIn { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* ===== Header ===== */
+        .header {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 700;
+            border-bottom: 1px solid #f0f0f0;
+            background: #fff;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+        @media (min-width: 768px) {
+            .header { border-radius: 20px 20px 0 0; }
+        }
+
+        .back-icon {
+            margin-right: 15px;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background 0.2s;
+            color: var(--text-secondary);
+        }
+        .back-icon:hover { background-color: #f5f5f5; }
+
+        /* ===== 首页布局 ===== */
+        .home-layout {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        @media (max-width: 767px) {
+            .home-layout {
+                flex: 1;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                justify-content: flex-start;
+                padding-top: 40px;
+            }
+        }
+        @media (min-width: 768px) {
+            .home-layout { padding: 40px 30px; }
+        }
+
+        #setup-panel {
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .tab-group {
+            display: flex;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #6b7280;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: 0.2s;
+            border: none;
+            background: transparent;
+        }
+        .tab-btn.active {
+            background: #fff;
+            color: var(--primary-color);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .input-area { display: none; }
+        .input-area.active { display: block; animation: fadeIn 0.2s; }
+
+        .upload-zone {
+            border: 2px dashed #e2e8f0;
+            border-radius: 16px;
+            padding: 40px 20px;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .upload-zone:hover { border-color: var(--primary-color); background: #f0f7ff; }
+        .upload-zone.drag-over { border-color: var(--primary-color); background: #e0edff; }
+        .upload-icon { font-size: 32px; margin-bottom: 10px; }
+        .upload-text { font-size: 14px; color: var(--text-secondary); margin-bottom: 5px; }
+        .upload-hint { font-size: 12px; color: #94a3b8; }
+
+        .paste-box {
+            width: 100%;
+            height: 200px;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            resize: vertical;
+            font-family: monospace;
+            font-size: 13px;
+            background: #f8fafc;
+            margin-bottom: 10px;
+        }
+        .paste-box:focus { outline: none; border-color: var(--primary-color); background: #fff; }
+
+        .sub-tab {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .sub-tab-btn {
+            padding: 8px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            color: #6b7280;
+            transition: all 0.2s;
+        }
+        .sub-tab-btn.active {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background: #f0f7ff;
+            box-shadow: 0 2px 4px rgba(78,110,242,0.1);
+        }
+
+        .preset-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .preset-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+            text-align: left;
+        }
+        .preset-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(78,110,242,0.15);
+            transform: translateY(-2px);
+        }
+        .preset-card.selected {
+            border-color: var(--primary-color);
+            background: #f0f7ff;
+        }
+        .preset-card-title { font-weight: 600; font-size: 15px; margin-bottom: 6px; color: var(--text-main); }
+        .preset-card-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 8px; }
+        .preset-card-example-btn {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #f1f5f9;
+            border-radius: 6px;
+            font-size: 11px;
+            color: var(--primary-color);
+            cursor: pointer;
+            margin-top: 4px;
+            transition: 0.2s;
+        }
+        .preset-card-example-btn:hover { background: #e0edff; }
+
+        /* ===== 自定义对话框 ===== */
+        .dialog-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.35);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .dialog-overlay.active { display: flex; }
+
+        .dialog-box {
+            background: white;
+            border-radius: 18px;
+            width: 90%;
+            max-width: 380px;
+            padding: 28px 24px 20px;
+            animation: scaleIn 0.25s ease;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+        .dialog-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+        .dialog-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+        .dialog-message {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        .dialog-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .dialog-btn {
+            flex: 1;
+            padding: 11px 0;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .dialog-btn-cancel {
+            background: #f1f5f9;
+            color: #6b7280;
+        }
+        .dialog-btn-cancel:hover { background: #e2e8f0; }
+        .dialog-btn-confirm {
+            background: var(--primary-color);
+            color: white;
+        }
+        .dialog-btn-confirm:hover { background: var(--primary-hover); }
+        .dialog-btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        .dialog-btn-danger:hover { background: #dc2626; }
+
+        /* ===== 模态框 ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.35);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s;
+        }
+        .modal-overlay.active { display: flex; }
+
+        .modal-content {
+            background: white;
+            border-radius: 18px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 0;
+            animation: scaleIn 0.3s;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+            border-radius: 18px 18px 0 0;
+        }
+        .modal-title { font-size: 18px; font-weight: 600; color: var(--text-main); }
+        .modal-close {
+            cursor: pointer;
+            font-size: 18px;
+            color: var(--text-secondary);
+            width: 32px; height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+        .modal-close:hover { background: #f5f5f5; }
+        .modal-body { padding: 20px; }
+
+        .example-section {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .example-title { font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 8px; }
+        .example-code {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .copy-example-btn {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: 0.2s;
+        }
+        .copy-example-btn:hover { background: var(--primary-hover); }
+
+        /* ===== 自定义格式 ===== */
+        .custom-format-container { text-align: left; }
+        .custom-mode-switch {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: #f8fafc;
+            padding: 8px;
+            border-radius: 10px;
+        }
+        .mode-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid transparent;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: 0.2s;
+            text-align: center;
+        }
+        .mode-btn.active {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background: #f0f7ff;
+        }
+        .mode-desc { font-size: 11px; display: block; margin-top: 4px; font-weight: normal; }
+
+        .custom-simple-mode, .custom-advanced-mode { display: none; }
+        .custom-simple-mode.active, .custom-advanced-mode.active { display: block; }
+
+        .simple-format-builder, .advanced-format-editor {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .format-field { margin-bottom: 16px; }
+        .format-field label {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-main);
+        }
+        .help-icon {
+            margin-left: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px; height: 16px;
+            background: #e2e8f0;
+            color: var(--text-secondary);
+            border-radius: 50%;
+            font-size: 11px;
+            cursor: help;
+        }
+        .format-field input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+        .format-field input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(78,110,242,0.1);
+        }
+        .format-field-help { font-size: 11px; color: #94a3b8; margin-top: 4px; line-height: 1.4; }
+
+        .quick-templates {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .template-chip {
+            padding: 6px 10px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.2s;
+        }
+        .template-chip:hover { border-color: var(--primary-color); color: var(--primary-color); }
+
+        .regex-input {
+            font-family: 'Courier New', monospace !important;
+            background: #1e293b !important;
+            color: #e2e8f0 !important;
+            border: 2px solid #334155 !important;
+        }
+        .regex-input:focus { border-color: var(--primary-color) !important; }
+
+        .saved-formats { margin-top: 20px; }
+        .saved-formats-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--text-main); }
+        .saved-format-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: 0.2s;
+        }
+        .saved-format-item:hover { border-color: #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .saved-format-info { flex: 1; }
+        .saved-format-name { font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 2px; }
+        .saved-format-meta { font-size: 11px; color: var(--text-secondary); }
+        .saved-format-actions { display: flex; gap: 6px; }
+
+        .icon-btn {
+            padding: 6px 10px;
+            border: none;
+            background: #f1f5f9;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text-secondary);
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+        .icon-btn:hover { background: #e2e8f0; color: var(--text-main); }
+        .icon-btn.primary { background: var(--primary-color); color: white; }
+        .icon-btn.primary:hover { background: var(--primary-hover); }
+
+        .error-msg {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 13px;
+            text-align: left;
+            display: none;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 10px;
+        }
+        .btn-primary { background: var(--primary-color); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-outline { background: transparent; border: 1px solid #e2e8f0; color: #6b7280; margin-top: 8px; }
+        .btn-outline:hover { border-color: #6b7280; color: var(--text-main); background: #f8fafc; }
+
+        /* ===== 准备就绪 ===== */
+        #ready-panel {
+            display: none;
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+            animation: slideUp 0.3s ease;
+        }
+        .file-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        .shuffle-options {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .shuffle-options label { display: flex; align-items: center; margin: 8px 0; cursor: pointer; font-size: 14px; color: var(--text-secondary); }
+        .shuffle-options input[type="checkbox"] { margin-right: 8px; width: 16px; height: 16px; accent-color: var(--primary-color); }
+
+        /* ===== 设置按钮 ===== */
+        .settings-fab {
+            position: absolute;
+            bottom: 24px;
+            right: 24px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: white;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            z-index: 20;
+        }
+        .settings-fab:hover {
+            transform: rotate(30deg);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+            border-color: var(--primary-color);
+        }
+        .settings-fab svg {
+            width: 20px;
+            height: 20px;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+        .settings-fab:hover svg { color: var(--primary-color); }
+
+        /* ===== 设置面板 ===== */
+        .settings-panel {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.35);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 1500;
+            align-items: center;
+            justify-content: center;
+        }
+        .settings-panel.active { display: flex; }
+
+        .settings-content {
+            background: white;
+            border-radius: 18px;
+            width: 90%;
+            max-width: 460px;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: scaleIn 0.3s;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        .settings-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: white;
+            border-radius: 18px 18px 0 0;
+            z-index: 1;
+        }
+        .settings-header-title {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .settings-body { padding: 20px 24px; }
+
+        .setting-group {
+            margin-bottom: 24px;
+        }
+        .setting-group-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f8f8f8;
+        }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+        .setting-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        /* Toggle switch */
+        .toggle-switch {
+            position: relative;
+            width: 46px;
+            height: 26px;
+            flex-shrink: 0;
+        }
+        .toggle-switch input { display: none; }
+        .toggle-slider {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #e2e8f0;
+            border-radius: 26px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .toggle-slider:before {
+            content: "";
+            position: absolute;
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+        .toggle-switch input:checked + .toggle-slider { background: var(--primary-color); }
+        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+        /* Hotkey input */
+        .hotkey-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f8f8f8;
+        }
+        .hotkey-row:last-child { border-bottom: none; }
+        .hotkey-label {
+            font-size: 13px;
+            color: var(--text-main);
+            font-weight: 500;
+        }
+        .hotkey-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .hotkey-input {
+            width: 70px;
+            padding: 6px 10px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            background: #f8fafc;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+        .hotkey-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(78,110,242,0.12);
+        }
+        .hotkey-input.recording {
+            border-color: #f59e0b;
+            background: #fffbeb;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 3px rgba(245,158,11,0.1); }
+            50% { box-shadow: 0 0 0 6px rgba(245,158,11,0.15); }
+        }
+        .hotkey-reset-btn {
+            padding: 4px 8px;
+            border: none;
+            background: #f1f5f9;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            color: var(--text-secondary);
+            transition: 0.2s;
+        }
+        .hotkey-reset-btn:hover { background: #e2e8f0; }
+
+        .hotkeys-disabled-overlay {
+            position: relative;
+        }
+        .hotkeys-disabled-overlay.disabled::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.6);
+            border-radius: 8px;
+            z-index: 1;
+        }
+                /* ===== 答题页面 ===== */
+        .quiz-content {
+            flex: 1;
+            padding: 20px 30px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @media (min-width: 768px) {
+            .quiz-layout-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; height: 100%; }
+            .quiz-left-panel { border-right: 1px solid #eee; padding-right: 20px; display: flex; flex-direction: column; }
+            .quiz-right-panel { padding-left: 10px; overflow-y: auto; }
+            .question-text { font-size: 20px; }
+        }
+
+        @media (max-width: 767px) {
+            .quiz-layout-wrapper { display: flex; flex-direction: column; }
+            .question-text { font-size: 17px; }
+        }
+
+        .quiz-meta-info { color: #888; font-size: 13px; margin-bottom: 10px; }
+        .quiz-meta-info #progressText { color: var(--primary-color); font-weight: bold; }
+        .question-text { line-height: 1.6; margin-bottom: 20px; font-weight: 600; color: #222; }
+        .options-list { display: flex; flex-direction: column; gap: 12px; }
+        .option-item {
+            background-color: #f7f8fa;
+            padding: 16px 20px;
+            border-radius: 14px;
+            font-size: 16px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .option-item:hover:not(.disabled) { background-color: #ebedf0; }
+        .option-item.correct { background-color: var(--correct-color); color: var(--correct-text); border-color: var(--correct-text); font-weight: 500; border-radius: 14px; }
+        .option-item.wrong { background-color: var(--wrong-color); color: var(--wrong-text); border-color: var(--wrong-text); border-radius: 14px; }
+        .disabled { pointer-events: none; }
+        .analysis-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fff8e1;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #666;
+            display: none;
+            line-height: 1.6;
+            border: 1px solid #ffeeba;
+        }
+
+        .quiz-footer {
+            padding: 20px 30px;
+            border-top: 1px solid #f0f0f0;
+            background: #fff;
+            display: flex;
+            gap: 20px;
+            flex-shrink: 0;
+        }
+        @media (min-width: 768px) {
+            .quiz-footer { border-radius: 0 0 20px 20px; }
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .btn-prev { background-color: #f5f5f5; color: #666; }
+        .btn-prev:hover { background-color: #e9e9e9; }
+        .btn-next { background-color: var(--primary-color); color: white; }
+        .btn-next:hover { background-color: var(--primary-hover); }
+
+        /* ===== 结果页 ===== */
+        .result-layout {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .score-circle-box { position: relative; width: 140px; height: 140px; margin-bottom: 20px; }
+        .circle-bg { fill: none; stroke: #f1f5f9; stroke-width: 5; }
+        .circle-bar { fill: none; stroke: var(--primary-color); stroke-width: 5; stroke-linecap: round; stroke-dasharray: 377; stroke-dashoffset: 377; transition: stroke-dashoffset 1s ease; }
+        .score-val { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 36px; font-weight: 800; color: var(--text-main); }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            gap: 8px;
+            width: 100%;
+            max-width: 400px;
+            margin-top: 10px;
+        }
+        .grid-dot {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f1f5f9;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .grid-dot:hover { transform: scale(1.1); }
+        .grid-dot.correct { background: var(--correct-color); color: var(--correct-text); }
+        .grid-dot.wrong { background: var(--wrong-color); color: var(--wrong-text); }
+
+        .hidden { display: none; }
+
+        /* 快捷键提示气泡 */
+        .hotkey-hint {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30,41,59,0.9);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 900;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            backdrop-filter: blur(4px);
+        }
+        .hotkey-hint.show { opacity: 1; }
+    </style>
 </head>
 <body>
-   <div class="container">
-       <!-- 首页 -->
-       <div id="homeView" class="view-section active">
-           <div class="home-layout">
-               <div style="font-size: 40px; margin-bottom: 10px;">📝</div>
-               <h2 style="margin: 0 0 24px 0; color: var(--text-main); font-size: 20px;">极简答题 Pro</h2>
-               
-               <div id="setup-panel">
-                   <!-- 主Tab：文件 vs 粘贴 -->
-                   <div class="tab-group">
-                       <button class="tab-btn active" onclick="setTab('file')">📁 文件导入</button>
-                       <button class="tab-btn" onclick="setTab('paste')">📋 文本粘贴</button>
-                   </div>
-
-                   <!-- 文件导入区域 -->
-                   <div id="area-file" class="input-area active">
-                       <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
-                           <div class="upload-icon">📂</div>
-                           <div class="upload-text">点击选择文件或拖拽至此</div>
-                           <div class="upload-hint">支持 .txt .json 格式</div>
-                       </div>
-                       <input type="file" id="fileInput" accept=".txt,.json" class="hidden" onchange="handleFileSelect(event)">
-                       <div id="fileError" class="error-msg"></div>
-                   </div>
-
-                   <!-- 文本粘贴区域 -->
-                   <div id="area-paste" class="input-area">
-                       <!-- 子Tab：预设/自定义 -->
-                       <div class="sub-tab">
-                           <button class="sub-tab-btn active" onclick="setSubTab('preset')">🎯 预设格式</button>
-                           <button class="sub-tab-btn" onclick="setSubTab('custom')">⚙️ 自定义格式</button>
-                       </div>
-
-                       <!-- 预设格式面板 -->
-                       <div id="sub-preset" class="input-area active">
-                           <div class="preset-list" id="presetList"></div>
-                           <textarea id="presetInput" class="paste-box" placeholder="选择上方格式后，粘贴题目到此处..."></textarea>
-                           <button class="action-btn btn-primary" onclick="parseWithSelectedPreset()">解析题目</button>
-                       </div>
-
-                       <!-- 自定义格式面板 -->
-                       <div id="sub-custom" class="input-area">
-                           <div class="custom-format-container">
-                               <!-- 模式切换 -->
-                               <div class="custom-mode-switch">
-                                   <div class="mode-btn active" onclick="setCustomMode('simple')">
-                                       🎨 简单模式
-                                       <span class="mode-desc">适合初学者</span>
-                                   </div>
-                                   <div class="mode-btn" onclick="setCustomMode('advanced')">
-                                       🔧 高级模式
-                                       <span class="mode-desc">支持正则表达式</span>
-                                   </div>
-                               </div>
-
-                               <!-- 简单模式 -->
-                               <div class="custom-simple-mode active">
-                                   <div class="simple-format-builder">
-                                       <div class="format-field">
-                                           <label>
-                                               格式名称
-                                               <span class="help-icon" title="给你的格式起个名字">?</span>
-                                           </label>
-                                           <input type="text" id="simpleFormatName" placeholder="例如：我的考试格式">
-                                       </div>
-
-                                       <div class="format-field">
-                                           <label>
-                                               题目开始标记
-                                               <span class="help-icon" title="题目前面的标记符号">?</span>
-                                           </label>
-                                           <input type="text" id="simpleQuestionMarker" placeholder="例如：题目: 或 Q:">
-                                           <div class="format-field-help">常见格式：</div>
-                                           <div class="quick-templates">
-                                               <div class="template-chip" onclick="fillTemplate('question', 'Q:')">Q:</div>
-                                               <div class="template-chip" onclick="fillTemplate('question', '题目:')">题目:</div>
-                                               <div class="template-chip" onclick="fillTemplate('question', '【题】')">【题】</div>
-                                               <div class="template-chip" onclick="fillTemplate('question', '1.')">序号</div>
-                                           </div>
-                                       </div>
-
-                                       <div class="format-field">
-                                           <label>
-                                               选项格式
-                                               <span class="help-icon" title="选项的标记方式">?</span>
-                                           </label>
-                                           <input type="text" id="simpleOptionMarker" placeholder="例如：A. 或 (A)">
-                                           <div class="format-field-help">常见格式：</div>
-                                           <div class="quick-templates">
-                                               <div class="template-chip" onclick="fillTemplate('option', 'A.')">A.</div>
-                                               <div class="template-chip" onclick="fillTemplate('option', 'A:')">A:</div>
-                                               <div class="template-chip" onclick="fillTemplate('option', '(A)')>(A)</div>
-                                               <div class="template-chip" onclick="fillTemplate('option', '【A】')">【A】</div>
-                                           </div>
-                                       </div>
-
-                                       <div class="format-field">
-                                           <label>
-                                               答案标记
-                                               <span class="help-icon" title="正确答案前的标记">?</span>
-                                           </label>
-                                           <input type="text" id="simpleAnswerMarker" placeholder="例如：答案: 或 正确答案:">
-                                           <div class="format-field-help">常见格式：</div>
-                                           <div class="quick-templates">
-                                               <div class="template-chip" onclick="fillTemplate('answer', '答案:')">答案:</div>
-                                               <div class="template-chip" onclick="fillTemplate('answer', 'Answer:')">Answer:</div>
-                                               <div class="template-chip" onclick="fillTemplate('answer', '正确:')">正确:</div>
-                                           </div>
-                                       </div>
-
-                                       <div class="format-field">
-                                           <label>
-                                               解析标记（可选）
-                                               <span class="help-icon" title="答案解析前的标记，没有可不填">?</span>
-                                           </label>
-                                           <input type="text" id="simpleExplanationMarker" placeholder="例如：解析: 或 注释:">
-                                           <div class="format-field-help">常见格式：</div>
-                                           <div class="quick-templates">
-                                               <div class="template-chip" onclick="fillTemplate('explanation', '解析:')">解析:</div>
-                                               <div class="template-chip" onclick="fillTemplate('explanation', 'Explanation:')">Explanation:</div>
-                                               <div class="template-chip" onclick="fillTemplate('explanation', '注:')">注:</div>
-                                           </div>
-                                       </div>
-
-                                       <div class="format-field">
-                                           <label>
-                                               题目分隔符
-                                               <span class="help-icon" title="用来分隔不同题目的符号">?</span>
-                                           </label>
-                                           <input type="text" id="simpleSeparator" placeholder="例如：--- 或 ===">
-                                           <div class="format-field-help">常见格式：</div>
-                                           <div class="quick-templates">
-                                               <div class="template-chip" onclick="fillTemplate('separator', '---')">---</div>
-                                               <div class="template-chip" onclick="fillTemplate('separator', '===')">===</div>
-                                               <div class="template-chip" onclick="fillTemplate('separator', '###')">###</div>
-                                               <div class="template-chip" onclick="fillTemplate('separator', '空行')">空行</div>
-                                           </div>
-                                       </div>
-
-                                       <button class="action-btn btn-primary" onclick="saveSimpleFormat()">💾 保存格式</button>
-                                   </div>
-                               </div>
-
-                               <!-- 高级模式 -->
-                               <div class="custom-advanced-mode">
-                                   <div class="advanced-format-editor">
-                                       <div class="format-field">
-                                           <label>格式名称</label>
-                                           <input type="text" id="advancedFormatName" placeholder="格式名称">
-                                       </div>
-
-                                       <div class="regex-field">
-                                           <label>题目正则表达式</label>
-                                           <div class="regex-input-group">
-                                               <input type="text" class="format-field input regex-input" id="advancedQuestionRegex" placeholder="例如：^Q[:|：]\s*(.+)">
-                                           </div>
-                                           <div class="format-field-help">捕获组 (.*) 会提取题目内容</div>
-                                       </div>
-
-                                       <div class="regex-field">
-                                           <label>选项正则表达式</label>
-                                           <input type="text" class="format-field input regex-input" id="advancedOptionRegex" placeholder="例如：^[A-D][.:|：]\s*(.+)">
-                                           <div class="format-field-help">捕获组 (.*) 会提取选项内容</div>
-                                       </div>
-
-                                       <div class="regex-field">
-                                           <label>答案正则表达式</label>
-                                           <input type="text" class="format-field input regex-input" id="advancedAnswerRegex" placeholder="例如：^答案[:|：]\s*([A-D])">
-                                           <div class="format-field-help">捕获组 (.*) 会提取答案</div>
-                                       </div>
-
-                                       <div class="regex-field">
-                                           <label>解析正则表达式（可选）</label>
-                                           <input type="text" class="format-field input regex-input" id="advancedExplanationRegex" placeholder="例如：^解析[:|：]\s*(.+)">
-                                       </div>
-
-                                       <div class="format-field">
-                                           <label>题目分隔符正则</label>
-                                           <input type="text" class="format-field input regex-input" id="advancedSeparator" placeholder="例如：^-{3,}$">
-                                       </div>
-
-                                       <button class="action-btn btn-primary" onclick="saveAdvancedFormat()">💾 保存高级格式</button>
-                                   </div>
-                               </div>
-
-                               <!-- 已保存的格式 -->
-                               <div class="saved-formats">
-                                   <div class="saved-formats-title">📚 我的格式库</div>
-                                   <div id="savedFormatsList"></div>
-                               </div>
-                           </div>
-                       </div>
-
-                       <div id="pasteError" class="error-msg"></div>
-                   </div>
-               </div>
-
-               <!-- 准备就绪面板 -->
-               <div id="ready-panel">
-                   <div class="file-card">
-                       <div style="color: var(--correct-text); font-size: 24px; margin-bottom: 8px;">✓</div>
-                       <div style="font-weight: 600; margin-bottom: 4px;">题库已加载</div>
-                       <div style="color: var(--text-secondary); font-size: 13px;">共 <span id="qCount">0</span> 道题目</div>
-                   </div>
-                   <div class="shuffle-options">
-                       <div style="font-weight: 600; margin-bottom: 8px; color: var(--text-main);">🎲 答题设置</div>
-                       <label><input type="checkbox" id="shuffleQuestions" checked> 打乱题目顺序</label>
-                       <label><input type="checkbox" id="shuffleOptions" checked> 打乱选项顺序</label>
-                   </div>
-                   <button class="action-btn btn-primary" onclick="startQuiz()">开始答题</button>
-                   <button class="action-btn btn-outline" onclick="resetImport()">重新导入</button>
-               </div>
-           </div>
-       </div>
-
-       <!-- 答题页 -->
-       <div id="quizView" class="view-section">
-           <div class="header">
-               <span class="back-icon" onclick="confirmExit()">←</span>
-               <span>答题中</span>
-           </div>
-           <div class="quiz-content">
-               <div class="quiz-layout-wrapper">
-                   <div class="quiz-left-panel">
-                       <div class="quiz-meta-info">题目 <span id="progressText">1/10</span></div>
-                       <div class="question-text" id="questionText">题目加载中...</div>
-                   </div>
-                   <div class="quiz-right-panel">
-                       <div class="options-list" id="optionsContainer"></div>
-                       <div class="analysis-box" id="analysisBox">
-                           <div style="font-weight:bold; margin-bottom:5px; color:var(--text-main)">💡 解析：</div>
-                           <div id="analysisContent"></div>
-                       </div>
-                   </div>
-               </div>
-           </div>
-           <div class="quiz-footer">
-               <button class="nav-btn btn-prev" id="prevBtn" onclick="prevQ()">上一题</button>
-               <button class="nav-btn btn-next" id="nextBtn" onclick="nextQ()">下一题</button>
-           </div>
-       </div>
-
-       <!-- 结果页 -->
-       <div id="resultView" class="view-section">
-           <div class="header">
-               <div style="width:100%; text-align:center;">结果概览</div>
-           </div>
-           <div class="result-layout">
-               <div class="score-circle-box">
-                   <svg width="140" height="140" viewBox="0 0 140 140">
-                       <circle class="circle-bg" cx="70" cy="70" r="60"></circle>
-                       <circle class="circle-bar" id="scoreCircle" cx="70" cy="70" r="60"></circle>
-                   </svg>
-                   <div class="score-val"><span id="scoreVal">0</span><span style="font-size:14px; color:#999">%</span></div>
-               </div>
-               <div style="font-size:13px; color:var(--text-secondary); margin-bottom:15px;">题目回顾（点击可查看）</div>
-               <div class="result-grid" id="resultGrid"></div>
-               <button class="action-btn btn-outline" style="margin-top: 40px;" onclick="resetImport()">← 返回首页</button>
-           </div>
-       </div>
-   </div>
-
-   <!-- 例题模态框 -->
-   <div class="modal-overlay" id="exampleModal">
-       <div class="modal-content">
-           <div class="modal-header">
-               <div class="modal-title" id="modalTitle">格式示例</div>
-               <div class="modal-close" onclick="closeExampleModal()">×</div>
-           </div>
-           <div class="modal-body" id="modalBody"></div>
-       </div>
-   </div>
-
-   <script>
-       let questions = [];
-       let originalQuestions = [];
-       let userAnswers = [];
-       let currentIndex = 0;
-       let isReviewMode = false;
-       let selectedPreset = null;
-       let currentCustomMode = 'simple';
-
-       // ========== 预设格式库（带例题） ==========
-       const PRESET_FORMATS = [
-           {
-               id: 'default',
-               name: '标准格式',
-               desc: '最常用的 Q:/A-D:/答案: 格式',
-               example: `Q: 以下哪个是 Python 的特点？
-A: 编译型语言
-B: 解释型语言
-C: 汇编语言
-D: 机器语言
-答案: B
-解析: Python 是一种解释型、面向对象的高级编程语言
----
-Q: HTTP 默认端口号是多少？
-A: 80
-B: 443
-C: 8080
-D: 3306
-答案: A
-解析: HTTP 默认使用 80 端口，HTTPS 使用 443 端口`,
-               config: {
-                   questionMarkers: ['Q:', 'q:'],
-                   optionPattern: '^[A-D]:\\s*',
-                   answerMarkers: ['答案:', 'answer:', 'Answer:'],
-                   explanationMarkers: ['解析:', 'explain:', 'explanation:'],
-                   separators: ['---', '===']
-               }
-           },
-           {
-               id: 'numbered',
-               name: '序号格式',
-               desc: '使用数字编号的题目格式',
-               example: `1. 计算机的核心部件是什么？
-A. 硬盘
-B. CPU
-C. 内存
-D. 显卡
-答案: B
-解析: CPU（中央处理器）是计算机的核心部件
----
-2. 以下哪个是前端框架？
-A. Django
-B. Spring
-C. React
-D. Flask
-答案: C
-解析: React 是流行的前端 JavaScript 库`,
-               config: {
-                   questionPattern: '^\\d+[.、]\\s*',
-                   optionPattern: '^[A-D][.、]\\s*',
-                   answerMarkers: ['答案:', '正确答案:'],
-                   explanationMarkers: ['解析:', '注:'],
-                   separators: ['---', '\\n\\n']
-               }
-           },
-           {
-               id: 'bracket',
-               name: '括号格式',
-               desc: '使用括号标记的格式',
-               example: `【题目】数据库中主键的作用是什么？
-（A）提高查询速度
-（B）唯一标识记录
-（C）节省存储空间
-（D）加密数据
-【答案】B
-【解析】主键用于唯一标识表中的每一条记录
----
-【题目】以下哪个不是面向对象的特性？
-（A）封装
-（B）继承
-（C）多态
-（D）编译
-【答案】D`,
-               config: {
-                   questionMarkers: ['【题目】', '【题】'],
-                   optionPattern: '^[（(][A-D][)）]\\s*',
-                   answerMarkers: ['【答案】', '【正确答案】'],
-                   explanationMarkers: ['【解析】', '【注释】'],
-                   separators: ['---', '===']
-               }
-           },
-           {
-               id: 'english',
-               name: 'English Format',
-               desc: 'Standard English question format',
-               example: `Question: What does HTML stand for?
-A. Hyper Text Markup Language
-B. High Tech Modern Language
-C. Home Tool Markup Language
-D. Hyperlinks and Text Markup Language
-Answer: A
-Explanation: HTML stands for Hyper Text Markup Language
----
-Question: Which is a JavaScript framework?
-A. Laravel
-B. Django
-C. Vue.js
-D. Ruby on Rails
-Answer: C
-Explanation: Vue.js is a progressive JavaScript framework`,
-               config: {
-                   questionMarkers: ['Question:', 'Q:'],
-                   optionPattern: '^[A-D][.:]\\s*',
-                   answerMarkers: ['Answer:', 'Correct:'],
-                   explanationMarkers: ['Explanation:', 'Note:'],
-                   separators: ['---', '===']
-               }
-           },
-           {
-               id: 'chinese_simple',
-               name: '简洁中文',
-               desc: '极简的中文格式，无标记符号',
-               example: `什么是算法的时间复杂度？
-A. 算法执行所需的时间
-B. 算法占用的存储空间
-C. 算法执行次数的数量级
-D. 算法的代码行数
-答案: C
-解析: 时间复杂度描述算法执行次数随输入规模增长的趋势
----
-栈的特点是什么？
-A. 先进先出
-B. 后进先出
-C. 随机存取
-D. 顺序存取
-答案: B`,
-               config: {
-                   questionPattern: '^[^A-D\\s].*[？?]$',
-                   optionPattern: '^[A-D][.、:]\\s*',
-                   answerMarkers: ['答案:', '答:', 'answer:'],
-                   explanationMarkers: ['解析:', '注:', 'explain:'],
-                   separators: ['---', '===', '\\n\\n']
-               }
-           }
-       ];
-
-       // ========== 初始化 ==========
-       function init() {
-           loadCustomFormats();
-           renderPresets();
-       }
-
-       // ========== 界面切换 ==========
-       function setTab(mode) {
-           const btns = document.querySelectorAll('.tab-group .tab-btn');
-           btns.forEach(b => b.classList.remove('active'));
-           
-           if (mode === 'file') {
-               btns[0].classList.add('active');
-               document.getElementById('area-file').classList.add('active');
-               document.getElementById('area-paste').classList.remove('active');
-           } else {
-               btns[1].classList.add('active');
-               document.getElementById('area-file').classList.remove('active');
-               document.getElementById('area-paste').classList.add('active');
-           }
-           hideErrors();
-       }
-
-       function setSubTab(mode) {
-           document.querySelectorAll('#area-paste .sub-tab-btn').forEach(b => b.classList.remove('active'));
-           document.querySelectorAll('#area-paste > .input-area').forEach(a => a.classList.remove('active'));
-           
-           const tabs = document.querySelectorAll('#area-paste .sub-tab-btn');
-           if (mode === 'preset') {
-               tabs[0].classList.add('active');
-               document.getElementById('sub-preset').classList.add('active');
-           } else {
-               tabs[1].classList.add('active');
-               document.getElementById('sub-custom').classList.add('active');
-           }
-           hideErrors();
-       }
-
-       function setCustomMode(mode) {
-           currentCustomMode = mode;
-           document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-           document.querySelector(`.mode-btn:nth-child(${mode === 'simple' ? 1 : 2})`).classList.add('active');
-           
-           document.querySelector('.custom-simple-mode').classList.toggle('active', mode === 'simple');
-           document.querySelector('.custom-advanced-mode').classList.toggle('active', mode === 'advanced');
-       }
-
-       function hideErrors() {
-           document.getElementById('fileError').style.display = 'none';
-           document.getElementById('pasteError').style.display = 'none';
-       }
-
-       // ========== 预设格式渲染 ==========
-       function renderPresets() {
-           const container = document.getElementById('presetList');
-           container.innerHTML = '';
-           
-           PRESET_FORMATS.forEach(preset => {
-               const card = document.createElement('div');
-               card.className = 'preset-card';
-               card.onclick = (e) => {
-                   if (!e.target.classList.contains('preset-card-example-btn')) {
-                       selectPreset(preset.id);
-                   }
-               };
-               card.innerHTML = `
-                   <div class="preset-card-title">${preset.name}</div>
-                   <div class="preset-card-desc">${preset.desc}</div>
-                   <div class="preset-card-example-btn" onclick="showExample('${preset.id}', event)">📖 查看例题</div>
-               `;
-               container.appendChild(card);
-           });
-           
-           // 添加自定义格式卡片
-           const customFormats = getCustomFormats();
-           customFormats.forEach(format => {
-               const card = document.createElement('div');
-               card.className = 'preset-card';
-               card.style.borderColor = '#d1fae5';
-               card.onclick = () => selectPreset(format.id);
-               card.innerHTML = `
-                   <div class="preset-card-title">✨ ${format.name}</div>
-                   <div class="preset-card-desc">自定义格式 ${format.mode === 'advanced' ? '(高级)' : ''}</div>
-               `;
-               container.appendChild(card);
-           });
-       }
-
-       function selectPreset(id) {
-           selectedPreset = id;
-           const cards = document.querySelectorAll('.preset-card');
-           cards.forEach(card => card.classList.remove('selected'));
-           
-           const allFormats = [...PRESET_FORMATS, ...getCustomFormats()];
-           const index = allFormats.findIndex(f => f.id === id);
-           if (index >= 0 && cards[index]) {
-               cards[index].classList.add('selected');
-           }
-       }
-
-       function showExample(presetId, event) {
-           event.stopPropagation();
-           const preset = PRESET_FORMATS.find(p => p.id === presetId);
-           if (!preset || !preset.example) return;
-           
-           const modal = document.getElementById('exampleModal');
-           const modalTitle = document.getElementById('modalTitle');
-           const modalBody = document.getElementById('modalBody');
-           
-           modalTitle.textContent = `${preset.name} - 格式示例`;
-           modalBody.innerHTML = `
-               <div class="example-section">
-                   <div class="example-title">📝 示例题目</div>
-                   <div class="example-code">${preset.example}</div>
-                   <button class="copy-example-btn" onclick="copyExample('${presetId}')">📋 复制示例</button>
-               </div>
-               <div class="example-section">
-                   <div class="example-title">💡 格式说明</div>
-                   <div style="font-size: 13px; line-height: 1.8; color: var(--text-secondary);">
-                       ${getFormatDescription(preset)}
-                   </div>
-               </div>
-           `;
-           
-           modal.classList.add('active');
-       }
-
-       function getFormatDescription(preset) {
-           const lines = [];
-           if (preset.config.questionMarkers) {
-               lines.push(`• 题目标记: ${preset.config.questionMarkers.join(' 或 ')}`);
-           }
-           if (preset.config.questionPattern) {
-               lines.push(`• 题目格式: ${preset.config.questionPattern}`);
-           }
-           if (preset.config.optionPattern) {
-               lines.push(`• 选项格式: ${preset.config.optionPattern}`);
-           }
-           if (preset.config.answerMarkers) {
-               lines.push(`• 答案标记: ${preset.config.answerMarkers.join(' 或 ')}`);
-           }
-           if (preset.config.explanationMarkers) {
-               lines.push(`• 解析标记: ${preset.config.explanationMarkers.join(' 或 ')} (可选)`);
-           }
-           if (preset.config.separators) {
-               lines.push(`• 题目分隔: ${preset.config.separators.join(' 或 ')}`);
-           }
-           return lines.join('<br>');
-       }
-
-       function copyExample(presetId) {
-           const preset = PRESET_FORMATS.find(p => p.id === presetId);
-           if (!preset) return;
-           
-           navigator.clipboard.writeText(preset.example).then(() => {
-               alert('示例已复制到剪贴板！');
-               closeExampleModal();
-               // 自动选中该预设并切换到粘贴框
-               selectPreset(presetId);
-               document.getElementById('presetInput').focus();
-           });
-       }
-
-       function closeExampleModal() {
-           document.getElementById('exampleModal').classList.remove('active');
-       }
-
-       // 点击模态框外部关闭
-       document.getElementById('exampleModal').addEventListener('click', function(e) {
-           if (e.target === this) closeExampleModal();
-       });
-
-       function parseWithSelectedPreset() {
-           if (!selectedPreset) {
-               showError('请先选择一个格式', 'paste');
-               return;
-           }
-           
-           const text = document.getElementById('presetInput').value.trim();
-           if (!text) {
-               showError('请先粘贴题目内容', 'paste');
-               return;
-           }
-           
-           const allFormats = [...PRESET_FORMATS, ...getCustomFormats()];
-           const format = allFormats.find(f => f.id === selectedPreset);
-           
-           if (format) {
-               if (format.mode === 'advanced') {
-                   parseWithAdvancedFormat(text, format.config);
-               } else {
-                   parseWithSimpleFormat(text, format.config);
-               }
-           }
-       }
-
-       // ========== 自定义格式 - 简单模式 ==========
-       function fillTemplate(field, value) {
-           const fieldMap = {
-               'question': 'simpleQuestionMarker',
-               'option': 'simpleOptionMarker',
-               'answer': 'simpleAnswerMarker',
-               'explanation': 'simpleExplanationMarker',
-               'separator': 'simpleSeparator'
-           };
-           
-           const inputId = fieldMap[field];
-           if (inputId) {
-               if (value === '空行') {
-                   document.getElementById(inputId).value = '\\n\\n';
-               } else if (value === '序号') {
-                   document.getElementById(inputId).value = '1.';
-               } else {
-                   document.getElementById(inputId).value = value;
-               }
-           }
-       }
-
-       function saveSimpleFormat() {
-           const name = document.getElementById('simpleFormatName').value.trim();
-           const questionMarker = document.getElementById('simpleQuestionMarker').value.trim();
-           const optionMarker = document.getElementById('simpleOptionMarker').value.trim();
-           const answerMarker = document.getElementById('simpleAnswerMarker').value.trim();
-           const explanationMarker = document.getElementById('simpleExplanationMarker').value.trim();
-           const separator = document.getElementById('simpleSeparator').value.trim();
-           
-           if (!name) {
-               alert('请输入格式名称');
-               return;
-           }
-           if (!questionMarker && !optionMarker) {
-               alert('至少需要填写题目标记或选项格式');
-               return;
-           }
-           if (!answerMarker) {
-               alert('请填写答案标记');
-               return;
-           }
-           if (!separator) {
-               alert('请填写题目分隔符');
-               return;
-           }
-           
-           const config = {
-               questionMarkers: questionMarker ? [questionMarker] : [],
-               optionPattern: convertToPattern(optionMarker),
-               answerMarkers: [answerMarker],
-               explanationMarkers: explanationMarker ? [explanationMarker] : [],
-               separators: [separator === '\\n\\n' ? '\\n\\n' : separator]
-           };
-           
-           saveFormatToStorage(name, config, 'simple');
-           
-           // 清空输入
-           document.getElementById('simpleFormatName').value = '';
-           document.getElementById('simpleQuestionMarker').value = '';
-           document.getElementById('simpleOptionMarker').value = '';
-           document.getElementById('simpleAnswerMarker').value = '';
-           document.getElementById('simpleExplanationMarker').value = '';
-           document.getElementById('simpleSeparator').value = '';
-           
-           alert('格式已保存！');
-           loadCustomFormats();
-           renderPresets();
-       }
-
-       function convertToPattern(marker) {
-           // 将简单标记转换为正则模式
-           if (marker.includes('(') && marker.includes(')')) {
-               return '^[（(][A-D][)）]\\s*';
-           } else if (marker.match(/^[A-D][.:]$/)) {
-               const symbol = marker.charAt(1);
-               return `^[A-D][${symbol}]\\s*`;
-           } else if (marker.includes('【') && marker.includes('】')) {
-               return '^【[A-D]】\\s*';
-           }
-           return `^[A-D][.:]\\s*`;
-       }
-
-       // ========== 自定义格式 - 高级模式 ==========
-       function saveAdvancedFormat() {
-           const name = document.getElementById('advancedFormatName').value.trim();
-           const questionRegex = document.getElementById('advancedQuestionRegex').value.trim();
-           const optionRegex = document.getElementById('advancedOptionRegex').value.trim();
-           const answerRegex = document.getElementById('advancedAnswerRegex').value.trim();
-           const explanationRegex = document.getElementById('advancedExplanationRegex').value.trim();
-           const separator = document.getElementById('advancedSeparator').value.trim();
-           
-           if (!name || !questionRegex || !optionRegex || !answerRegex || !separator) {
-               alert('请填写所有必填项');
-               return;
-           }
-           
-           // 验证正则表达式
-           try {
-               new RegExp(questionRegex);
-               new RegExp(optionRegex);
-               new RegExp(answerRegex);
-               if (explanationRegex) new RegExp(explanationRegex);
-               new RegExp(separator);
-           } catch (e) {
-               alert('正则表达式格式错误: ' + e.message);
-               return;
-           }
-           
-           const config = {
-               questionPattern: questionRegex,
-               optionPattern: optionRegex,
-               answerPattern: answerRegex,
-               explanationPattern: explanationRegex || null,
-               separatorPattern: separator
-           };
-           
-           saveFormatToStorage(name, config, 'advanced');
-           
-           // 清空输入
-           document.getElementById('advancedFormatName').value = '';
-           document.getElementById('advancedQuestionRegex').value = '';
-           document.getElementById('advancedOptionRegex').value = '';
-           document.getElementById('advancedAnswerRegex').value = '';
-           document.getElementById('advancedExplanationRegex').value = '';
-           document.getElementById('advancedSeparator').value = '';
-           
-           alert('高级格式已保存！');
-           loadCustomFormats();
-           renderPresets();
-       }
-
-       // ========== 格式存储管理 ==========
-       function saveFormatToStorage(name, config, mode) {
-           const customFormats = getCustomFormats();
-           const newFormat = {
-               id: 'custom_' + Date.now(),
-               name: name,
-               config: config,
-               mode: mode,
-               createdAt: new Date().toISOString()
-           };
-           
-           customFormats.push(newFormat);
-           localStorage.setItem('customFormats', JSON.stringify(customFormats));
-       }
-
-       function getCustomFormats() {
-           try {
-               return JSON.parse(localStorage.getItem('customFormats') || '[]');
-           } catch {
-               return [];
-           }
-       }
-
-       function loadCustomFormats() {
-           const formats = getCustomFormats();
-           const container = document.getElementById('savedFormatsList');
-           container.innerHTML = '';
-           
-           if (formats.length === 0) {
-               container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-secondary); font-size: 13px;">暂无保存的格式</div>';
-               return;
-           }
-           
-           formats.forEach(format => {
-               const item = document.createElement('div');
-               item.className = 'saved-format-item';
-               item.innerHTML = `
-                   <div class="saved-format-info">
-                       <div class="saved-format-name">${format.name}</div>
-                       <div class="saved-format-meta">${format.mode === 'advanced' ? '高级模式' : '简单模式'} • ${new Date(format.createdAt).toLocaleDateString()}</div>
-                   </div>
-                   <div class="saved-format-actions">
-                       <button class="icon-btn primary" onclick="useCustomFormat('${format.id}')">使用</button>
-                       <button class="icon-btn" onclick="editCustomFormat('${format.id}')">编辑</button>
-                       <button class="icon-btn" onclick="deleteCustomFormat('${format.id}')">删除</button>
-                   </div>
-               `;
-               container.appendChild(item);
-           });
-       }
-
-       function useCustomFormat(id) {
-           setSubTab('preset');
-           selectPreset(id);
-           document.getElementById('presetInput').focus();
-       }
-
-       function editCustomFormat(id) {
-           const formats = getCustomFormats();
-           const format = formats.find(f => f.id === id);
-           if (!format) return;
-           
-           if (format.mode === 'simple') {
-               setCustomMode('simple');
-               document.getElementById('simpleFormatName').value = format.name;
-               if (format.config.questionMarkers && format.config.questionMarkers[0]) {
-                   document.getElementById('simpleQuestionMarker').value = format.config.questionMarkers[0];
-               }
-               if (format.config.answerMarkers && format.config.answerMarkers[0]) {
-                   document.getElementById('simpleAnswerMarker').value = format.config.answerMarkers[0];
-               }
-               if (format.config.explanationMarkers && format.config.explanationMarkers[0]) {
-                   document.getElementById('simpleExplanationMarker').value = format.config.explanationMarkers[0];
-               }
-               if (format.config.separators && format.config.separators[0]) {
-                   document.getElementById('simpleSeparator').value = format.config.separators[0];
-               }
-           } else {
-               setCustomMode('advanced');
-               document.getElementById('advancedFormatName').value = format.name;
-               document.getElementById('advancedQuestionRegex').value = format.config.questionPattern || '';
-               document.getElementById('advancedOptionRegex').value = format.config.optionPattern || '';
-               document.getElementById('advancedAnswerRegex').value = format.config.answerPattern || '';
-               document.getElementById('advancedExplanationRegex').value = format.config.explanationPattern || '';
-               document.getElementById('advancedSeparator').value = format.config.separatorPattern || '';
-           }
-           
-           // 删除原格式
-           deleteCustomFormat(id, true);
-       }
-
-       function deleteCustomFormat(id, skipConfirm = false) {
-           if (!skipConfirm && !confirm('确定删除此格式？')) return;
-           
-           let formats = getCustomFormats();
-           formats = formats.filter(f => f.id !== id);
-           localStorage.setItem('customFormats', JSON.stringify(formats));
-           
-           loadCustomFormats();
-           renderPresets();
-           
-           if (selectedPreset === id) {
-               selectedPreset = null;
-           }
-       }
-
-       // ========== 格式解析 ==========
-       function parseWithSimpleFormat(text, config) {
-           const separatorPattern = config.separators.map(s => 
-               s === '\\n\\n' ? '\\n\\s*\\n' : s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-           ).join('|');
-           
-           const blocks = text.split(new RegExp(`(?:${separatorPattern})`)).filter(b => b.trim());
-           
-           if (blocks.length === 0) {
-               showError('未找到有效题目', 'paste');
-               return false;
-           }
-           
-           const parsed = [];
-           const errors = [];
-           
-           for (let i = 0; i < blocks.length; i++) {
-               const lines = blocks[i].split('\n').map(l => l.trim()).filter(l => l);
-               if (lines.length === 0) continue;
-               
-               const q = { question: '', options: [], correctIndex: -1, explanation: '' };
-               
-               for (const line of lines) {
-                   // 匹配题目
-                   if (config.questionMarkers && config.questionMarkers.length > 0) {
-                       const qPattern = new RegExp(`^(?:${config.questionMarkers.map(m => m.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\s*`, 'i');
-                       if (qPattern.test(line)) {
-                           q.question = line.replace(qPattern, '');
-                           continue;
-                       }
-                   }
-                   
-                   // 匹配选项
-                   if (config.optionPattern) {
-                       const optPattern = new RegExp(config.optionPattern, 'i');
-                       if (optPattern.test(line)) {
-                           q.options.push(line.replace(optPattern, ''));
-                           continue;
-                       }
-                   }
-                   
-                   // 匹配答案
-                   if (config.answerMarkers) {
-                       const ansPattern = new RegExp(`^(?:${config.answerMarkers.map(m => m.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\s*`, 'i');
-                       if (ansPattern.test(line)) {
-                           const ans = line.replace(ansPattern, '').trim();
-                           if (/^[A-Da-d]$/.test(ans)) {
-                               q.correctIndex = ans.toUpperCase().charCodeAt(0) - 65;
-                           } else if (/^\d+$/.test(ans)) {
-                               q.correctIndex = parseInt(ans);
-                           }
-                           continue;
-                       }
-                   }
-                   
-                   // 匹配解析
-                   if (config.explanationMarkers && config.explanationMarkers.length > 0) {
-                       const explPattern = new RegExp(`^(?:${config.explanationMarkers.map(m => m.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\s*`, 'i');
-                       if (explPattern.test(line)) {
-                           q.explanation = line.replace(explPattern, '');
-                           continue;
-                       }
-                   }
-                   
-                   // 如果没有题目，将其作为题目
-                   if (!q.question) {
-                       q.question = line;
-                   }
-               }
-               
-               // 验证
-               if (!q.question) errors.push(`第${i+1}题：缺少题目`);
-               else if (q.options.length < 2) errors.push(`第${i+1}题：选项不足`);
-               else if (q.correctIndex < 0 || q.correctIndex >= q.options.length) errors.push(`第${i+1}题：答案无效`);
-               else parsed.push(q);
-           }
-           
-           if (errors.length > 0) {
-               showError(errors.join('；'), 'paste');
-               return false;
-           }
-           
-           if (parsed.length > 0) {
-               originalQuestions = parsed;
-               showReady(parsed.length);
-           }
-           return parsed.length > 0;
-       }
-
-       function parseWithAdvancedFormat(text, config) {
-           const blocks = text.split(new RegExp(config.separatorPattern, 'm')).filter(b => b.trim());
-           
-           if (blocks.length === 0) {
-               showError('未找到有效题目', 'paste');
-               return false;
-           }
-           
-           const parsed = [];
-           const errors = [];
-           
-           for (let i = 0; i < blocks.length; i++) {
-               const lines = blocks[i].split('\n').map(l => l.trim()).filter(l => l);
-               if (lines.length === 0) continue;
-               
-               const q = { question: '', options: [], correctIndex: -1, explanation: '' };
-               
-               for (const line of lines) {
-                   // 匹配题目
-                   const qMatch = line.match(new RegExp(config.questionPattern, 'i'));
-                   if (qMatch) {
-                       q.question = qMatch[1] || qMatch[0];
-                       continue;
-                   }
-                   
-                   // 匹配选项
-                   const optMatch = line.match(new RegExp(config.optionPattern, 'i'));
-                   if (optMatch) {
-                       q.options.push(optMatch[1] || optMatch[0]);
-                       continue;
-                   }
-                   
-                   // 匹配答案
-                   const ansMatch = line.match(new RegExp(config.answerPattern, 'i'));
-                   if (ansMatch) {
-                       const ans = (ansMatch[1] || ansMatch[0]).trim();
-                       if (/^[A-Da-d]$/.test(ans)) {
-                           q.correctIndex = ans.toUpperCase().charCodeAt(0) - 65;
-                       } else if (/^\d+$/.test(ans)) {
-                           q.correctIndex = parseInt(ans);
-                       }
-                       continue;
-                   }
-                   
-                   // 匹配解析
-                   if (config.explanationPattern) {
-                       const explMatch = line.match(new RegExp(config.explanationPattern, 'i'));
-                       if (explMatch) {
-                           q.explanation = explMatch[1] || explMatch[0];
-                           continue;
-                       }
-                   }
-               }
-               
-               // 验证
-               if (!q.question) errors.push(`第${i+1}题：缺少题目`);
-               else if (q.options.length < 2) errors.push(`第${i+1}题：选项不足`);
-               else if (q.correctIndex < 0 || q.correctIndex >= q.options.length) errors.push(`第${i+1}题：答案无效`);
-               else parsed.push(q);
-           }
-           
-           if (errors.length > 0) {
-               showError(errors.join('；'), 'paste');
-               return false;
-           }
-           
-           if (parsed.length > 0) {
-               originalQuestions = parsed;
-               showReady(parsed.length);
-           }
-           return parsed.length > 0;
-       }
-
-       // ========== 文件导入 ==========
-       const uploadZone = document.getElementById('uploadZone');
-       
-       uploadZone.addEventListener('dragover', (e) => {
-           e.preventDefault();
-           uploadZone.classList.add('drag-over');
-       });
-       
-       uploadZone.addEventListener('dragleave', () => {
-           uploadZone.classList.remove('drag-over');
-       });
-       
-       uploadZone.addEventListener('drop', (e) => {
-           e.preventDefault();
-           uploadZone.classList.remove('drag-over');
-           const files = e.dataTransfer.files;
-           if (files.length > 0) processFile(files[0]);
-       });
-
-       function handleFileSelect(e) {
-           if (e.target.files.length > 0) processFile(e.target.files[0]);
-       }
-
-       function processFile(file) {
-           const reader = new FileReader();
-           reader.onload = (e) => {
-               const content = e.target.result;
-               try {
-                   const json = JSON.parse(content);
-                   parseImportData(json);
-               } catch {
-                   // 尝试用第一个预设格式解析
-                   parseWithSimpleFormat(content, PRESET_FORMATS[0].config);
-               }
-           };
-           reader.onerror = () => showError('文件读取失败', 'file');
-           reader.readAsText(file);
-       }
-
-       function parseImportData(data) {
-           if (!Array.isArray(data)) {
-               showError('JSON数据必须为数组格式', 'file');
-               return false;
-           }
-
-           const parsed = [];
-           const errors = [];
-
-           for (let i = 0; i < data.length; i++) {
-               const item = data[i];
-               const q = { question: '', options: [], correctIndex: 0, explanation: '' };
-
-               if (item.q !== undefined) {
-                   q.question = item.q;
-                   q.options = Array.isArray(item.o) ? item.o : [];
-                   if (typeof item.a === 'string' && /^[A-Da-d]$/.test(item.a)) {
-                       q.correctIndex = item.a.toUpperCase().charCodeAt(0) - 65;
-                   } else {
-                       q.correctIndex = parseInt(item.a) || 0;
-                   }
-                   q.explanation = item.e || '';
-               } else if (item.question !== undefined) {
-                   q.question = item.question;
-                   q.options = Array.isArray(item.options) ? item.options : [];
-                   if (typeof item.correctIndex === 'string' && /^[A-Da-d]$/.test(item.correctIndex)) {
-                       q.correctIndex = item.correctIndex.toUpperCase().charCodeAt(0) - 65;
-                   } else {
-                       q.correctIndex = parseInt(item.correctIndex) || parseInt(item.answer) || 0;
-                   }
-                   q.explanation = item.explanation || item.explain || '';
-               } else {
-                   errors.push(`第${i+1}项：缺少必要的题目字段`);
-                   continue;
-               }
-
-               if (!q.question) errors.push(`第${i+1}项：题目内容为空`);
-               else if (q.options.length < 2) errors.push(`第${i+1}项：选项不足2个`);
-               else if (q.correctIndex < 0 || q.correctIndex >= q.options.length) errors.push(`第${i+1}项：答案索引超出范围`);
-               else parsed.push(q);
-           }
-
-           if (errors.length > 0) {
-               showError(errors.join('；'), 'file');
-               return false;
-           }
-
-           if (parsed.length > 0) {
-               originalQuestions = parsed;
-               showReady(parsed.length);
-           }
-           return parsed.length > 0;
-       }
-
-       // ========== 辅助功能 ==========
-       function showError(msg, type) {
-           const el = type === 'file' ? document.getElementById('fileError') : document.getElementById('pasteError');
-           el.textContent = msg;
-           el.style.display = 'block';
-           setTimeout(() => { el.style.display = 'none'; }, 8000);
-       }
-
-       function showReady(count) {
-           document.getElementById('qCount').innerText = count;
-           document.getElementById('setup-panel').style.display = 'none';
-           document.getElementById('ready-panel').style.display = 'block';
-       }
-
-       function resetImport() {
-           originalQuestions = [];
-           questions = [];
-           userAnswers = [];
-           currentIndex = 0;
-           isReviewMode = false;
-           selectedPreset = null;
-           
-           document.getElementById('fileInput').value = '';
-           document.getElementById('presetInput').value = '';
-           
-           document.getElementById('setup-panel').style.display = 'block';
-           document.getElementById('ready-panel').style.display = 'none';
-           hideErrors();
-           switchView('homeView');
-       }
-
-       function switchView(id) {
-           document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-           document.getElementById(id).classList.add('active');
-       }
-
-       // ========== 答题逻辑 ==========
-       function shuffleArray(arr) {
-           const newArr = [...arr];
-           for (let i = newArr.length - 1; i > 0; i--) {
-               const j = Math.floor(Math.random() * (i + 1));
-               [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
-           }
-           return newArr;
-       }
-
-       function startQuiz() {
-           questions = JSON.parse(JSON.stringify(originalQuestions));
-
-           if (document.getElementById('shuffleQuestions').checked) {
-               questions = shuffleArray(questions);
-           }
-
-           if (document.getElementById('shuffleOptions').checked) {
-               questions.forEach(q => {
-                   const correctContent = q.options[q.correctIndex];
-                   q.options = shuffleArray(q.options);
-                   q.correctIndex = q.options.indexOf(correctContent);
-               });
-           }
-
-           userAnswers = new Array(questions.length).fill(null);
-           currentIndex = 0;
-           isReviewMode = false;
-           renderQuestion();
-           switchView('quizView');
-       }
-
-       function renderQuestion() {
-           const q = questions[currentIndex];
-           const record = userAnswers[currentIndex];
-
-           document.getElementById('progressText').innerText = `${currentIndex + 1} / ${questions.length}`;
-           document.getElementById('questionText').innerText = q.question;
-
-           const container = document.getElementById('optionsContainer');
-           container.innerHTML = '';
-           document.getElementById('analysisBox').style.display = 'none';
-
-           q.options.forEach((opt, idx) => {
-               const btn = document.createElement('div');
-               btn.className = 'option-item';
-               btn.innerText = String.fromCharCode(65 + idx) + '. ' + opt;
-
-               if (record) {
-                   btn.classList.add('disabled');
-                   if (idx === q.correctIndex) btn.classList.add('correct');
-                   if (idx === record.selectedIndex && idx !== q.correctIndex) btn.classList.add('wrong');
-               } else {
-                   btn.onclick = () => handleAnswer(idx, btn);
-               }
-               container.appendChild(btn);
-           });
-
-           if (record && q.explanation) showAnalysis(q.explanation);
-           updateNavButtons();
-       }
-
-       function handleAnswer(idx, el) {
-           const q = questions[currentIndex];
-           const isCorrect = idx === q.correctIndex;
-           userAnswers[currentIndex] = { selectedIndex: idx, isCorrect };
-
-           const allOpts = document.querySelectorAll('.option-item');
-           allOpts.forEach(o => o.classList.add('disabled'));
-
-           if (isCorrect) {
-               el.classList.add('correct');
-           } else {
-               el.classList.add('wrong');
-               allOpts[q.correctIndex].classList.add('correct');
-           }
-
-           if (q.explanation) showAnalysis(q.explanation);
-           updateNavButtons();
-       }
-
-       function showAnalysis(txt) {
-           document.getElementById('analysisContent').innerText = txt;
-           document.getElementById('analysisBox').style.display = 'block';
-       }
-
-       function updateNavButtons() {
-           const prev = document.getElementById('prevBtn');
-           const next = document.getElementById('nextBtn');
-           const isLast = currentIndex === questions.length - 1;
-
-           prev.style.visibility = currentIndex === 0 ? 'hidden' : 'visible';
-
-           if (isReviewMode) {
-               next.innerText = '返回结果';
-               next.onclick = showResult;
-           } else {
-               next.innerText = isLast ? '提交' : '下一题';
-               next.onclick = isLast ? showResult : nextQ;
-           }
-       }
-
-       function prevQ() {
-           if (currentIndex > 0) {
-               currentIndex--;
-               renderQuestion();
-           }
-       }
-
-       function nextQ() {
-           if (currentIndex < questions.length - 1) {
-               currentIndex++;
-               renderQuestion();
-           }
-       }
-
-       function confirmExit() {
-           if (isReviewMode) {
-               showResult();
-           } else if (confirm('确定退出？当前进度将丢失。')) {
-               resetImport();
-           }
-       }
-
-       function showResult() {
-           switchView('resultView');
-           isReviewMode = false;
-
-           let correct = 0;
-           userAnswers.forEach(u => { if (u && u.isCorrect) correct++; });
-           const pct = questions.length ? Math.round((correct / questions.length) * 100) : 0;
-
-           const circle = document.getElementById('scoreCircle');
-           const circumference = 2 * Math.PI * 60;
-           const offset = circumference - (pct / 100) * circumference;
-           circle.style.strokeDasharray = circumference;
-           circle.style.strokeDashoffset = circumference;
-           setTimeout(() => { circle.style.strokeDashoffset = offset; }, 50);
-
-           document.getElementById('scoreVal').innerText = pct;
-
-           const grid = document.getElementById('resultGrid');
-           grid.innerHTML = '';
-           questions.forEach((q, i) => {
-               const dot = document.createElement('div');
-               dot.className = 'grid-dot';
-               dot.innerText = i + 1;
-               const ans = userAnswers[i];
-               if (ans) {
-                   dot.classList.add(ans.isCorrect ? 'correct' : 'wrong');
-               }
-               dot.onclick = () => {
-                   currentIndex = i;
-                   isReviewMode = true;
-                   renderQuestion();
-                   switchView('quizView');
-               };
-               grid.appendChild(dot);
-           });
-       }
-
-       // 页面加载时初始化
-       window.addEventListener('DOMContentLoaded', init);
-   </script>
+    <div class="container">
+        <!-- 首页 -->
+        <div id="homeView" class="view-section active">
+            <div class="home-layout">
+                <div style="font-size: 40px; margin-bottom: 10px;">📝</div>
+                <h2 style="margin: 0 0 24px 0; color: var(--text-main); font-size: 20px;">极简答题 Pro</h2>
+
+                <div id="setup-panel">
+                    <div class="tab-group">
+                        <button class="tab-btn active" onclick="setTab('file')">📁 文件导入</button>
+                        <button class="tab-btn" onclick="setTab('paste')">📋 文本粘贴</button>
+                    </div>
+
+                    <div id="area-file" class="input-area active">
+                        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                            <div class="upload-icon">📂</div>
+                            <div class="upload-text">点击选择文件或拖拽至此</div>
+                            <div class="upload-hint">支持 .txt .json 格式</div>
+                        </div>
+                        <input type="file" id="fileInput" accept=".txt,.json" class="hidden" onchange="handleFileSelect(event)">
+                        <div id="fileError" class="error-msg"></div>
+                    </div>
+
+                    <div id="area-paste" class="input-area">
+                        <div class="sub-tab">
+                            <button class="sub-tab-btn active" onclick="setSubTab('preset')">🎯 预设格式</button>
+                            <button class="sub-tab-btn" onclick="setSubTab('custom')">⚙️ 自定义格式</button>
+                        </div>
+
+                        <div id="sub-preset" class="input-area active">
+                            <div class="preset-list" id="presetList"></div>
+                            <textarea id="presetInput" class="paste-box" placeholder="选择上方格式后，粘贴题目到此处..."></textarea>
+                            <button class="action-btn btn-primary" onclick="parseWithSelectedPreset()">解析题目</button>
+                        </div>
+
+                        <div id="sub-custom" class="input-area">
+                            <div class="custom-format-container">
+                                <div class="custom-mode-switch">
+                                    <div class="mode-btn active" onclick="setCustomMode('simple')">
+                                        🎨 简单模式
+                                        <span class="mode-desc">适合初学者</span>
+                                    </div>
+                                    <div class="mode-btn" onclick="setCustomMode('advanced')">
+                                        🔧 高级模式
+                                        <span class="mode-desc">支持正则表达式</span>
+                                    </div>
+                                </div>
+
+                                <div class="custom-simple-mode active">
+                                    <div class="simple-format-builder">
+                                        <div class="format-field">
+                                            <label>格式名称 <span class="help-icon" title="给你的格式起个名字">?</span></label>
+                                            <input type="text" id="simpleFormatName" placeholder="例如：我的考试格式">
+                                        </div>
+                                        <div class="format-field">
+                                            <label>题目开始标记 <span class="help-icon" title="题目前面的标记符号">?</span></label>
+                                            <input type="text" id="simpleQuestionMarker" placeholder="例如：题目: 或 Q:">
+                                            <div class="format-field-help">常见格式：</div>
+                                            <div class="quick-templates">
+                                                <div class="template-chip" onclick="fillTemplate('question','Q:')">Q:</div>
+                                                <div class="template-chip" onclick="fillTemplate('question','题目:')">题目:</div>
+                                                <div class="template-chip" onclick="fillTemplate('question','【题】')">【题】</div>
+                                                <div class="template-chip" onclick="fillTemplate('question','1.')">序号</div>
+                                            </div>
+                                        </div>
+                                        <div class="format-field">
+                                            <label>选项格式 <span class="help-icon" title="选项的标记方式">?</span></label>
+                                            <input type="text" id="simpleOptionMarker" placeholder="例如：A. 或 (A)">
+                                            <div class="format-field-help">常见格式：</div>
+                                            <div class="quick-templates">
+                                                <div class="template-chip" onclick="fillTemplate('option','A.')">A.</div>
+                                                <div class="template-chip" onclick="fillTemplate('option','A:')">A:</div>
+                                                <div class="template-chip" onclick="fillTemplate('option','(A)')">(A)</div>
+                                                <div class="template-chip" onclick="fillTemplate('option','【A】')">【A】</div>
+                                            </div>
+                                        </div>
+                                        <div class="format-field">
+                                            <label>答案标记 <span class="help-icon" title="正确答案前的标记">?</span></label>
+                                            <input type="text" id="simpleAnswerMarker" placeholder="例如：答案: 或 正确答案:">
+                                            <div class="format-field-help">常见格式：</div>
+                                            <div class="quick-templates">
+                                                <div class="template-chip" onclick="fillTemplate('answer','答案:')">答案:</div>
+                                                <div class="template-chip" onclick="fillTemplate('answer','Answer:')">Answer:</div>
+                                                <div class="template-chip" onclick="fillTemplate('answer','正确:')">正确:</div>
+                                            </div>
+                                        </div>
+                                        <div class="format-field">
+                                            <label>解析标记（可选） <span class="help-icon" title="没有可不填">?</span></label>
+                                            <input type="text" id="simpleExplanationMarker" placeholder="例如：解析: 或 注释:">
+                                            <div class="format-field-help">常见格式：</div>
+                                            <div class="quick-templates">
+                                                <div class="template-chip" onclick="fillTemplate('explanation','解析:')">解析:</div>
+                                                <div class="template-chip" onclick="fillTemplate('explanation','Explanation:')">Explanation:</div>
+                                                <div class="template-chip" onclick="fillTemplate('explanation','注:')">注:</div>
+                                            </div>
+                                        </div>
+                                        <div class="format-field">
+                                            <label>题目分隔符 <span class="help-icon" title="用来分隔不同题目的符号">?</span></label>
+                                            <input type="text" id="simpleSeparator" placeholder="例如：--- 或 ===">
+                                            <div class="format-field-help">常见格式：</div>
+                                            <div class="quick-templates">
+                                                <div class="template-chip" onclick="fillTemplate('separator','---')">---</div>
+                                                <div class="template-chip" onclick="fillTemplate('separator','===')">===</div>
+                                                <div class="template-chip" onclick="fillTemplate('separator','###')">###</div>
+                                                <div class="template-chip" onclick="fillTemplate('separator','空行')">空行</div>
+                                            </div>
+                                        </div>
+                                        <button class="action-btn btn-primary" onclick="saveSimpleFormat()">💾 保存格式</button>
+                                    </div>
+                                </div>
+
+                                <div class="custom-advanced-mode">
+                                    <div class="advanced-format-editor">
+                                        <div class="format-field">
+                                            <label>格式名称</label>
+                                            <input type="text" id="advancedFormatName" placeholder="格式名称">
+                                        </div>
+                                        <div class="format-field">
+                                            <label>题目正则表达式</label>
+                                            <input type="text" class="regex-input" id="advancedQuestionRegex" placeholder="例如：^Q[:|：]\s*(.+)">
+                                            <div class="format-field-help">捕获组 (.*) 会提取题目内容</div>
+                                        </div>
+                                        <div class="format-field">
+                                            <label>选项正则表达式</label>
+                                            <input type="text" class="regex-input" id="advancedOptionRegex" placeholder="例如：^[A-D][.:|：]\s*(.+)">
+                                            <div class="format-field-help">捕获组 (.*) 会提取选项内容</div>
+                                        </div>
+                                        <div class="format-field">
+                                            <label>答案正则表达式</label>
+                                            <input type="text" class="regex-input" id="advancedAnswerRegex" placeholder="例如：^答案[:|：]\s*([A-D])">
+                                            <div class="format-field-help">捕获组 (.*) 会提取答案</div>
+                                        </div>
+                                        <div class="format-field">
+                                            <label>解析正则表达式（可选）</label>
+                                            <input type="text" class="regex-input" id="advancedExplanationRegex" placeholder="例如：^解析[:|：]\s*(.+)">
+                                        </div>
+                                        <div class="format-field">
+                                            <label>题目分隔符正则</label>
+                                            <input type="text" class="regex-input" id="advancedSeparator" placeholder="例如：^-{3,}$">
+                                        </div>
+                                        <button class="action-btn btn-primary" onclick="saveAdvancedFormat()">💾 保存高级格式</button>
+                                    </div>
+                                </div>
+
+                                <div class="saved-formats">
+                                    <div class="saved-formats-title">📚 我的格式库</div>
+                                    <div id="savedFormatsList"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="pasteError" class="error-msg"></div>
+                    </div>
+                </div>
+
+                <!-- 准备就绪 -->
+                <div id="ready-panel">
+                    <div class="file-card">
+                        <div style="color: var(--correct-text); font-size: 24px; margin-bottom: 8px;">✓</div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">题库已加载</div>
+                        <div style="color: var(--text-secondary); font-size: 13px;">共 <span id="qCount">0</span> 道题目</div>
+                    </div>
+                    <div class="shuffle-options">
+                        <div style="font-weight: 600; margin-bottom: 8px; color: var(--text-main);">🎲 答题设置</div>
+                        <label><input type="checkbox" id="shuffleQuestions" checked> 打乱题目顺序</label>
+                        <label><input type="checkbox" id="shuffleOptions" checked> 打乱选项顺序</label>
+                    </div>
+                    <button class="action-btn btn-primary" onclick="startQuiz()">开始答题</button>
+                    <button class="action-btn btn-outline" onclick="resetImport()">重新导入</button>
+                </div>
+
+                <!-- 设置按钮 -->
+                <div class="settings-fab" onclick="openSettings()" title="设置">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- 答题页 -->
+        <div id="quizView" class="view-section">
+            <div class="header">
+                <span class="back-icon" onclick="confirmExit()">←</span>
+                <span>答题中</span>
+            </div>
+            <div class="quiz-content">
+                <div class="quiz-layout-wrapper">
+                    <div class="quiz-left-panel">
+                        <div class="quiz-meta-info">题目 <span id="progressText">1/10</span></div>
+                        <div class="question-text" id="questionText">题目加载中...</div>
+                    </div>
+                    <div class="quiz-right-panel">
+                        <div class="options-list" id="optionsContainer"></div>
+                        <div class="analysis-box" id="analysisBox">
+                            <div style="font-weight:bold; margin-bottom:5px; color:var(--text-main)">💡 解析：</div>
+                            <div id="analysisContent"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="quiz-footer">
+                <button class="nav-btn btn-prev" id="prevBtn" onclick="prevQ()">上一题</button>
+                <button class="nav-btn btn-next" id="nextBtn" onclick="nextQ()">下一题</button>
+            </div>
+        </div>
+
+        <!-- 结果页 -->
+        <div id="resultView" class="view-section">
+            <div class="header">
+                <div style="width:100%; text-align:center;">结果概览</div>
+            </div>
+            <div class="result-layout">
+                <div class="score-circle-box">
+                    <svg width="140" height="140" viewBox="0 0 140 140">
+                        <circle class="circle-bg" cx="70" cy="70" r="60"></circle>
+                        <circle class="circle-bar" id="scoreCircle" cx="70" cy="70" r="60"></circle>
+                    </svg>
+                    <div class="score-val"><span id="scoreVal">0</span><span style="font-size:14px; color:#999">%</span></div>
+                </div>
+                <div style="font-size:13px; color:var(--text-secondary); margin-bottom:15px;">题目回顾（点击可查看）</div>
+                <div class="result-grid" id="resultGrid"></div>
+                <button class="action-btn btn-outline" style="margin-top: 40px;" onclick="resetImport()">← 返回首页</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 例题模态框 -->
+    <div class="modal-overlay" id="exampleModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">格式示例</div>
+                <div class="modal-close" onclick="closeExampleModal()">×</div>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- 自定义对话框 -->
+    <div class="dialog-overlay" id="dialogOverlay">
+        <div class="dialog-box">
+            <div class="dialog-icon" id="dialogIcon">💬</div>
+            <div class="dialog-title" id="dialogTitle">提示</div>
+            <div class="dialog-message" id="dialogMessage">内容</div>
+            <div class="dialog-buttons" id="dialogButtons"></div>
+        </div>
+    </div>
+
+    <!-- 设置面板 -->
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-content">
+            <div class="settings-header">
+                <div class="settings-header-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    设置
+                </div>
+                <div class="modal-close" onclick="closeSettings()">×</div>
+            </div>
+            <div class="settings-body">
+                <div class="setting-group">
+                    <div class="setting-group-title">快捷键</div>
+                    <div class="setting-row">
+                        <div>
+                            <div class="setting-label">启用快捷键</div>
+                            <div class="setting-desc">在答题时使用键盘快速操作</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="hotkeyToggle" onchange="toggleHotkeys()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="setting-group hotkeys-disabled-overlay disabled" id="hotkeySettings">
+                    <div class="setting-group-title">快捷键配置</div>
+                    <div class="hotkey-row">
+                        <div class="hotkey-label">选项 A</div>
+                        <div class="hotkey-input-wrapper">
+                            <input class="hotkey-input" id="hk_optA" value="1" readonly onclick="startRecordHotkey(this,'optA')">
+                            <button class="hotkey-reset-btn" onclick="resetHotkey('optA','1')">重置</button>
+                        </div>
+                    </div>
+                    <div class="hotkey-row">
+                        <div class="hotkey-label">选项 B</div>
+                        <div class="hotkey-input-wrapper">
+                            <input class="hotkey-input" id="hk_optB" value="2" readonly onclick="startRecordHotkey(this,'optB')">
+                            <button class="hotkey-reset-btn" onclick="resetHotkey('optB','2')">重置</button>
+                        </div>
+                    </div>
+                    <div class="hotkey-row">
+                        <div class="hotkey-label">选项 C</div>
+                        <div class="hotkey-input-wrapper">
+                            <input class="hotkey-input" id="hk_optC" value="3" readonly onclick="startRecordHotkey(this,'optC')">
+                            <button class="hotkey-reset-btn" onclick="resetHotkey('optC','3')">重置</button>
+                        </div>
+                    </div>
+                    <div class="hotkey-row">
+                        <div class="hotkey-label">选项 D</div>
+                        <div class="hotkey-input-wrapper">
+                            <input class="hotkey-input" id="hk_optD" value="4" readonly onclick="startRecordHotkey(this,'optD')">
+                            <button class="hotkey-reset-btn" onclick="resetHotkey('optD','4')">重置</button>
+                        </div>
+                    </div>
+                    <div class="hotkey-row">
+                        <div class="hotkey-label">上一题</div>
+                        <div class="hotkey-input-wrapper">
+                            <input class="hotkey-input" id="hk_prev" value="←" readonly onclick="startRecordHotkey(this,'prev')">
+                            <button class="hotkey-reset-btn" onclick="resetHotkey('prev','ArrowLeft')">重置</button>
+                        </div>
+                    </div>
+                    <div class="hotkey-row">
+                        <div class="hotkey-label">下一题</div>
+                        <div class="hotkey-input-wrapper">
+                            <input class="hotkey-input" id="hk_next" value="→" readonly onclick="startRecordHotkey(this,'next')">
+                            <button class="hotkey-reset-btn" onclick="resetHotkey('next','ArrowRight')">重置</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 快捷键提示 -->
+    <div class="hotkey-hint" id="hotkeyHint"></div>
+
+    <script>
+        let questions = [];
+        let originalQuestions = [];
+        let userAnswers = [];
+        let currentIndex = 0;
+        let isReviewMode = false;
+        let selectedPreset = null;
+        let currentCustomMode = 'simple';
+
+        // ===== 自定义对话框系统 =====
+        let dialogResolve = null;
+
+        function showDialog({ icon, title, message, buttons }) {
+            return new Promise(resolve => {
+                dialogResolve = resolve;
+                document.getElementById('dialogIcon').textContent = icon || '💬';
+                document.getElementById('dialogTitle').textContent = title || '提示';
+                document.getElementById('dialogMessage').textContent = message || '';
+                const btnContainer = document.getElementById('dialogButtons');
+                btnContainer.innerHTML = '';
+                (buttons || [{ text: '确定', type: 'confirm', value: true }]).forEach(btn => {
+                    const el = document.createElement('button');
+                    el.className = 'dialog-btn';
+                    if (btn.type === 'cancel') el.classList.add('dialog-btn-cancel');
+                    else if (btn.type === 'danger') el.classList.add('dialog-btn-danger');
+                    else el.classList.add('dialog-btn-confirm');
+                    el.textContent = btn.text;
+                    el.onclick = () => {
+                        document.getElementById('dialogOverlay').classList.remove('active');
+                        resolve(btn.value !== undefined ? btn.value : true);
+                    };
+                    btnContainer.appendChild(el);
+                });
+                document.getElementById('dialogOverlay').classList.add('active');
+            });
+        }
+
+        function showAlert(message, icon) {
+            return showDialog({
+                icon: icon || 'ℹ️',
+                title: '提示',
+                message,
+                buttons: [{ text: '确定', type: 'confirm', value: true }]
+            });
+        }
+
+        function showConfirm(message, icon) {
+            return showDialog({
+                icon: icon || '🤔',
+                title: '确认',
+                message,
+                buttons: [
+                    { text: '取消', type: 'cancel', value: false },
+                    { text: '确定', type: 'confirm', value: true }
+                ]
+            });
+        }
+
+        function showDangerConfirm(message) {
+            return showDialog({
+                icon: '⚠️',
+                title: '警告',
+                message,
+                buttons: [
+                    { text: '取消', type: 'cancel', value: false },
+                    { text: '确定', type: 'danger', value: true }
+                ]
+            });
+        }
+
+        // 点击遮罩关闭
+        document.getElementById('dialogOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
+                if (dialogResolve) { dialogResolve(false); dialogResolve = null; }
+            }
+        });
+
+        // ===== 快捷键系统 =====
+        let hotkeyEnabled = false;
+        let hotkeyMap = {
+            optA: '1',
+            optB: '2',
+            optC: '3',
+            optD: '4',
+            prev: 'ArrowLeft',
+            next: 'ArrowRight'
+        };
+        let recordingTarget = null;
+        let recordingInput = null;
+        let hotkeyHintTimer = null;
+
+        function loadHotkeySettings() {
+            try {
+                const saved = JSON.parse(localStorage.getItem('hotkeySettings'));
+                if (saved) {
+                    hotkeyEnabled = !!saved.enabled;
+                    if (saved.map) hotkeyMap = { ...hotkeyMap, ...saved.map };
+                }
+            } catch(e) {}
+            document.getElementById('hotkeyToggle').checked = hotkeyEnabled;
+            toggleHotkeys();
+            syncHotkeyInputs();
+        }
+
+        function saveHotkeySettings() {
+            localStorage.setItem('hotkeySettings', JSON.stringify({
+                enabled: hotkeyEnabled,
+                map: hotkeyMap
+            }));
+        }
+
+        function toggleHotkeys() {
+            hotkeyEnabled = document.getElementById('hotkeyToggle').checked;
+            const panel = document.getElementById('hotkeySettings');
+            if (hotkeyEnabled) {
+                panel.classList.remove('disabled');
+            } else {
+                panel.classList.add('disabled');
+            }
+            saveHotkeySettings();
+        }
+
+        function getKeyDisplayName(key) {
+            const names = {
+                'ArrowLeft': '←',
+                'ArrowRight': '→',
+                'ArrowUp': '↑',
+                'ArrowDown': '↓',
+                ' ': '空格',
+                'Enter': '回车',
+                'Escape': 'Esc',
+                'Backspace': '退格',
+                'Tab': 'Tab',
+                'Delete': 'Del'
+            };
+            return names[key] || key.toUpperCase();
+        }
+
+        function syncHotkeyInputs() {
+            Object.keys(hotkeyMap).forEach(action => {
+                const input = document.getElementById('hk_' + action);
+                if (input) input.value = getKeyDisplayName(hotkeyMap[action]);
+            });
+        }
+
+        function startRecordHotkey(inputEl, action) {
+            // 取消之前的录制
+            if (recordingInput && recordingInput !== inputEl) {
+                recordingInput.classList.remove('recording');
+            }
+            recordingTarget = action;
+            recordingInput = inputEl;
+            inputEl.classList.add('recording');
+            inputEl.value = '按键...';
+        }
+
+        function resetHotkey(action, defaultKey) {
+            hotkeyMap[action] = defaultKey;
+            const input = document.getElementById('hk_' + action);
+            if (input) {
+                input.value = getKeyDisplayName(defaultKey);
+                input.classList.remove('recording');
+            }
+            if (recordingTarget === action) {
+                recordingTarget = null;
+                recordingInput = null;
+            }
+            saveHotkeySettings();
+        }
+
+        function showHotkeyHint(text) {
+            const hint = document.getElementById('hotkeyHint');
+            hint.textContent = text;
+            hint.classList.add('show');
+            clearTimeout(hotkeyHintTimer);
+            hotkeyHintTimer = setTimeout(() => hint.classList.remove('show'), 1200);
+        }
+
+        // 全局键盘事件
+        document.addEventListener('keydown', function(e) {
+            // 录制模式
+            if (recordingTarget) {
+                e.preventDefault();
+                const key = e.key;
+                // 检测按键冲突
+                const conflictAction = Object.keys(hotkeyMap).find(a => a !== recordingTarget && hotkeyMap[a] === key);
+                if (conflictAction) {
+                    showAlert('此按键已被"' + getHotkeyActionName(conflictAction) + '"使用，请选择其他按键', '⚠️');
+                    return;
+                }
+                hotkeyMap[recordingTarget] = key;
+                recordingInput.value = getKeyDisplayName(key);
+                recordingInput.classList.remove('recording');
+                recordingTarget = null;
+                recordingInput = null;
+                saveHotkeySettings();
+                return;
+            }
+
+            // 答题快捷键
+            if (!hotkeyEnabled) return;
+            // 如果有对话框或设置面板打开，不响应快捷键
+            if (document.getElementById('dialogOverlay').classList.contains('active')) return;
+            if (document.getElementById('settingsPanel').classList.contains('active')) return;
+            if (document.getElementById('exampleModal').classList.contains('active')) return;
+
+            // 只在答题页面生效
+            const quizView = document.getElementById('quizView');
+            if (!quizView.classList.contains('active')) return;
+
+            // 不在输入框中响应
+            if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) return;
+
+            const key = e.key;
+
+            if (key === hotkeyMap.optA) {
+                e.preventDefault();
+                triggerOptionByIndex(0);
+            } else if (key === hotkeyMap.optB) {
+                e.preventDefault();
+                triggerOptionByIndex(1);
+            } else if (key === hotkeyMap.optC) {
+                e.preventDefault();
+                triggerOptionByIndex(2);
+            } else if (key === hotkeyMap.optD) {
+                e.preventDefault();
+                triggerOptionByIndex(3);
+            } else if (key === hotkeyMap.prev) {
+                e.preventDefault();
+                prevQ();
+                showHotkeyHint('⬅ 上一题');
+            } else if (key === hotkeyMap.next) {
+                e.preventDefault();
+                const isLast = currentIndex === questions.length - 1;
+                if (isReviewMode) {
+                    showResult();
+                    showHotkeyHint('📊 返回结果');
+                } else if (isLast) {
+                    showResult();
+                    showHotkeyHint('📊 提交');
+                } else {
+                    nextQ();
+                    showHotkeyHint('➡ 下一题');
+                }
+            }
+        });
+
+        function triggerOptionByIndex(idx) {
+            const options = document.querySelectorAll('#optionsContainer .option-item');
+            if (idx >= options.length) return;
+            if (options[idx].classList.contains('disabled')) return;
+            const labels = ['A', 'B', 'C', 'D'];
+            showHotkeyHint('选择 ' + (labels[idx] || (idx+1)));
+            options[idx].click();
+        }
+
+        function getHotkeyActionName(action) {
+            const names = {
+                optA: '选项A', optB: '选项B', optC: '选项C', optD: '选项D',
+                prev: '上一题', next: '下一题'
+            };
+            return names[action] || action;
+        }
+
+        // ===== 设置面板 =====
+        function openSettings() {
+            document.getElementById('settingsPanel').classList.add('active');
+        }
+
+        function closeSettings() {
+            // 取消录制
+            if (recordingInput) {
+                recordingInput.classList.remove('recording');
+                syncHotkeyInputs();
+                recordingTarget = null;
+                recordingInput = null;
+            }
+            document.getElementById('settingsPanel').classList.remove('active');
+        }
+
+        document.getElementById('settingsPanel').addEventListener('click', function(e) {
+            if (e.target === this) closeSettings();
+        });
+
+        // ===== 预设格式 =====
+        const PRESET_FORMATS = [
+            {
+                id: 'default',
+                name: '标准格式',
+                desc: '最常用的 Q:/A-D:/答案: 格式',
+                example: `Q: 以下哪个是 Python 的特点？\nA: 编译型语言\nB: 解释型语言\nC: 汇编语言\nD: 机器语言\n答案: B\n解析: Python 是一种解释型、面向对象的高级编程语言\n---\nQ: HTTP 默认端口号是多少？\nA: 80\nB: 443\nC: 8080\nD: 3306\n答案: A\n解析: HTTP 默认使用 80 端口，HTTPS 使用 443 端口`,
+                config: {
+                    questionMarkers: ['Q:', 'q:'],
+                    optionPattern: '^[A-Da-d][:\\uff1a]\\s*',
+                    answerMarkers: ['答案:', 'answer:', 'Answer:'],
+                    explanationMarkers: ['解析:', 'explain:', 'explanation:'],
+                    separators: ['---', '===']
+                }
+            },
+            {
+                id: 'numbered',
+                name: '序号格式',
+                desc: '使用数字编号的题目格式',
+                example: `1. 计算机的核心部件是什么？\nA. 硬盘\nB. CPU\nC. 内存\nD. 显卡\n答案: B\n解析: CPU（中央处理器）是计算机的核心部件\n---\n2. 以下哪个是前端框架？\nA. Django\nB. Spring\nC. React\nD. Flask\n答案: C\n解析: React 是流行的前端 JavaScript 库`,
+                config: {
+                    questionMarkers: [],
+                    questionPattern: '^\\d+[.、]\\s*',
+                    optionPattern: '^[A-Da-d][.、]\\s*',
+                    answerMarkers: ['答案:', '正确答案:'],
+                    explanationMarkers: ['解析:', '注:'],
+                    separators: ['---']
+                }
+            },
+            {
+                id: 'bracket',
+                name: '括号格式',
+                desc: '使用括号标记的格式',
+                example: `【题目】数据库中主键的作用是什么？\n（A）提高查询速度\n（B）唯一标识记录\n（C）节省存储空间\n（D）加密数据\n【答案】B\n【解析】主键用于唯一标识表中的每一条记录\n---\n【题目】以下哪个不是面向对象的特性？\n（A）封装\n（B）继承\n（C）多态\n（D）编译\n【答案】D`,
+                config: {
+                    questionMarkers: ['【题目】', '【题】'],
+                    optionPattern: '^[（(][A-Da-d][)）]\\s*',
+                    answerMarkers: ['【答案】', '【正确答案】'],
+                    explanationMarkers: ['【解析】', '【注释】'],
+                    separators: ['---', '===']
+                }
+            },
+            {
+                id: 'english',
+                name: 'English Format',
+                desc: 'Standard English question format',
+                example: `Question: What does HTML stand for?\nA. Hyper Text Markup Language\nB. High Tech Modern Language\nC. Home Tool Markup Language\nD. Hyperlinks and Text Markup Language\nAnswer: A\nExplanation: HTML stands for Hyper Text Markup Language\n---\nQuestion: Which is a JavaScript framework?\nA. Laravel\nB. Django\nC. Vue.js\nD. Ruby on Rails\nAnswer: C\nExplanation: Vue.js is a progressive JavaScript framework`,
+                config: {
+                    questionMarkers: ['Question:', 'Q:'],
+                    optionPattern: '^[A-D][.:]\\s*',
+                    answerMarkers: ['Answer:', 'Correct:'],
+                    explanationMarkers: ['Explanation:', 'Note:'],
+                    separators: ['---', '===']
+                }
+            },
+            {
+                id: 'chinese_simple',
+                name: '简洁中文',
+                desc: '题目不带标记，直接以文字开头',
+                example: `什么是算法的时间复杂度？\nA、算法执行所需的时间\nB、算法占用的存储空间\nC、算法执行次数的数量级\nD、算法的代码行数\n答案: C\n解析: 时间复杂度描述算法执行次数随输入规模增长的趋势\n---\n栈的特点是什么？\nA、先进先出\nB、后进先出\nC、随机存取\nD、顺序存取\n答案: B`,
+                config: {
+                    questionMarkers: [],
+                    optionPattern: '^[A-Da-d][.、:\\uff1a]\\s*',
+                    answerMarkers: ['答案:', '答:', 'answer:'],
+                    explanationMarkers: ['解析:', '注:', 'explain:'],
+                    separators: ['---', '===']
+                }
+            }
+        ];
+
+        // ===== 初始化 =====
+        function init() {
+            loadCustomFormats();
+            renderPresets();
+            loadHotkeySettings();
+        }
+
+        // ===== 界面切换 =====
+        function setTab(mode) {
+            const btns = document.querySelectorAll('.tab-group .tab-btn');
+            btns.forEach(b => b.classList.remove('active'));
+            if (mode === 'file') {
+                btns[0].classList.add('active');
+                document.getElementById('area-file').classList.add('active');
+                document.getElementById('area-paste').classList.remove('active');
+            } else {
+                btns[1].classList.add('active');
+                document.getElementById('area-file').classList.remove('active');
+                document.getElementById('area-paste').classList.add('active');
+            }
+            hideErrors();
+        }
+
+        function setSubTab(mode) {
+            document.querySelectorAll('#area-paste .sub-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('#area-paste > .input-area').forEach(a => a.classList.remove('active'));
+            const tabs = document.querySelectorAll('#area-paste .sub-tab-btn');
+            if (mode === 'preset') {
+                tabs[0].classList.add('active');
+                document.getElementById('sub-preset').classList.add('active');
+            } else {
+                tabs[1].classList.add('active');
+                document.getElementById('sub-custom').classList.add('active');
+            }
+            hideErrors();
+        }
+
+        function setCustomMode(mode) {
+            currentCustomMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.mode-btn:nth-child(${mode === 'simple' ? 1 : 2})`).classList.add('active');
+            document.querySelector('.custom-simple-mode').classList.toggle('active', mode === 'simple');
+            document.querySelector('.custom-advanced-mode').classList.toggle('active', mode === 'advanced');
+        }
+
+        function hideErrors() {
+            document.getElementById('fileError').style.display = 'none';
+            document.getElementById('pasteError').style.display = 'none';
+        }
+
+        // ===== 预设格式 =====
+        function renderPresets() {
+            const container = document.getElementById('presetList');
+            container.innerHTML = '';
+            PRESET_FORMATS.forEach(preset => {
+                const card = document.createElement('div');
+                card.className = 'preset-card';
+                card.onclick = (e) => {
+                    if (!e.target.classList.contains('preset-card-example-btn')) selectPreset(preset.id);
+                };
+                card.innerHTML = `
+                    <div class="preset-card-title">${preset.name}</div>
+                    <div class="preset-card-desc">${preset.desc}</div>
+                    <div class="preset-card-example-btn" onclick="showExample('${preset.id}',event)">📖 查看例题</div>
+                `;
+                container.appendChild(card);
+            });
+            const customFormats = getCustomFormats();
+            customFormats.forEach(format => {
+                const card = document.createElement('div');
+                card.className = 'preset-card';
+                card.style.borderColor = '#d1fae5';
+                card.onclick = () => selectPreset(format.id);
+                card.innerHTML = `
+                    <div class="preset-card-title">✨ ${format.name}</div>
+                    <div class="preset-card-desc">自定义格式 ${format.mode === 'advanced' ? '(高级)' : ''}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function selectPreset(id) {
+            selectedPreset = id;
+            document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('selected'));
+            const allFormats = [...PRESET_FORMATS, ...getCustomFormats()];
+            const idx = allFormats.findIndex(f => f.id === id);
+            const cards = document.querySelectorAll('.preset-card');
+            if (idx >= 0 && cards[idx]) cards[idx].classList.add('selected');
+        }
+
+        function showExample(presetId, event) {
+            event.stopPropagation();
+            const preset = PRESET_FORMATS.find(p => p.id === presetId);
+            if (!preset || !preset.example) return;
+            document.getElementById('modalTitle').textContent = `${preset.name} - 格式示例`;
+            document.getElementById('modalBody').innerHTML = `
+                <div class="example-section">
+                    <div class="example-title">📝 示例题目</div>
+                    <div class="example-code">${preset.example.replace(/\\n/g, '\n')}</div>
+                    <button class="copy-example-btn" onclick="copyExample('${presetId}')">📋 复制示例到粘贴框</button>
+                </div>
+                <div class="example-section">
+                    <div class="example-title">💡 格式说明</div>
+                    <div style="font-size:13px;line-height:1.8;color:var(--text-secondary);">${getFormatDescription(preset)}</div>
+                </div>
+            `;
+            document.getElementById('exampleModal').classList.add('active');
+        }
+
+        function getFormatDescription(preset) {
+            const c = preset.config, lines = [];
+            if (c.questionMarkers && c.questionMarkers.length) lines.push(`• 题目标记: ${c.questionMarkers.join(' 或 ')}`);
+            if (c.questionPattern) lines.push(`• 题目模式: 正则匹配`);
+            if (c.optionPattern) lines.push(`• 选项格式: 自动识别 A-D 开头`);
+            if (c.answerMarkers) lines.push(`• 答案标记: ${c.answerMarkers.join(' 或 ')}`);
+            if (c.explanationMarkers && c.explanationMarkers.length) lines.push(`• 解析标记: ${c.explanationMarkers.join(' 或 ')} (可选)`);
+            if (c.separators) lines.push(`• 题目分隔: ${c.separators.join(' 或 ')}`);
+            return lines.join('<br>');
+        }
+
+        function copyExample(presetId) {
+            const preset = PRESET_FORMATS.find(p => p.id === presetId);
+            if (!preset) return;
+            const text = preset.example.replace(/\\n/g, '\n');
+            navigator.clipboard.writeText(text).then(() => {
+                closeExampleModal();
+                selectPreset(presetId);
+                document.getElementById('presetInput').value = text;
+                document.getElementById('presetInput').focus();
+            }).catch(() => {
+                document.getElementById('presetInput').value = text;
+                closeExampleModal();
+                selectPreset(presetId);
+            });
+        }
+
+        function closeExampleModal() {
+            document.getElementById('exampleModal').classList.remove('active');
+        }
+
+        document.getElementById('exampleModal').addEventListener('click', function(e) {
+            if (e.target === this) closeExampleModal();
+        });
+
+        function parseWithSelectedPreset() {
+            if (!selectedPreset) { showError('请先选择一个格式', 'paste'); return; }
+            const text = document.getElementById('presetInput').value.trim();
+            if (!text) { showError('请先粘贴题目内容', 'paste'); return; }
+            const allFormats = [...PRESET_FORMATS, ...getCustomFormats()];
+            const format = allFormats.find(f => f.id === selectedPreset);
+            if (format) {
+                if (format.mode === 'advanced') parseWithAdvancedFormat(text, format.config);
+                else parseWithFormat(text, format.config);
+            }
+        }
+
+        // ===== 自定义格式 - 简单模式 =====
+        function fillTemplate(field, value) {
+            const map = {
+                question: 'simpleQuestionMarker',
+                option: 'simpleOptionMarker',
+                answer: 'simpleAnswerMarker',
+                explanation: 'simpleExplanationMarker',
+                separator: 'simpleSeparator'
+            };
+            if (map[field]) {
+                document.getElementById(map[field]).value = (value === '空行') ? '\\n\\n' : (value === '序号') ? '1.' : value;
+            }
+        }
+
+        async function saveSimpleFormat() {
+            const name = document.getElementById('simpleFormatName').value.trim();
+            const qm = document.getElementById('simpleQuestionMarker').value.trim();
+            const om = document.getElementById('simpleOptionMarker').value.trim();
+            const am = document.getElementById('simpleAnswerMarker').value.trim();
+            const em = document.getElementById('simpleExplanationMarker').value.trim();
+            const sep = document.getElementById('simpleSeparator').value.trim();
+            if (!name) { await showAlert('请输入格式名称', '📝'); return; }
+            if (!am) { await showAlert('请填写答案标记', '📝'); return; }
+            if (!sep) { await showAlert('请填写题目分隔符', '📝'); return; }
+
+            const config = {
+                questionMarkers: qm ? [qm] : [],
+                optionPattern: convertToPattern(om),
+                answerMarkers: [am],
+                explanationMarkers: em ? [em] : [],
+                separators: [sep === '\\n\\n' ? '\\n\\n' : sep]
+            };
+            saveFormatToStorage(name, config, 'simple');
+            ['simpleFormatName','simpleQuestionMarker','simpleOptionMarker','simpleAnswerMarker','simpleExplanationMarker','simpleSeparator'].forEach(id => document.getElementById(id).value = '');
+            await showAlert('格式已保存！', '✅');
+            loadCustomFormats();
+            renderPresets();
+        }
+
+        function convertToPattern(marker) {
+            if (!marker) return '^[A-Da-d][.:\\uff1a、]\\s*';
+            if (marker.includes('(') && marker.includes(')')) return '^[（(][A-Da-d][)）]\\s*';
+            if (marker.includes('【') && marker.includes('】')) return '^【[A-Da-d]】\\s*';
+            const ch = marker.replace(/[A-D]/i, '');
+            if (ch) return `^[A-Da-d][${ch.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}]\\s*`;
+            return '^[A-Da-d][.:\\uff1a、]\\s*';
+        }
+
+        // ===== 自定义格式 - 高级模式 =====
+        async function saveAdvancedFormat() {
+            const name = document.getElementById('advancedFormatName').value.trim();
+            const qr = document.getElementById('advancedQuestionRegex').value.trim();
+            const or_ = document.getElementById('advancedOptionRegex').value.trim();
+            const ar = document.getElementById('advancedAnswerRegex').value.trim();
+            const er = document.getElementById('advancedExplanationRegex').value.trim();
+            const sep = document.getElementById('advancedSeparator').value.trim();
+            if (!name || !qr || !or_ || !ar || !sep) { await showAlert('请填写所有必填项', '📝'); return; }
+            try { [qr, or_, ar, sep].forEach(r => new RegExp(r)); if (er) new RegExp(er); }
+            catch (e) { await showAlert('正则表达式错误: ' + e.message, '❌'); return; }
+
+            const config = { questionPattern: qr, optionPattern: or_, answerPattern: ar, explanationPattern: er || null, separatorPattern: sep };
+            saveFormatToStorage(name, config, 'advanced');
+            ['advancedFormatName','advancedQuestionRegex','advancedOptionRegex','advancedAnswerRegex','advancedExplanationRegex','advancedSeparator'].forEach(id => document.getElementById(id).value = '');
+            await showAlert('高级格式已保存！', '✅');
+            loadCustomFormats();
+            renderPresets();
+        }
+
+        // ===== 格式存储 =====
+        function saveFormatToStorage(name, config, mode) {
+            const formats = getCustomFormats();
+            formats.push({ id: 'custom_' + Date.now(), name, config, mode, createdAt: new Date().toISOString() });
+            localStorage.setItem('customFormats', JSON.stringify(formats));
+        }
+
+        function getCustomFormats() {
+            try { return JSON.parse(localStorage.getItem('customFormats') || '[]'); } catch { return []; }
+        }
+
+        function loadCustomFormats() {
+            const formats = getCustomFormats();
+            const container = document.getElementById('savedFormatsList');
+            container.innerHTML = '';
+            if (!formats.length) {
+                container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary);font-size:13px;">暂无保存的格式</div>';
+                return;
+            }
+            formats.forEach(format => {
+                const item = document.createElement('div');
+                item.className = 'saved-format-item';
+                item.innerHTML = `
+                    <div class="saved-format-info">
+                        <div class="saved-format-name">${format.name}</div>
+                        <div class="saved-format-meta">${format.mode === 'advanced' ? '高级模式' : '简单模式'} · ${new Date(format.createdAt).toLocaleDateString()}</div>
+                    </div>
+                    <div class="saved-format-actions">
+                        <button class="icon-btn primary" onclick="useCustomFormat('${format.id}')">使用</button>
+                        <button class="icon-btn" onclick="editCustomFormat('${format.id}')">编辑</button>                        
+                        <button class="icon-btn" onclick="deleteCustomFormat('${format.id}')">删除</button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function useCustomFormat(id) {
+            setSubTab('preset');
+            selectPreset(id);
+        }
+
+        function editCustomFormat(id) {
+            const formats = getCustomFormats();
+            const format = formats.find(f => f.id === id);
+            if (!format) return;
+            if (format.mode === 'advanced') {
+                setCustomMode('advanced');
+                document.getElementById('advancedFormatName').value = format.name;
+                document.getElementById('advancedQuestionRegex').value = format.config.questionPattern || '';
+                document.getElementById('advancedOptionRegex').value = format.config.optionPattern || '';
+                document.getElementById('advancedAnswerRegex').value = format.config.answerPattern || '';
+                document.getElementById('advancedExplanationRegex').value = format.config.explanationPattern || '';
+                document.getElementById('advancedSeparator').value = format.config.separatorPattern || '';
+            } else {
+                setCustomMode('simple');
+                document.getElementById('simpleFormatName').value = format.name;
+                const c = format.config;
+                document.getElementById('simpleQuestionMarker').value = (c.questionMarkers && c.questionMarkers[0]) || '';
+                document.getElementById('simpleOptionMarker').value = '';
+                document.getElementById('simpleAnswerMarker').value = (c.answerMarkers && c.answerMarkers[0]) || '';
+                document.getElementById('simpleExplanationMarker').value = (c.explanationMarkers && c.explanationMarkers[0]) || '';
+                document.getElementById('simpleSeparator').value = (c.separators && c.separators[0]) || '';
+            }
+            deleteCustomFormatSilent(id);
+        }
+
+        async function deleteCustomFormat(id) {
+            const confirmed = await showDangerConfirm('确定要删除这个自定义格式吗？');
+            if (!confirmed) return;
+            deleteCustomFormatSilent(id);
+            await showAlert('格式已删除', '🗑️');
+        }
+
+        function deleteCustomFormatSilent(id) {
+            let formats = getCustomFormats();
+            formats = formats.filter(f => f.id !== id);
+            localStorage.setItem('customFormats', JSON.stringify(formats));
+            loadCustomFormats();
+            renderPresets();
+        }
+
+        // ===== 解析引擎 =====
+        function parseWithFormat(text, config) {
+            const lines = text.split('\n');
+            const parsed = [];
+            let current = null;
+
+            const isSeparator = (line) => {
+                const trimmed = line.trim();
+                if (!trimmed && config.separators && config.separators.includes('\\n\\n')) return false;
+                return config.separators && config.separators.some(s => trimmed === s);
+            };
+
+            const isQuestion = (line) => {
+                const trimmed = line.trim();
+                if (config.questionMarkers && config.questionMarkers.length) {
+                    return config.questionMarkers.some(m => trimmed.startsWith(m));
+                }
+                if (config.questionPattern) {
+                    return new RegExp(config.questionPattern, 'i').test(trimmed);
+                }
+                return false;
+            };
+
+            const getQuestionText = (line) => {
+                let trimmed = line.trim();
+                if (config.questionMarkers && config.questionMarkers.length) {
+                    for (const m of config.questionMarkers) {
+                        if (trimmed.startsWith(m)) return trimmed.slice(m.length).trim();
+                    }
+                }
+                if (config.questionPattern) {
+                    return trimmed.replace(new RegExp(config.questionPattern, 'i'), '').trim();
+                }
+                return trimmed;
+            };
+
+            const isOption = (line) => {
+                return config.optionPattern && new RegExp(config.optionPattern, 'i').test(line.trim());
+            };
+
+            const getOptionText = (line) => {
+                return line.trim().replace(new RegExp(config.optionPattern, 'i'), '').trim();
+            };
+
+            const getOptionLetter = (line) => {
+                const m = line.trim().match(/[A-Da-d]/);
+                return m ? m[0].toUpperCase() : null;
+            };
+
+            const isAnswer = (line) => {
+                return config.answerMarkers && config.answerMarkers.some(m => line.trim().toLowerCase().startsWith(m.toLowerCase()));
+            };
+
+            const getAnswer = (line) => {
+                let trimmed = line.trim();
+                for (const m of config.answerMarkers) {
+                    if (trimmed.toLowerCase().startsWith(m.toLowerCase())) {
+                        return trimmed.slice(m.length).trim().toUpperCase().charAt(0);
+                    }
+                }
+                return null;
+            };
+
+            const isExplanation = (line) => {
+                return config.explanationMarkers && config.explanationMarkers.length &&
+                    config.explanationMarkers.some(m => line.trim().toLowerCase().startsWith(m.toLowerCase()));
+            };
+
+            const getExplanation = (line) => {
+                let trimmed = line.trim();
+                for (const m of config.explanationMarkers) {
+                    if (trimmed.toLowerCase().startsWith(m.toLowerCase())) {
+                        return trimmed.slice(m.length).trim();
+                    }
+                }
+                return trimmed;
+            };
+
+            const saveCurrent = () => {
+                if (current && current.question && current.options.length >= 2 && current.answer) {
+                    parsed.push({ ...current });
+                }
+            };
+
+            // 如果没有题目标记，自动检测模式
+            const noQuestionMarker = (!config.questionMarkers || !config.questionMarkers.length) && !config.questionPattern;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const trimmed = line.trim();
+                if (!trimmed) continue;
+
+                if (isSeparator(line)) {
+                    saveCurrent();
+                    current = null;
+                    continue;
+                }
+
+                if (isAnswer(line)) {
+                    if (current) current.answer = getAnswer(line);
+                    continue;
+                }
+
+                if (isExplanation(line)) {
+                    if (current) current.explanation = getExplanation(line);
+                    continue;
+                }
+
+                if (isOption(line)) {
+                    if (!current) {
+                        // 如果前一行是非选项/非答案/非解析，当作题目
+                        if (noQuestionMarker && i > 0) {
+                            let qi = i - 1;
+                            while (qi >= 0 && !lines[qi].trim()) qi--;
+                            if (qi >= 0 && !isSeparator(lines[qi]) && !isOption(lines[qi]) && !isAnswer(lines[qi]) && !isExplanation(lines[qi])) {
+                                saveCurrent();
+                                current = { question: lines[qi].trim().replace(/^\d+[.、]\s*/, ''), options: [], answer: null, explanation: '' };
+                            }
+                        }
+                    }
+                    if (current) {
+                        const letter = getOptionLetter(line);
+                        const text = getOptionText(line);
+                        current.options.push({ letter, text });
+                    }
+                    continue;
+                }
+
+                if (isQuestion(line)) {
+                    saveCurrent();
+                    current = { question: getQuestionText(line), options: [], answer: null, explanation: '' };
+                    continue;
+                }
+
+                if (noQuestionMarker && !current) {
+                    // 看看下一行是不是选项
+                    let nextI = i + 1;
+                    while (nextI < lines.length && !lines[nextI].trim()) nextI++;
+                    if (nextI < lines.length && isOption(lines[nextI])) {
+                        saveCurrent();
+                        current = { question: trimmed.replace(/^\d+[.、]\s*/, ''), options: [], answer: null, explanation: '' };
+                        continue;
+                    }
+                }
+            }
+            saveCurrent();
+
+            if (!parsed.length) { showError('未能解析出任何题目，请检查格式是否正确', 'paste'); return; }
+            finishParsing(parsed);
+        }
+
+        function parseWithAdvancedFormat(text, config) {
+            const blocks = config.separatorPattern
+                ? text.split(new RegExp(config.separatorPattern, 'm'))
+                : [text];
+            const parsed = [];
+
+            blocks.forEach(block => {
+                const lines = block.split('\n').map(l => l.trim()).filter(l => l);
+                let q = null, opts = [], ans = null, expl = '';
+
+                lines.forEach(line => {
+                    const qr = new RegExp(config.questionPattern, 'i');
+                    const or_ = new RegExp(config.optionPattern, 'i');
+                    const ar = new RegExp(config.answerPattern, 'i');
+
+                    if (ar.test(line)) {
+                        const m = line.match(ar);
+                        ans = m[1] ? m[1].trim().toUpperCase().charAt(0) : null;
+                    } else if (config.explanationPattern && new RegExp(config.explanationPattern, 'i').test(line)) {
+                        const m = line.match(new RegExp(config.explanationPattern, 'i'));
+                        expl = m[1] ? m[1].trim() : line;
+                    } else if (or_.test(line)) {
+                        const letter = line.match(/[A-Da-d]/);
+                        const optText = line.replace(or_, '').trim();
+                        opts.push({ letter: letter ? letter[0].toUpperCase() : String.fromCharCode(65 + opts.length), text: optText });
+                    } else if (qr.test(line)) {
+                        const m = line.match(qr);
+                        q = m[1] ? m[1].trim() : line.replace(qr, '').trim();
+                    }
+                });
+
+                if (q && opts.length >= 2 && ans) {
+                    parsed.push({ question: q, options: opts, answer: ans, explanation: expl });
+                }
+            });
+
+            if (!parsed.length) { showError('高级模式未能解析出题目，请检查正则表达式', 'paste'); return; }
+            finishParsing(parsed);
+        }
+
+        function finishParsing(parsed) {
+            originalQuestions = parsed.map(q => JSON.parse(JSON.stringify(q)));
+            questions = parsed;
+            document.getElementById('qCount').textContent = questions.length;
+            document.getElementById('setup-panel').style.display = 'none';
+            document.getElementById('ready-panel').style.display = 'block';
+        }
+
+        function showError(msg, target) {
+            const el = document.getElementById(target === 'paste' ? 'pasteError' : 'fileError');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        // ===== 文件导入 =====
+        const uploadZone = document.getElementById('uploadZone');
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('drag-over');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('drag-over');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file) processFile(file);
+        });
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) processFile(file);
+        }
+
+        function processFile(file) {
+            hideErrors();
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result;
+                if (file.name.endsWith('.json')) {
+                    try {
+                        const data = JSON.parse(content);
+                        const arr = Array.isArray(data) ? data : (data.questions || []);
+                        if (!arr.length) { showError('JSON 中未找到题目', 'file'); return; }
+                        const parsed = arr.map(q => {
+                            let opts = [];
+                            if (Array.isArray(q.options)) {
+                                opts = q.options.map((o, idx) => {
+                                    if (typeof o === 'string') return { letter: String.fromCharCode(65 + idx), text: o };
+                                    return { letter: o.letter || String.fromCharCode(65 + idx), text: o.text || o.content || '' };
+                                });
+                            }
+                            return {
+                                question: q.question || q.q || q.title || '',
+                                options: opts,
+                                answer: (q.answer || q.a || '').toString().toUpperCase().charAt(0),
+                                explanation: q.explanation || q.explain || q.analysis || ''
+                            };
+                        }).filter(q => q.question && q.options.length >= 2 && q.answer);
+                        if (!parsed.length) { showError('JSON 格式不正确或题目数据不完整', 'file'); return; }
+                        finishParsing(parsed);
+                    } catch (e) { showError('JSON 解析失败: ' + e.message, 'file'); }
+                } else {
+                    // txt 文件，先用标准格式尝试
+                    const defaultConfig = PRESET_FORMATS[0].config;
+                    tryParseText(content, defaultConfig);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function tryParseText(text, config) {
+            // 尝试每个预设格式
+            for (const preset of PRESET_FORMATS) {
+                const result = tryParseWithFormat(text, preset.config);
+                if (result.length > 0) {
+                    finishParsing(result);
+                    return;
+                }
+            }
+            showError('未能自动识别文件格式，请尝试使用文本粘贴功能手动选择格式', 'file');
+        }
+
+        function tryParseWithFormat(text, config) {
+            const lines = text.split('\n');
+            const parsed = [];
+            let current = null;
+
+            const isSeparator = (line) => config.separators && config.separators.some(s => line.trim() === s);
+            const isOption = (line) => config.optionPattern && new RegExp(config.optionPattern, 'i').test(line.trim());
+            const isAnswer = (line) => config.answerMarkers && config.answerMarkers.some(m => line.trim().toLowerCase().startsWith(m.toLowerCase()));
+            const isExplanation = (line) => config.explanationMarkers && config.explanationMarkers.length && config.explanationMarkers.some(m => line.trim().toLowerCase().startsWith(m.toLowerCase()));
+
+            const isQuestion = (line) => {
+                const trimmed = line.trim();
+                if (config.questionMarkers && config.questionMarkers.length) return config.questionMarkers.some(m => trimmed.startsWith(m));
+                if (config.questionPattern) return new RegExp(config.questionPattern, 'i').test(trimmed);
+                return false;
+            };
+
+            const getQuestionText = (line) => {
+                let trimmed = line.trim();
+                if (config.questionMarkers) for (const m of config.questionMarkers) { if (trimmed.startsWith(m)) return trimmed.slice(m.length).trim(); }
+                if (config.questionPattern) return trimmed.replace(new RegExp(config.questionPattern, 'i'), '').trim();
+                return trimmed;
+            };
+
+            const noQuestionMarker = (!config.questionMarkers || !config.questionMarkers.length) && !config.questionPattern;
+
+            const saveCurrent = () => {
+                if (current && current.question && current.options.length >= 2 && current.answer) parsed.push({ ...current });
+            };
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i], trimmed = line.trim();
+                if (!trimmed) continue;
+                if (isSeparator(line)) { saveCurrent(); current = null; continue; }
+                if (isAnswer(line)) {
+                    if (current) {
+                        let ans = null;
+                        for (const m of config.answerMarkers) {
+                            if (trimmed.toLowerCase().startsWith(m.toLowerCase())) { ans = trimmed.slice(m.length).trim().toUpperCase().charAt(0); break; }
+                        }
+                        current.answer = ans;
+                    }
+                    continue;
+                }
+                if (isExplanation(line)) {
+                    if (current) {
+                        for (const m of config.explanationMarkers) {
+                            if (trimmed.toLowerCase().startsWith(m.toLowerCase())) { current.explanation = trimmed.slice(m.length).trim(); break; }
+                        }
+                    }
+                    continue;
+                }
+                if (isOption(line)) {
+                    if (!current && noQuestionMarker) {
+                        let qi = i - 1;
+                        while (qi >= 0 && !lines[qi].trim()) qi--;
+                        if (qi >= 0 && !isSeparator(lines[qi]) && !isOption(lines[qi]) && !isAnswer(lines[qi]) && !isExplanation(lines[qi])) {
+                            saveCurrent();
+                            current = { question: lines[qi].trim().replace(/^\d+[.、]\s*/, ''), options: [], answer: null, explanation: '' };
+                        }
+                    }
+                    if (current) {
+                        const letter = (line.trim().match(/[A-Da-d]/)||[])[0];
+                        current.options.push({ letter: letter ? letter.toUpperCase() : String.fromCharCode(65 + current.options.length), text: line.trim().replace(new RegExp(config.optionPattern, 'i'), '').trim() });
+                    }
+                    continue;
+                }
+                if (isQuestion(line)) { saveCurrent(); current = { question: getQuestionText(line), options: [], answer: null, explanation: '' }; continue; }
+                if (noQuestionMarker && !current) {
+                    let nextI = i + 1;
+                    while (nextI < lines.length && !lines[nextI].trim()) nextI++;
+                    if (nextI < lines.length && isOption(lines[nextI])) {
+                        saveCurrent();
+                        current = { question: trimmed.replace(/^\d+[.、]\s*/, ''), options: [], answer: null, explanation: '' };
+                    }
+                }
+            }
+            saveCurrent();
+            return parsed;
+        }
+
+        // ===== 答题逻辑 =====
+        function startQuiz() {
+            if (document.getElementById('shuffleQuestions').checked) shuffleArray(questions);
+            if (document.getElementById('shuffleOptions').checked) {
+                questions.forEach(q => {
+                    const correctText = q.options.find(o => o.letter === q.answer)?.text;
+                    shuffleArray(q.options);
+                    q.options.forEach((opt, idx) => opt.letter = String.fromCharCode(65 + idx));
+                    const newCorrect = q.options.find(o => o.text === correctText);
+                    if (newCorrect) q.answer = newCorrect.letter;
+                });
+            }
+            userAnswers = new Array(questions.length).fill(null);
+            currentIndex = 0;
+            isReviewMode = false;
+            showView('quizView');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = questions[currentIndex];
+            document.getElementById('progressText').textContent = `${currentIndex + 1}/${questions.length}`;
+            document.getElementById('questionText').textContent = q.question;
+
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = '';
+
+            const answered = userAnswers[currentIndex] !== null;
+
+            q.options.forEach((opt, idx) => {
+                const div = document.createElement('div');
+                div.className = 'option-item';
+                div.textContent = `${opt.letter}. ${opt.text}`;
+
+                if (answered || isReviewMode) {
+                    div.classList.add('disabled');
+                    if (opt.letter === q.answer) div.classList.add('correct');
+                    if (opt.letter === userAnswers[currentIndex] && opt.letter !== q.answer) div.classList.add('wrong');
+                } else {
+                    div.onclick = () => selectAnswer(opt.letter);
+                }
+                container.appendChild(div);
+            });
+
+            const analysisBox = document.getElementById('analysisBox');
+            const analysisContent = document.getElementById('analysisContent');
+            if ((answered || isReviewMode) && q.explanation) {
+                analysisContent.textContent = q.explanation;
+                analysisBox.style.display = 'block';
+            } else {
+                analysisBox.style.display = 'none';
+            }
+
+            const prevBtn = document.getElementById('prevBtn');
+            prevBtn.style.visibility = currentIndex > 0 ? 'visible' : 'hidden';
+
+            const nextBtn = document.getElementById('nextBtn');
+            if (isReviewMode) {
+                nextBtn.textContent = currentIndex === questions.length - 1 ? '返回结果' : '下一题';
+            } else {
+                nextBtn.textContent = currentIndex === questions.length - 1 ? '提交' : '下一题';
+            }
+        }
+
+        function selectAnswer(letter) {
+            userAnswers[currentIndex] = letter;
+            renderQuestion();
+        }
+
+        function prevQ() {
+            if (currentIndex > 0) { currentIndex--; renderQuestion(); }
+        }
+
+        function nextQ() {
+            if (isReviewMode) {
+                if (currentIndex < questions.length - 1) { currentIndex++; renderQuestion(); }
+                else showResult();
+                return;
+            }
+            if (currentIndex < questions.length - 1) {
+                currentIndex++;
+                renderQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        async function confirmExit() {
+            const confirmed = await showDangerConfirm('确定要退出答题吗？当前进度不会保存。');
+            if (confirmed) resetImport();
+        }
+
+        function showResult() {
+            let correct = 0;
+            userAnswers.forEach((a, i) => { if (a === questions[i].answer) correct++; });
+            const pct = Math.round((correct / questions.length) * 100);
+
+            showView('resultView');
+
+            document.getElementById('scoreVal').textContent = pct;
+
+            // SVG 动画
+            const circle = document.getElementById('scoreCircle');
+            const circumference = 2 * Math.PI * 60;
+            circle.style.strokeDasharray = circumference;
+            circle.style.strokeDashoffset = circumference;
+            circle.style.transform = 'rotate(-90deg)';
+            circle.style.transformOrigin = '50% 50%';
+            setTimeout(() => {
+                circle.style.strokeDashoffset = circumference - (circumference * pct / 100);
+            }, 100);
+
+            // 结果网格
+            const grid = document.getElementById('resultGrid');
+            grid.innerHTML = '';
+            questions.forEach((q, i) => {
+                const dot = document.createElement('div');
+                dot.className = 'grid-dot ' + (userAnswers[i] === q.answer ? 'correct' : 'wrong');
+                dot.textContent = i + 1;
+                dot.onclick = () => reviewQuestion(i);
+                grid.appendChild(dot);
+            });
+        }
+
+        function reviewQuestion(idx) {
+            isReviewMode = true;
+            currentIndex = idx;
+            showView('quizView');
+            renderQuestion();
+        }
+
+        function resetImport() {
+            questions = [];
+            originalQuestions = [];
+            userAnswers = [];
+            currentIndex = 0;
+            isReviewMode = false;
+            selectedPreset = null;
+            document.getElementById('setup-panel').style.display = 'block';
+            document.getElementById('ready-panel').style.display = 'none';
+            document.getElementById('fileInput').value = '';
+            document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('selected'));
+            hideErrors();
+            showView('homeView');
+        }
+
+        function showView(viewId) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+        }
+
+        // ===== 初始化 =====
+        init();
+    </script>
 </body>
 </html>

@@ -28,20 +28,24 @@
             color: var(--text-main);
             margin: 0;
             min-height: 100vh;
+            min-height: 100dvh;
         }
 
         @media (max-width: 767px) {
             body {
                 display: flex;
                 justify-content: center;
-                align-items: center;
-                overflow: hidden;
+                align-items: stretch;
                 height: 100vh;
+                height: 100dvh;
+                overflow: hidden;
             }
             .container {
                 width: 100%;
-                height: 100vh;
+                height: 100%;
                 overflow: hidden;
+                display: flex;
+                flex-direction: column;
             }
         }
 
@@ -51,18 +55,22 @@
                 background-attachment: fixed;
                 display: flex;
                 justify-content: center;
+                align-items: flex-start;
                 padding: 40px 0;
+                min-height: 100vh;
+                min-height: 100dvh;
             }
             .container {
                 width: 90%;
                 max-width: 1000px;
                 border-radius: 20px;
                 box-shadow: var(--shadow-md);
-                min-height: min(85vh, 700px);
+                max-height: calc(100vh - 80px);
+                max-height: calc(100dvh - 80px);
             }
             .container:has(#homeView.active) { height: auto; }
             .container:has(#quizView.active),
-            .container:has(#resultView.active) { height: min(85vh, 800px); }
+            .container:has(#resultView.active) { height: calc(100vh - 80px); height: calc(100dvh - 80px); }
         }
 
         .container {
@@ -78,12 +86,13 @@
             flex-direction: column;
             width: 100%;
             animation: fadeIn 0.3s ease;
+            min-height: 0;
         }
 
-        @media (max-width: 767px) { .view-section { height: 100%; } }
+        @media (max-width: 767px) { .view-section { flex: 1; overflow: hidden; } }
         @media (min-width: 768px) {
-            #homeView { height: auto; min-height: 500px; }
-            #quizView, #resultView { height: 100%; }
+            #homeView { height: auto; min-height: 0; }
+            #quizView, #resultView { flex: 1; overflow: hidden; }
         }
 
         .view-section.active { display: flex; }
@@ -138,7 +147,7 @@
             }
         }
         @media (min-width: 768px) {
-            .home-layout { padding: 40px 30px; }
+            .home-layout { padding: 40px 30px; overflow-y: auto; flex: 1; }
         }
 
         #setup-panel {
@@ -614,7 +623,7 @@
 
         /* ===== 设置按钮 ===== */
         .settings-fab {
-            position: absolute;
+            position: fixed;
             bottom: 24px;
             right: 24px;
             width: 44px;
@@ -623,17 +632,28 @@
             background: white;
             border: 1px solid #e2e8f0;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            cursor: pointer;
+            cursor: grab;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
-            z-index: 20;
+            transition: box-shadow 0.2s, border-color 0.2s;
+            z-index: 2000;
+            user-select: none;
+            touch-action: none;
+            will-change: transform;
         }
         .settings-fab:hover {
-            transform: rotate(30deg);
             box-shadow: 0 6px 20px rgba(0,0,0,0.12);
             border-color: var(--primary-color);
+        }
+        .settings-fab.dragging {
+            cursor: grabbing;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.18);
+            opacity: 0.9;
+            transition: none !important;
+        }
+        .settings-fab.snapping {
+            transition: right 0.3s ease, bottom 0.3s ease, box-shadow 0.2s, border-color 0.2s;
         }
         .settings-fab svg {
             width: 20px;
@@ -821,12 +841,130 @@
             border-radius: 8px;
             z-index: 1;
         }
+
+        /* ===== AI配置 ===== */
+        .ai-input-field {
+            margin-bottom: 12px;
+        }
+        .ai-input-field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+        .ai-input-field input, .ai-input-field select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 13px;
+            transition: 0.2s;
+            background: #f8fafc;
+        }
+        .ai-input-field input:focus, .ai-input-field select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(78,110,242,0.1);
+        }
+        .ai-input-field input[type="password"] {
+            font-family: monospace;
+        }
+        .ai-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .ai-status.connected {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .ai-status.disconnected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* ===== AI出题模态框 ===== */
+        .ai-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.35);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 2500;
+            align-items: center;
+            justify-content: center;
+        }
+        .ai-modal-overlay.active { display: flex; }
+        .ai-modal-content {
+            background: white;
+            border-radius: 18px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: scaleIn 0.3s;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        .ai-prompt-area {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            resize: vertical;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .ai-prompt-area:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(78,110,242,0.1);
+        }
+        .ai-result-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+        .ai-result-box.show { display: block; }
+        .ai-loading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        .ai-loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid #e2e8f0;
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
                 /* ===== 答题页面 ===== */
         .quiz-content {
             flex: 1;
             padding: 20px 30px;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
+            min-height: 0;
         }
 
         @media (min-width: 768px) {
@@ -902,9 +1040,11 @@
             flex: 1;
             padding: 30px;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
             display: flex;
             flex-direction: column;
             align-items: center;
+            min-height: 0;
         }
         .score-circle-box { position: relative; width: 140px; height: 140px; margin-bottom: 20px; }
         .circle-bg { fill: none; stroke: #f1f5f9; stroke-width: 5; }
@@ -971,6 +1111,7 @@
                     <div class="tab-group">
                         <button class="tab-btn active" onclick="setTab('file')">📁 文件导入</button>
                         <button class="tab-btn" onclick="setTab('paste')">📋 文本粘贴</button>
+                        <button class="tab-btn" onclick="setTab('ai')" id="aiTabBtn" style="display:none;">🤖 AI出题</button>
                     </div>
 
                     <div id="area-file" class="input-area active">
@@ -1113,6 +1254,20 @@
 
                         <div id="pasteError" class="error-msg"></div>
                     </div>
+
+                    <div id="area-ai" class="input-area">
+                        <div style="text-align: center; padding: 40px 20px;">
+                            <div style="font-size: 48px; margin-bottom: 15px;">🤖</div>
+                            <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px; color: var(--text-main);">AI 智能出题</div>
+                            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 25px; line-height: 1.6;">
+                                描述您想要的题目类型和内容<br>AI 将为您生成专业的选择题
+                            </div>
+                            <button class="action-btn btn-primary" onclick="openAIModal()">🚀 开始 AI 出题</button>
+                            <div style="margin-top: 15px; font-size: 12px; color: var(--text-secondary);">
+                                💡 请先在设置中配置 AI API
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- 准备就绪 -->
@@ -1131,13 +1286,6 @@
                     <button class="action-btn btn-outline" onclick="resetImport()">重新导入</button>
                 </div>
 
-                <!-- 设置按钮 -->
-                <div class="settings-fab" onclick="openSettings()" title="设置">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                    </svg>
-                </div>
             </div>
         </div>
 
@@ -1188,6 +1336,14 @@
         </div>
     </div>
 
+    <!-- 设置按钮（放在 container 外部，避免被 overflow 裁切） -->
+    <div class="settings-fab" title="设置">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+    </div>
+
     <!-- 例题模态框 -->
     <div class="modal-overlay" id="exampleModal">
         <div class="modal-content">
@@ -1220,6 +1376,43 @@
                 <div class="modal-close" onclick="closeSettings()">×</div>
             </div>
             <div class="settings-body">
+                <div class="setting-group">
+                    <div class="setting-group-title">AI 配置</div>
+                    <div class="setting-row">
+                        <div>
+                            <div class="setting-label">启用 AI 出题</div>
+                            <div class="setting-desc">使用第三方 AI API 生成题目</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="aiToggle" onchange="toggleAI()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="setting-group hotkeys-disabled-overlay disabled" id="aiSettings">
+                    <div class="setting-group-title">API 设置</div>
+                    <div class="ai-input-field">
+                        <label>API 地址</label>
+                        <input type="text" id="aiApiUrl" placeholder="例如：https://api.openai.com/v1/chat/completions" oninput="saveAISettings()">
+                    </div>
+                    <div class="ai-input-field">
+                        <label>API 令牌 (Token)</label>
+                        <input type="password" id="aiApiToken" placeholder="sk-..." oninput="saveAISettings()">
+                    </div>
+                    <div class="ai-input-field">
+                        <label>模型名称</label>
+                        <input type="text" id="aiModel" placeholder="例如：gpt-3.5-turbo" oninput="saveAISettings()">
+                    </div>
+                    <button class="action-btn btn-primary" onclick="testAPIConnection()" id="testApiBtn" style="margin-top: 10px;">
+                        🔍 测试 API 连接
+                    </button>
+                    <div id="apiTestResult" style="display: none; margin-top: 12px; padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.6;"></div>
+                    <div style="margin-top: 10px; font-size: 12px; color: var(--text-secondary); line-height: 1.5;">
+                        💡 支持兼容 OpenAI API 格式的第三方服务
+                    </div>
+                </div>
+
                 <div class="setting-group">
                     <div class="setting-group-title">快捷键</div>
                     <div class="setting-row">
@@ -1286,6 +1479,35 @@
     <!-- 快捷键提示 -->
     <div class="hotkey-hint" id="hotkeyHint"></div>
 
+    <!-- AI出题模态框 -->
+    <div class="ai-modal-overlay" id="aiModal">
+        <div class="ai-modal-content">
+            <div class="modal-header">
+                <div class="modal-title">🤖 AI 智能出题</div>
+                <div class="modal-close" onclick="closeAIModal()">×</div>
+            </div>
+            <div class="modal-body">
+                <div class="ai-input-field">
+                    <label>题目数量</label>
+                    <input type="number" id="aiQuestionCount" value="5" min="1" max="50" placeholder="1-50">
+                </div>
+                <div class="ai-input-field">
+                    <label>出题要求</label>
+                    <textarea class="ai-prompt-area" id="aiPrompt" placeholder="例如：请出5道关于JavaScript基础知识的选择题，包含变量、函数、数组等内容，难度适中"></textarea>
+                </div>
+                <button class="action-btn btn-primary" onclick="generateAIQuestions()" id="aiGenerateBtn">
+                    🚀 生成题目
+                </button>
+                <div class="ai-result-box" id="aiResultBox">
+                    <div id="aiResultContent"></div>
+                </div>
+                <button class="action-btn btn-outline" onclick="importAIQuestions()" id="aiImportBtn" style="display:none;">
+                    📥 导入题目
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let questions = [];
         let originalQuestions = [];
@@ -1294,6 +1516,9 @@
         let isReviewMode = false;
         let selectedPreset = null;
         let currentCustomMode = 'simple';
+        let aiEnabled = false;
+        let aiConfig = { apiUrl: '', apiToken: '', model: '' };
+        let aiGeneratedQuestions = [];
 
         // ===== 自定义对话框系统 =====
         let dialogResolve = null;
@@ -1641,25 +1866,415 @@
             }
         ];
 
+        // ===== AI 功能 =====
+        function loadAISettings() {
+            try {
+                const saved = JSON.parse(localStorage.getItem('aiSettings'));
+                if (saved) {
+                    aiEnabled = !!saved.enabled;
+                    aiConfig = saved.config || { apiUrl: '', apiToken: '', model: '' };
+                }
+            } catch(e) {}
+            document.getElementById('aiToggle').checked = aiEnabled;
+            document.getElementById('aiApiUrl').value = aiConfig.apiUrl || '';
+            document.getElementById('aiApiToken').value = aiConfig.apiToken || '';
+            document.getElementById('aiModel').value = aiConfig.model || '';
+            toggleAI();
+        }
+
+        function saveAISettings() {
+            aiConfig.apiUrl = document.getElementById('aiApiUrl').value.trim();
+            aiConfig.apiToken = document.getElementById('aiApiToken').value.trim();
+            aiConfig.model = document.getElementById('aiModel').value.trim();
+            localStorage.setItem('aiSettings', JSON.stringify({
+                enabled: aiEnabled,
+                config: aiConfig
+            }));
+        }
+
+        function toggleAI() {
+            aiEnabled = document.getElementById('aiToggle').checked;
+            const panel = document.getElementById('aiSettings');
+            const aiTabBtn = document.getElementById('aiTabBtn');
+            if (aiEnabled) {
+                panel.classList.remove('disabled');
+                aiTabBtn.style.display = 'block';
+            } else {
+                panel.classList.add('disabled');
+                aiTabBtn.style.display = 'none';
+            }
+            saveAISettings();
+        }
+
+        async function testAPIConnection() {
+            const apiUrl = document.getElementById('aiApiUrl').value.trim();
+            const apiToken = document.getElementById('aiApiToken').value.trim();
+            const model = document.getElementById('aiModel').value.trim();
+            const resultDiv = document.getElementById('apiTestResult');
+            const testBtn = document.getElementById('testApiBtn');
+
+            // 验证输入
+            if (!apiUrl || !apiToken || !model) {
+                resultDiv.style.display = 'block';
+                resultDiv.style.background = '#fee2e2';
+                resultDiv.style.border = '1px solid #fca5a5';
+                resultDiv.style.color = '#991b1b';
+                resultDiv.innerHTML = '❌ 请先填写完整的 API 配置信息';
+                return;
+            }
+
+            // 开始测试
+            testBtn.disabled = true;
+            testBtn.textContent = '测试中...';
+            resultDiv.style.display = 'block';
+            resultDiv.style.background = '#f0f9ff';
+            resultDiv.style.border = '1px solid #bae6fd';
+            resultDiv.style.color = '#0c4a6e';
+            resultDiv.innerHTML = '⏳ 正在测试 API 连接...';
+
+            try {
+                const startTime = Date.now();
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiToken}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [
+                            { role: 'user', content: '测试连接，请回复"OK"' }
+                        ],
+                        max_tokens: 10,
+                        temperature: 0.5
+                    })
+                });
+
+                const responseTime = Date.now() - startTime;
+
+                if (!response.ok) {
+                    // 请求失败，显示详细错误
+                    let errorDetail = '';
+                    try {
+                        const errorData = await response.json();
+                        errorDetail = JSON.stringify(errorData, null, 2);
+                    } catch (e) {
+                        errorDetail = await response.text();
+                    }
+
+                    resultDiv.style.background = '#fee2e2';
+                    resultDiv.style.border = '1px solid #fca5a5';
+                    resultDiv.style.color = '#991b1b';
+                    resultDiv.innerHTML = `
+                        <div style="font-weight: 600; margin-bottom: 8px;">❌ API 测试失败</div>
+                        <div style="margin-bottom: 6px;"><strong>HTTP 状态码:</strong> ${response.status} ${response.statusText}</div>
+                        <div style="margin-bottom: 6px;"><strong>响应时间:</strong> ${responseTime}ms</div>
+                        <details style="margin-top: 8px;">
+                            <summary style="cursor: pointer; font-weight: 600; margin-bottom: 6px;">📋 查看详细错误信息</summary>
+                            <pre style="background: #1e293b; color: #e2e8f0; padding: 10px; border-radius: 6px; overflow-x: auto; font-size: 11px; margin-top: 6px; white-space: pre-wrap; word-wrap: break-word;">${errorDetail}</pre>
+                        </details>
+                        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #fca5a5; font-size: 12px;">
+                            <strong>可能的原因：</strong><br>
+                            • API 地址不正确<br>
+                            • API 令牌无效或已过期<br>
+                            • 模型名称不支持<br>
+                            • 账户余额不足<br>
+                            • 网络连接问题
+                        </div>
+                    `;
+                    return;
+                }
+
+                // 请求成功
+                const data = await response.json();
+                const content = data.choices?.[0]?.message?.content || '无响应内容';
+
+                resultDiv.style.background = '#d1fae5';
+                resultDiv.style.border = '1px solid #6ee7b7';
+                resultDiv.style.color = '#065f46';
+                resultDiv.innerHTML = `
+                    <div style="font-weight: 600; margin-bottom: 8px;">✅ API 连接成功</div>
+                    <div style="margin-bottom: 4px;"><strong>响应时间:</strong> ${responseTime}ms</div>
+                    <div style="margin-bottom: 4px;"><strong>模型:</strong> ${data.model || model}</div>
+                    <div style="margin-bottom: 4px;"><strong>AI 回复:</strong> ${content}</div>
+                    <details style="margin-top: 8px;">
+                        <summary style="cursor: pointer; font-weight: 600; margin-bottom: 6px;">📋 查看完整响应</summary>
+                        <pre style="background: #1e293b; color: #e2e8f0; padding: 10px; border-radius: 6px; overflow-x: auto; font-size: 11px; margin-top: 6px; white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(data, null, 2)}</pre>
+                    </details>
+                `;
+
+            } catch (error) {
+                // 网络错误或其他异常
+                resultDiv.style.background = '#fee2e2';
+                resultDiv.style.border = '1px solid #fca5a5';
+                resultDiv.style.color = '#991b1b';
+                resultDiv.innerHTML = `
+                    <div style="font-weight: 600; margin-bottom: 8px;">❌ 连接失败</div>
+                    <div style="margin-bottom: 6px;"><strong>错误类型:</strong> ${error.name}</div>
+                    <div style="margin-bottom: 6px;"><strong>错误信息:</strong> ${error.message}</div>
+                    <details style="margin-top: 8px;">
+                        <summary style="cursor: pointer; font-weight: 600; margin-bottom: 6px;">📋 查看详细错误</summary>
+                        <pre style="background: #1e293b; color: #e2e8f0; padding: 10px; border-radius: 6px; overflow-x: auto; font-size: 11px; margin-top: 6px; white-space: pre-wrap; word-wrap: break-word;">${error.stack || error.toString()}</pre>
+                    </details>
+                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #fca5a5; font-size: 12px;">
+                        <strong>可能的原因：</strong><br>
+                        • 网络连接中断<br>
+                        • API 地址无法访问<br>
+                        • CORS 跨域限制<br>
+                        • 防火墙或代理阻止<br>
+                        • 浏览器安全策略限制
+                    </div>
+                `;
+            } finally {
+                testBtn.disabled = false;
+                testBtn.textContent = '🔍 测试 API 连接';
+            }
+        }
+
+        function openAIModal() {
+            if (!aiConfig.apiUrl || !aiConfig.apiToken || !aiConfig.model) {
+                showAlert('请先在设置中配置 AI API 信息', '⚠️');
+                return;
+            }
+            document.getElementById('aiModal').classList.add('active');
+            document.getElementById('aiResultBox').classList.remove('show');
+            document.getElementById('aiImportBtn').style.display = 'none';
+        }
+
+        function closeAIModal() {
+            document.getElementById('aiModal').classList.remove('active');
+        }
+
+        document.getElementById('aiModal').addEventListener('click', function(e) {
+            if (e.target === this) closeAIModal();
+        });
+
+        async function generateAIQuestions() {
+            const count = parseInt(document.getElementById('aiQuestionCount').value) || 5;
+            const prompt = document.getElementById('aiPrompt').value.trim();
+            
+            if (!prompt) {
+                await showAlert('请输入出题要求', '📝');
+                return;
+            }
+
+            const btn = document.getElementById('aiGenerateBtn');
+            const resultBox = document.getElementById('aiResultBox');
+            const resultContent = document.getElementById('aiResultContent');
+            
+            btn.disabled = true;
+            btn.textContent = '生成中...';
+            resultBox.classList.add('show');
+            resultContent.innerHTML = '<div class="ai-loading"><div class="ai-loading-spinner"></div>AI 正在生成题目，请稍候...</div>';
+
+            try {
+                // 使用标准格式（预设格式中的第一个）
+                const standardFormat = PRESET_FORMATS[0];
+                const formatExample = standardFormat.example.replace(/\\n/g, '\n');
+                
+                const systemPrompt = `你是一个专业的出题助手。请根据用户要求生成选择题。
+
+输出格式要求：
+请严格按照以下格式输出题目，每道题之间用 --- 分隔：
+
+${formatExample}
+
+格式说明：
+- 题目以 "Q: " 开头
+- 选项使用 "A: " "B: " "C: " "D: " 格式
+- 答案使用 "答案: " 开头，只写字母（如：答案: B）
+- 解析使用 "解析: " 开头（可选）
+- 每道题之间用 "---" 分隔
+
+请直接输出题目文本，不要使用 JSON 或其他格式。`;
+
+                const response = await fetch(aiConfig.apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${aiConfig.apiToken}`
+                    },
+                    body: JSON.stringify({
+                        model: aiConfig.model,
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: `请生成${count}道题目。要求：${prompt}` }
+                        ],
+                        temperature: 0.7
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API 请求失败: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const content = data.choices?.[0]?.message?.content || '';
+                
+                if (!content.trim()) {
+                    throw new Error('AI 返回内容为空');
+                }
+
+                // 使用标准格式解析生成的题目
+                const config = standardFormat.config;
+                const lines = content.split('\n');
+                const parsed = [];
+                let current = null;
+
+                const isSeparator = (line) => config.separators && config.separators.some(s => line.trim() === s);
+                const isQuestion = (line) => {
+                    const trimmed = line.trim();
+                    return config.questionMarkers && config.questionMarkers.some(m => trimmed.startsWith(m));
+                };
+                const getQuestionText = (line) => {
+                    let trimmed = line.trim();
+                    for (const m of config.questionMarkers) {
+                        if (trimmed.startsWith(m)) return trimmed.slice(m.length).trim();
+                    }
+                    return trimmed;
+                };
+                const isOption = (line) => config.optionPattern && new RegExp(config.optionPattern, 'i').test(line.trim());
+                const getOptionText = (line) => line.trim().replace(new RegExp(config.optionPattern, 'i'), '').trim();
+                const getOptionLetter = (line) => {
+                    const m = line.trim().match(/[A-Da-d]/);
+                    return m ? m[0].toUpperCase() : null;
+                };
+                const isAnswer = (line) => config.answerMarkers && config.answerMarkers.some(m => line.trim().toLowerCase().startsWith(m.toLowerCase()));
+                const getAnswer = (line) => {
+                    let trimmed = line.trim();
+                    for (const m of config.answerMarkers) {
+                        if (trimmed.toLowerCase().startsWith(m.toLowerCase())) {
+                            return trimmed.slice(m.length).trim().toUpperCase().charAt(0);
+                        }
+                    }
+                    return null;
+                };
+                const isExplanation = (line) => config.explanationMarkers && config.explanationMarkers.length &&
+                    config.explanationMarkers.some(m => line.trim().toLowerCase().startsWith(m.toLowerCase()));
+                const getExplanation = (line) => {
+                    let trimmed = line.trim();
+                    for (const m of config.explanationMarkers) {
+                        if (trimmed.toLowerCase().startsWith(m.toLowerCase())) {
+                            return trimmed.slice(m.length).trim();
+                        }
+                    }
+                    return trimmed;
+                };
+
+                const saveCurrent = () => {
+                    if (current && current.question && current.options.length >= 2 && current.answer) {
+                        parsed.push({ ...current });
+                    }
+                };
+
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    const trimmed = line.trim();
+                    if (!trimmed) continue;
+
+                    if (isSeparator(line)) {
+                        saveCurrent();
+                        current = null;
+                        continue;
+                    }
+
+                    if (isAnswer(line)) {
+                        if (current) current.answer = getAnswer(line);
+                        continue;
+                    }
+
+                    if (isExplanation(line)) {
+                        if (current) current.explanation = getExplanation(line);
+                        continue;
+                    }
+
+                    if (isOption(line)) {
+                        if (current) {
+                            const letter = getOptionLetter(line);
+                            const text = getOptionText(line);
+                            current.options.push({ letter, text });
+                        }
+                        continue;
+                    }
+
+                    if (isQuestion(line)) {
+                        saveCurrent();
+                        current = { question: getQuestionText(line), options: [], answer: null, explanation: '' };
+                        continue;
+                    }
+                }
+                saveCurrent();
+
+                if (parsed.length === 0) {
+                    throw new Error('未能解析出有效的题目，AI 可能未按照指定格式输出');
+                }
+
+                aiGeneratedQuestions = parsed;
+
+                // 自动导入题目
+                finishParsing(aiGeneratedQuestions);
+                closeAIModal();
+                
+                // 显示成功提示
+                await showAlert(`✅ 成功生成并导入 ${aiGeneratedQuestions.length} 道题目！`, '🎉');
+
+            } catch (error) {
+                console.error('AI生成失败:', error);
+                resultContent.innerHTML = `
+                    <div style="color: var(--wrong-text); font-size: 14px; margin-bottom: 8px;">❌ 生成失败</div>
+                    <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                        ${error.message || '未知错误'}<br><br>
+                        请检查：<br>
+                        • API 地址是否正确<br>
+                        • API 令牌是否有效<br>
+                        • 模型名称是否正确<br>
+                        • 网络连接是否正常
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🚀 生成题目';
+            }
+        }
+
+        function importAIQuestions() {
+            if (aiGeneratedQuestions.length === 0) {
+                showAlert('没有可导入的题目', '⚠️');
+                return;
+            }
+            finishParsing(aiGeneratedQuestions);
+            closeAIModal();
+        }
+
         // ===== 初始化 =====
         function init() {
             loadCustomFormats();
             renderPresets();
             loadHotkeySettings();
+            loadAISettings();
         }
 
         // ===== 界面切换 =====
         function setTab(mode) {
             const btns = document.querySelectorAll('.tab-group .tab-btn');
             btns.forEach(b => b.classList.remove('active'));
+            document.getElementById('area-file').classList.remove('active');
+            document.getElementById('area-paste').classList.remove('active');
+            if (document.getElementById('area-ai')) {
+                document.getElementById('area-ai').classList.remove('active');
+            }
+            
             if (mode === 'file') {
                 btns[0].classList.add('active');
                 document.getElementById('area-file').classList.add('active');
-                document.getElementById('area-paste').classList.remove('active');
-            } else {
+            } else if (mode === 'paste') {
                 btns[1].classList.add('active');
-                document.getElementById('area-file').classList.remove('active');
                 document.getElementById('area-paste').classList.add('active');
+            } else if (mode === 'ai') {
+                btns[2].classList.add('active');
+                if (document.getElementById('area-ai')) {
+                    document.getElementById('area-ai').classList.add('active');
+                }
             }
             hideErrors();
         }
@@ -2463,6 +3078,112 @@
                 [arr[i], arr[j]] = [arr[j], arr[i]];
             }
         }
+
+        // ===== 设置小球拖拽 =====
+        (function() {
+            const fab = document.querySelector('.settings-fab');
+            let isDragging = false;
+            let hasMoved = false;
+            let startX, startY, originX, originY;
+            let snapTimer = null;
+
+            function clamp(x, y) {
+                const w = fab.offsetWidth, h = fab.offsetHeight;
+                return {
+                    x: Math.max(0, Math.min(x, window.innerWidth - w)),
+                    y: Math.max(0, Math.min(y, window.innerHeight - h))
+                };
+            }
+
+            function onStart(ex, ey) {
+                isDragging = true;
+                hasMoved = false;
+                if (snapTimer) { clearTimeout(snapTimer); snapTimer = null; }
+                fab.classList.remove('snapping');
+                fab.classList.add('dragging');
+                // 记录起始触点和元素当前位置
+                const rect = fab.getBoundingClientRect();
+                originX = rect.left;
+                originY = rect.top;
+                startX = ex;
+                startY = ey;
+                // 切换到 left/top + transform 模式
+                fab.style.right = 'auto';
+                fab.style.bottom = 'auto';
+                fab.style.left = originX + 'px';
+                fab.style.top = originY + 'px';
+                fab.style.transform = 'none';
+            }
+
+            function onMove(ex, ey) {
+                if (!isDragging) return;
+                const dx = ex - startX, dy = ey - startY;
+                if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
+                const clamped = clamp(originX + dx, originY + dy);
+                // 用 transform 移动，GPU 加速不触发 layout
+                fab.style.transform = 'translate(' + (clamped.x - originX) + 'px,' + (clamped.y - originY) + 'px)';
+            }
+
+            function onEnd() {
+                if (!isDragging) return;
+                isDragging = false;
+                fab.classList.remove('dragging');
+                // 计算最终位置
+                const rect = fab.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const isLeft = centerX < window.innerWidth / 2;
+                const finalRight = isLeft ? window.innerWidth - rect.width - 12 : 12;
+                const finalBottom = Math.max(12, window.innerHeight - rect.top - rect.height);
+                // 先清除 transform，设置到当前实际位置（用 right/bottom）
+                const curRight = window.innerWidth - rect.left - rect.width;
+                const curBottom = window.innerHeight - rect.top - rect.height;
+                fab.style.transform = 'none';
+                fab.style.left = 'auto';
+                fab.style.top = 'auto';
+                fab.style.right = curRight + 'px';
+                fab.style.bottom = curBottom + 'px';
+                // 强制 reflow 后添加过渡动画吸附到边缘
+                fab.offsetHeight;
+                fab.classList.add('snapping');
+                fab.style.right = (isLeft ? window.innerWidth - rect.width - 12 : 12) + 'px';
+                fab.style.bottom = Math.max(12, Math.min(curBottom, window.innerHeight - rect.height - 12)) + 'px';
+                snapTimer = setTimeout(() => {
+                    fab.classList.remove('snapping');
+                    snapTimer = null;
+                }, 350);
+            }
+
+            // 鼠标事件
+            fab.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                onStart(e.clientX, e.clientY);
+            });
+            document.addEventListener('mousemove', function(e) {
+                if (isDragging) { e.preventDefault(); onMove(e.clientX, e.clientY); }
+            });
+            document.addEventListener('mouseup', function() { onEnd(); });
+
+            // 触摸事件
+            fab.addEventListener('touchstart', function(e) {
+                const t = e.touches[0];
+                onStart(t.clientX, t.clientY);
+            }, { passive: true });
+            document.addEventListener('touchmove', function(e) {
+                if (isDragging) {
+                    e.preventDefault();
+                    const t = e.touches[0];
+                    onMove(t.clientX, t.clientY);
+                }
+            }, { passive: false });
+            document.addEventListener('touchend', function() { onEnd(); });
+
+            // 拦截点击：只有没拖动时才打开设置
+            fab.removeAttribute('onclick');
+            fab.addEventListener('click', function(e) {
+                if (hasMoved) { e.stopPropagation(); return; }
+                openSettings();
+            });
+        })();
 
         // ===== 初始化 =====
         init();

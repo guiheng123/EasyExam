@@ -318,17 +318,21 @@
         }
         .dialog-buttons {
             display: flex;
+            flex-wrap: wrap;
             gap: 10px;
+            justify-content: center;
         }
         .dialog-btn {
             flex: 1;
-            padding: 11px 0;
+            min-width: 140px;
+            padding: 12px 16px;
             border-radius: 12px;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             border: none;
             cursor: pointer;
             transition: all 0.2s;
+            white-space: nowrap;
         }
         .dialog-btn-cancel {
             background: #f1f5f9;
@@ -420,16 +424,22 @@
         }
         .copy-example-btn {
             margin-top: 10px;
-            padding: 8px 16px;
+            padding: 10px 16px;
             background: var(--primary-color);
             color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 13px;
+            font-weight: 600;
             transition: 0.2s;
+            white-space: nowrap;
         }
-        .copy-example-btn:hover { background: var(--primary-hover); }
+        .copy-example-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(78,110,242,0.3);
+        }
 
         /* ===== 自定义格式 ===== */
         .custom-format-container { text-align: left; }
@@ -897,7 +907,7 @@
             background: rgba(0,0,0,0.35);
             backdrop-filter: blur(4px);
             -webkit-backdrop-filter: blur(4px);
-            z-index: 2500;
+            z-index: 1500;
             align-items: center;
             justify-content: center;
         }
@@ -956,6 +966,134 @@
         }
         @keyframes spin {
             to { transform: rotate(360deg); }
+        }
+
+        /* ===== AI历史记录 ===== */
+        .ai-history-section {
+            margin-top: 30px;
+            padding: 0 20px 20px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .ai-history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .ai-history-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        .ai-history-clear-btn {
+            padding: 6px 12px;
+            background: #fee2e2;
+            color: #991b1b;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .ai-history-clear-btn:hover {
+            background: #fca5a5;
+        }
+        .ai-history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .ai-history-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        .ai-history-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .ai-history-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(78,110,242,0.15);
+            transform: translateY(-2px);
+        }
+        .ai-history-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        .ai-history-card-info {
+            flex: 1;
+        }
+        .ai-history-card-model {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+        }
+        .ai-history-card-meta {
+            font-size: 11px;
+            color: var(--text-secondary);
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .ai-history-card-preview {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 10px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .ai-history-card-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .ai-history-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .ai-history-btn-import {
+            background: var(--primary-color);
+            color: white;
+        }
+        .ai-history-btn-import:hover {
+            background: var(--primary-hover);
+        }
+        .ai-history-btn-view {
+            background: #f1f5f9;
+            color: var(--text-secondary);
+        }
+        .ai-history-btn-view:hover {
+            background: #e2e8f0;
+            color: var(--text-main);
+        }
+        .ai-history-btn-delete {
+            background: #fee2e2;
+            color: #991b1b;
+            flex: 0;
+            padding: 8px 10px;
+        }
+        .ai-history-btn-delete:hover {
+            background: #fca5a5;
         }
 
                 /* ===== 答题页面 ===== */
@@ -1256,7 +1394,7 @@
                     </div>
 
                     <div id="area-ai" class="input-area">
-                        <div style="text-align: center; padding: 40px 20px;">
+                        <div style="text-align: center; padding: 40px 20px 20px;">
                             <div style="font-size: 48px; margin-bottom: 15px;">🤖</div>
                             <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px; color: var(--text-main);">AI 智能出题</div>
                             <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 25px; line-height: 1.6;">
@@ -1265,6 +1403,17 @@
                             <button class="action-btn btn-primary" onclick="openAIModal()">🚀 开始 AI 出题</button>
                             <div style="margin-top: 15px; font-size: 12px; color: var(--text-secondary);">
                                 💡 请先在设置中配置 AI API
+                            </div>
+                        </div>
+                        
+                        <!-- 历史记录区域 -->
+                        <div class="ai-history-section">
+                            <div class="ai-history-header">
+                                <div class="ai-history-title">📚 历史记录</div>
+                                <button class="ai-history-clear-btn" onclick="clearAIHistory()" id="clearHistoryBtn" style="display:none;">清空</button>
+                            </div>
+                            <div class="ai-history-list" id="aiHistoryList">
+                                <div class="ai-history-empty">暂无历史记录</div>
                             </div>
                         </div>
                     </div>
@@ -1501,9 +1650,14 @@
                 <div class="ai-result-box" id="aiResultBox">
                     <div id="aiResultContent"></div>
                 </div>
-                <button class="action-btn btn-outline" onclick="importAIQuestions()" id="aiImportBtn" style="display:none;">
-                    📥 导入题目
-                </button>
+                <div id="aiActionButtons" style="display:none;">
+                    <button class="action-btn btn-primary" onclick="exportAIQuestions()" style="margin-top: 10px;">
+                        📤 导出题目
+                    </button>
+                    <button class="action-btn btn-outline" onclick="importAIQuestions()">
+                        📥 导入并开始答题
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -1519,6 +1673,7 @@
         let aiEnabled = false;
         let aiConfig = { apiUrl: '', apiToken: '', model: '' };
         let aiGeneratedQuestions = [];
+        let aiHistory = [];
 
         // ===== 自定义对话框系统 =====
         let dialogResolve = null;
@@ -1880,6 +2035,281 @@
             document.getElementById('aiApiToken').value = aiConfig.apiToken || '';
             document.getElementById('aiModel').value = aiConfig.model || '';
             toggleAI();
+            loadAIHistory();
+        }
+
+        // ===== AI历史记录功能 =====
+        function loadAIHistory() {
+            try {
+                aiHistory = JSON.parse(localStorage.getItem('aiHistory') || '[]');
+            } catch(e) {
+                aiHistory = [];
+            }
+            renderAIHistory();
+        }
+
+        function saveAIHistory() {
+            try {
+                localStorage.setItem('aiHistory', JSON.stringify(aiHistory));
+            } catch(e) {
+                console.error('保存历史记录失败:', e);
+            }
+        }
+
+        function addToAIHistory(questions, prompt, count) {
+            const historyItem = {
+                id: Date.now(),
+                model: aiConfig.model || '未知模型',
+                questionCount: questions.length,
+                prompt: prompt,
+                questions: questions,
+                createdAt: new Date().toISOString(),
+                timestamp: Date.now()
+            };
+            
+            // 添加到历史记录开头
+            aiHistory.unshift(historyItem);
+            
+            // 限制历史记录数量（最多保存20条）
+            if (aiHistory.length > 20) {
+                aiHistory = aiHistory.slice(0, 20);
+            }
+            
+            saveAIHistory();
+            renderAIHistory();
+        }
+
+        function renderAIHistory() {
+            const container = document.getElementById('aiHistoryList');
+            const clearBtn = document.getElementById('clearHistoryBtn');
+            
+            if (!aiHistory || aiHistory.length === 0) {
+                container.innerHTML = '<div class="ai-history-empty">暂无历史记录</div>';
+                clearBtn.style.display = 'none';
+                return;
+            }
+            
+            clearBtn.style.display = 'block';
+            container.innerHTML = '';
+            
+            aiHistory.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'ai-history-card';
+                
+                // 生成预览文本（显示前两道题目的问题）
+                const preview = item.questions.slice(0, 2)
+                    .map((q, idx) => `${idx + 1}. ${q.question}`)
+                    .join(' ');
+                
+                // 格式化时间
+                const date = new Date(item.createdAt);
+                const timeStr = date.toLocaleString('zh-CN', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                card.innerHTML = `
+                    <div class="ai-history-card-header">
+                        <div class="ai-history-card-info">
+                            <div class="ai-history-card-model">🤖 ${item.model}</div>
+                            <div class="ai-history-card-meta">
+                                <span>📝 ${item.questionCount} 道题</span>
+                                <span>🕐 ${timeStr}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ai-history-card-preview">${preview}</div>
+                    <div class="ai-history-card-actions">
+                        <button class="ai-history-btn ai-history-btn-import" onclick="importHistoryQuestions(${item.id})">
+                            📥 导入
+                        </button>
+                        <button class="ai-history-btn ai-history-btn-view" onclick="viewHistoryQuestions(${item.id})">
+                            👁️ 查看
+                        </button>
+                        <button class="ai-history-btn ai-history-btn-delete" onclick="deleteHistoryItem(${item.id})">
+                            🗑️
+                        </button>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        function importHistoryQuestions(id) {
+            const item = aiHistory.find(h => h.id === id);
+            if (!item) {
+                showAlert('历史记录不存在', '⚠️');
+                return;
+            }
+            
+            finishParsing(item.questions);
+            showAlert(`✅ 已导入 ${item.questionCount} 道题目，可以开始答题了！`, '🎉');
+        }
+
+        function viewHistoryQuestions(id) {
+            const item = aiHistory.find(h => h.id === id);
+            if (!item) {
+                showAlert('历史记录不存在', '⚠️');
+                return;
+            }
+            
+            // 显示完整题目内容
+            const questionsText = item.questions.map((q, idx) => {
+                let text = `${idx + 1}. ${q.question}\n`;
+                q.options.forEach(opt => {
+                    text += `   ${opt.letter}. ${opt.text}\n`;
+                });
+                text += `   答案: ${q.answer}\n`;
+                if (q.explanation) {
+                    text += `   解析: ${q.explanation}\n`;
+                }
+                return text;
+            }).join('\n');
+            
+            document.getElementById('modalTitle').textContent = `📚 历史记录详情 - ${item.model}`;
+            document.getElementById('modalBody').innerHTML = `
+                <div class="example-section">
+                    <div class="example-title">📊 基本信息</div>
+                    <div style="font-size:13px;line-height:1.8;color:var(--text-secondary);margin-bottom:15px;">
+                        • 模型: ${item.model}<br>
+                        • 题目数量: ${item.questionCount} 道<br>
+                        • 生成时间: ${new Date(item.createdAt).toLocaleString('zh-CN')}<br>
+                        • 提示词: ${item.prompt || '无'}
+                    </div>
+                </div>
+                <div class="example-section">
+                    <div class="example-title">📝 题目内容</div>
+                    <div class="example-code" style="max-height: 400px; overflow-y: auto;">${questionsText}</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
+                        <button class="copy-example-btn" onclick="copyHistoryQuestions(${item.id})" style="flex: 1; min-width: 140px;">
+                            📋 复制文本
+                        </button>
+                        <button class="copy-example-btn" onclick="exportHistoryQuestions(${item.id})" style="flex: 1; min-width: 140px; background: #10b981; color: white;">
+                            📤 导出文件
+                        </button>
+                        <button class="copy-example-btn" onclick="importHistoryQuestions(${item.id}); closeExampleModal();" style="flex: 1; min-width: 140px; background: var(--primary-color);">
+                            📥 导入题目
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('exampleModal').classList.add('active');
+        }
+
+        async function copyHistoryQuestions(id) {
+            const item = aiHistory.find(h => h.id === id);
+            if (!item) return;
+            
+            const lines = [];
+            item.questions.forEach((q, idx) => {
+                if (idx > 0) lines.push('---');
+                lines.push(`Q: ${q.question}`);
+                q.options.forEach(opt => {
+                    lines.push(`${opt.letter}: ${opt.text}`);
+                });
+                lines.push(`答案: ${q.answer}`);
+                if (q.explanation) {
+                    lines.push(`解析: ${q.explanation}`);
+                }
+            });
+            const content = lines.join('\n');
+            
+            try {
+                await navigator.clipboard.writeText(content);
+                await showAlert('✅ 已复制到剪贴板！', '🎉');
+            } catch (error) {
+                await showAlert('❌ 复制失败，请检查浏览器权限', '⚠️');
+            }
+        }
+
+        async function exportHistoryQuestions(id) {
+            const item = aiHistory.find(h => h.id === id);
+            if (!item) {
+                await showAlert('历史记录不存在', '⚠️');
+                return;
+            }
+            
+            // 创建导出格式选择对话框
+            const format = await showDialog({
+                icon: '📤',
+                title: '选择导出方式',
+                message: '请选择要导出的格式',
+                buttons: [
+                    { text: '💾 下载 JSON 文件', type: 'confirm', value: 'json' },
+                    { text: '💾 下载 TXT 文件', type: 'confirm', value: 'txt' },
+                    { text: '取消', type: 'cancel', value: false }
+                ]
+            });
+            
+            if (!format) return;
+            
+            let content, filename, mimeType;
+            
+            if (format === 'json') {
+                // JSON 格式导出
+                content = JSON.stringify(item.questions, null, 2);
+                filename = `history_${item.id}_${item.questionCount}题.json`;
+                mimeType = 'application/json';
+            } else {
+                // TXT 格式导出（使用标准格式）
+                const lines = [];
+                item.questions.forEach((q, idx) => {
+                    if (idx > 0) lines.push('---');
+                    lines.push(`Q: ${q.question}`);
+                    q.options.forEach(opt => {
+                        lines.push(`${opt.letter}: ${opt.text}`);
+                    });
+                    lines.push(`答案: ${q.answer}`);
+                    if (q.explanation) {
+                        lines.push(`解析: ${q.explanation}`);
+                    }
+                });
+                content = lines.join('\n');
+                filename = `history_${item.id}_${item.questionCount}题.txt`;
+                mimeType = 'text/plain';
+            }
+            
+            // 创建下载
+            try {
+                const blob = new Blob([content], { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                await showAlert(`✅ 题目已导出为 ${filename}`, '🎉');
+            } catch (error) {
+                await showAlert('❌ 导出失败: ' + error.message, '⚠️');
+            }
+        }
+
+        async function deleteHistoryItem(id) {
+            const confirmed = await showDangerConfirm('确定要删除这条历史记录吗？');
+            if (!confirmed) return;
+            
+            aiHistory = aiHistory.filter(h => h.id !== id);
+            saveAIHistory();
+            renderAIHistory();
+            await showAlert('✅ 已删除', '🗑️');
+        }
+
+        async function clearAIHistory() {
+            if (aiHistory.length === 0) return;
+            
+            const confirmed = await showDangerConfirm(`确定要清空所有 ${aiHistory.length} 条历史记录吗？此操作不可恢复。`);
+            if (!confirmed) return;
+            
+            aiHistory = [];
+            saveAIHistory();
+            renderAIHistory();
+            await showAlert('✅ 已清空所有历史记录', '🗑️');
         }
 
         function saveAISettings() {
@@ -1902,6 +2332,11 @@
             } else {
                 panel.classList.add('disabled');
                 aiTabBtn.style.display = 'none';
+                // 如果当前在AI出题界面，切换到文件导入界面
+                const aiArea = document.getElementById('area-ai');
+                if (aiArea && aiArea.classList.contains('active')) {
+                    setTab('file');
+                }
             }
             saveAISettings();
         }
@@ -2038,7 +2473,7 @@
             }
             document.getElementById('aiModal').classList.add('active');
             document.getElementById('aiResultBox').classList.remove('show');
-            document.getElementById('aiImportBtn').style.display = 'none';
+            document.getElementById('aiActionButtons').style.display = 'none';
         }
 
         function closeAIModal() {
@@ -2211,12 +2646,18 @@ ${formatExample}
 
                 aiGeneratedQuestions = parsed;
 
-                // 自动导入题目
-                finishParsing(aiGeneratedQuestions);
-                closeAIModal();
-                
-                // 显示成功提示
-                await showAlert(`✅ 成功生成并导入 ${aiGeneratedQuestions.length} 道题目！`, '🎉');
+                // 添加到历史记录
+                addToAIHistory(aiGeneratedQuestions, prompt, count);
+
+                // 显示成功信息和操作按钮
+                resultContent.innerHTML = `
+                    <div style="color: var(--correct-text); font-size: 14px; margin-bottom: 8px;">✅ 生成成功</div>
+                    <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                        已成功生成 <strong style="color: var(--primary-color);">${aiGeneratedQuestions.length}</strong> 道题目<br>
+                        您可以选择导出题目或直接导入开始答题
+                    </div>
+                `;
+                document.getElementById('aiActionButtons').style.display = 'block';
 
             } catch (error) {
                 console.error('AI生成失败:', error);
@@ -2237,6 +2678,82 @@ ${formatExample}
             }
         }
 
+        async function exportAIQuestions() {
+            if (aiGeneratedQuestions.length === 0) {
+                await showAlert('没有可导出的题目', '⚠️');
+                return;
+            }
+
+            // 创建导出格式选择对话框
+            const format = await showDialog({
+                icon: '📤',
+                title: '选择导出方式',
+                message: '请选择要导出的方式',
+                buttons: [
+                    { text: '📋 复制到剪贴板', type: 'confirm', value: 'clipboard' },
+                    { text: '💾 下载 JSON 文件', type: 'confirm', value: 'json' },
+                    { text: '💾 下载 TXT 文件', type: 'confirm', value: 'txt' },
+                    { text: '取消', type: 'cancel', value: false }
+                ]
+            });
+            
+            if (!format) return;
+            
+            let content, filename, mimeType;
+            
+            if (format === 'json') {
+                // JSON 格式导出
+                content = JSON.stringify(aiGeneratedQuestions, null, 2);
+                filename = `ai_questions_${Date.now()}.json`;
+                mimeType = 'application/json';
+            } else {
+                // TXT 格式导出（使用标准格式）
+                const lines = [];
+                aiGeneratedQuestions.forEach((q, idx) => {
+                    if (idx > 0) lines.push('---');
+                    lines.push(`Q: ${q.question}`);
+                    q.options.forEach(opt => {
+                        lines.push(`${opt.letter}: ${opt.text}`);
+                    });
+                    lines.push(`答案: ${q.answer}`);
+                    if (q.explanation) {
+                        lines.push(`解析: ${q.explanation}`);
+                    }
+                });
+                content = lines.join('\n');
+                filename = `ai_questions_${Date.now()}.txt`;
+                mimeType = 'text/plain';
+            }
+            
+            // 复制到剪贴板
+            if (format === 'clipboard') {
+                try {
+                    await navigator.clipboard.writeText(content);
+                    await showAlert(`✅ 已复制 ${aiGeneratedQuestions.length} 道题目到剪贴板！`, '🎉');
+                } catch (error) {
+                    await showAlert('❌ 复制失败，请检查浏览器权限', '⚠️');
+                }
+                return;
+            }
+            
+            // 创建下载
+            try {
+                const blob = new Blob([content], { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                await showAlert(`✅ 题目已导出为 ${filename}`, '🎉');
+            } catch (error) {
+                await showAlert('❌ 导出失败: ' + error.message, '⚠️');
+            }
+        }
+
         function importAIQuestions() {
             if (aiGeneratedQuestions.length === 0) {
                 showAlert('没有可导入的题目', '⚠️');
@@ -2244,6 +2761,7 @@ ${formatExample}
             }
             finishParsing(aiGeneratedQuestions);
             closeAIModal();
+            showAlert(`✅ 已导入 ${aiGeneratedQuestions.length} 道题目，可以开始答题了！`, '🎉');
         }
 
         // ===== 初始化 =====

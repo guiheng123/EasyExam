@@ -94,7 +94,7 @@
             display: flex;
             flex-direction: column;
             position: relative;
-            transition: all 0.3s ease;
+            transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease;
         }
 
         .view-section {
@@ -120,6 +120,25 @@
         @keyframes pulse {
             0%, 100% { box-shadow: 0 0 0 3px rgba(245,158,11,0.1) }
             50% { box-shadow: 0 0 0 6px rgba(245,158,11,0.15) }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html:focus-within { scroll-behavior: auto; }
+            *, *::before, *::after {
+                animation-duration: 0.2s !important;
+                transition-duration: 0.2s !important;
+            }
+            .ai-loading-spinner {
+                animation-duration: 1.2s !important;
+            }
+        }
+
+        .view-section.active,
+        .modal-content,
+        .dialog-box,
+        .settings-content,
+        .ai-modal-content {
+            will-change: opacity, transform;
         }
 
         /* ===== Header ===== */
@@ -664,6 +683,7 @@
             box-shadow: 0 8px 25px rgba(0,0,0,0.18);
             opacity: 0.9;
             transition: none !important;
+            will-change: transform;
         }
         .settings-fab.snapping {
             transition: right 0.3s ease, bottom 0.3s ease, box-shadow 0.2s, border-color 0.2s;
@@ -1703,11 +1723,21 @@
         let aiConfig = { apiUrl: '', apiToken: '', model: '' };
         let aiGeneratedQuestions = [];
         let aiHistory = [];
+        const MOTION_REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         // ===== DOM缓存 =====
         const $ = id => document.getElementById(id);
+        let hasInitialized = false;
 
         // ===== 通用工具函数 =====
+        function escapeHtml(value) {
+            return String(value)
+                .split(String.fromCharCode(38)).join(String.fromCharCode(38, 97, 109, 112, 59))
+                .split(String.fromCharCode(60)).join(String.fromCharCode(38, 108, 116, 59))
+                .split(String.fromCharCode(62)).join(String.fromCharCode(38, 103, 116, 59))
+                .split(String.fromCharCode(34)).join(String.fromCharCode(38, 113, 117, 111, 116, 59))
+                .split(String.fromCharCode(39)).join(String.fromCharCode(38, 35, 51, 57, 59));
+        }
 
         // 将题目数组转为标准TXT格式文本
         function questionsToText(qs) {
@@ -1781,18 +1811,24 @@
         // ===== 通用解析引擎 =====
         function createParser(config) {
             const optionRe = config.optionPattern ? new RegExp(config.optionPattern, 'i') : null;
+            const questionRe = config.questionPattern ? new RegExp(config.questionPattern, 'i') : null;
+            const answerRe = config.answerPattern ? new RegExp(config.answerPattern, 'i') : null;
+            const explanationRe = config.explanationPattern ? new RegExp(config.explanationPattern, 'i') : null;
+            const separatorRe = config.separatorPattern ? new RegExp(config.separatorPattern, 'm') : null;
+
+            const hasBlankLineSeparator = !!(config.separators && config.separators.includes('\\n\\n'));
 
             const isSeparator = (line) => {
                 const t = line.trim();
-                if (!t && config.separators && config.separators.includes('\\n\\n')) return false;
-                return config.separators && config.separators.some(s => t === s);
+                if (separatorRe && separatorRe.test(line)) return true;
+                return config.separators ? config.separators.some(s => s !== '\\n\\n' && t === s) : false;
             };
             const isQuestion = (line) => {
                 const t = line.trim();
                 if (config.questionMarkers && config.questionMarkers.length)
                     return config.questionMarkers.some(m => t.startsWith(m));
-                if (config.questionPattern)
-                    return new RegExp(config.questionPattern, 'i').test(t);
+                if (questionRe)
+                    return questionRe.test(t);
                 return false;
             };
             const getQuestionText = (line) => {
@@ -1802,8 +1838,8 @@
                         if (t.startsWith(m)) return t.slice(m.length).trim();
                     }
                 }
-                if (config.questionPattern)
-                    return t.replace(new RegExp(config.questionPattern, 'i'), '').trim();
+                if (questionRe)
+                    return t.replace(questionRe, '').trim();
                 return t;
             };
             const isOption = (line) => optionRe && optionRe.test(line.trim());
@@ -1821,16 +1857,31 @@
                 }
                 return null;
             };
-            const isAnswer = (line) => matchMarker(line, config.answerMarkers) !== null;
+            const isAnswer = (line) => (matchMarker(line, config.answerMarkers) !== null) || (answerRe && answerRe.test(line));
             const getAnswer = (line) => {
-                const v = matchMarker(line, config.answerMarkers);
-                return v ? v.toUpperCase().charAt(0) : null;
+                const byMarker = matchMarker(line, config.answerMarkers);
+                if (byMarker) return byMarker.toUpperCase().charAt(0);
+                if (answerRe) {
+                    const m = line.match(answerRe);
+                    const v = m && m[1] ? m[1] : line.replace(answerRe, '').trim();
+                    return v ? v.toUpperCase().charAt(0) : null;
+                }
+                return null;
             };
-            const isExplanation = (line) => config.explanationMarkers && config.explanationMarkers.length &&
-                matchMarker(line, config.explanationMarkers) !== null;
-            const getExplanation = (line) => matchMarker(line, config.explanationMarkers) || line.trim();
+            const isExplanation = (line) =>
+                (config.explanationMarkers && config.explanationMarkers.length && matchMarker(line, config.explanationMarkers) !== null) ||
+                (explanationRe && explanationRe.test(line));
+            const getExplanation = (line) => {
+                const byMarker = matchMarker(line, config.explanationMarkers);
+                if (byMarker !== null) return byMarker;
+                if (explanationRe) {
+                    const m = line.match(explanationRe);
+                    return m && m[1] ? m[1].trim() : line.replace(explanationRe, '').trim();
+                }
+                return line.trim();
+            };
 
-            return { isSeparator, isQuestion, getQuestionText, isOption, getOptionText, getOptionLetter, isAnswer, getAnswer, isExplanation, getExplanation };
+            return { isSeparator, isQuestion, getQuestionText, isOption, getOptionText, getOptionLetter, isAnswer, getAnswer, isExplanation, getExplanation, hasBlankLineSeparator };
         }
 
         function parseTextWithConfig(text, config) {
@@ -1848,7 +1899,14 @@
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
                 const trimmed = line.trim();
-                if (!trimmed) continue;
+
+                if (!trimmed) {
+                    if (p.hasBlankLineSeparator) {
+                        saveCurrent();
+                        current = null;
+                    }
+                    continue;
+                }
 
                 if (p.isSeparator(line)) { saveCurrent(); current = null; continue; }
                 if (p.isAnswer(line)) { if (current) current.answer = p.getAnswer(line); continue; }
@@ -1978,7 +2036,9 @@
                     hotkeyEnabled = !!saved.enabled;
                     if (saved.map) hotkeyMap = { ...hotkeyMap, ...saved.map };
                 }
-            } catch(e) {}
+            } catch(e) {
+                console.warn('读取快捷键配置失败，已回退默认配置:', e);
+            }
             $('hotkeyToggle').checked = hotkeyEnabled;
             toggleHotkeys();
             syncHotkeyInputs();
@@ -2242,7 +2302,9 @@
                     aiEnabled = !!saved.enabled;
                     aiConfig = saved.config || { apiUrl: '', apiToken: '', model: '' };
                 }
-            } catch(e) {}
+            } catch(e) {
+                console.warn('读取 AI 配置失败，已回退默认配置:', e);
+            }
             $('aiToggle').checked = aiEnabled;
             $('aiApiUrl').value = aiConfig.apiUrl || '';
             $('aiApiToken').value = aiConfig.apiToken || '';
@@ -2326,6 +2388,9 @@
                 const preview = item.questions.slice(0, 2)
                     .map((q, idx) => `${idx + 1}. ${q.question}`)
                     .join(' ');
+                const safeModel = escapeHtml(item.model || '未知模型');
+                const safePreview = escapeHtml(preview);
+                const safeId = Number(item.id) || 0;
                 
                 // 格式化时间
                 const date = new Date(item.createdAt);
@@ -2339,22 +2404,22 @@
                 card.innerHTML = `
                     <div class="ai-history-card-header">
                         <div class="ai-history-card-info">
-                            <div class="ai-history-card-model">🤖 ${item.model}</div>
+                            <div class="ai-history-card-model">🤖 ${safeModel}</div>
                             <div class="ai-history-card-meta">
                                 <span>📝 ${item.questionCount} 道题</span>
                                 <span>🕐 ${timeStr}</span>
                             </div>
                         </div>
                     </div>
-                    <div class="ai-history-card-preview">${preview}</div>
+                    <div class="ai-history-card-preview">${safePreview}</div>
                     <div class="ai-history-card-actions">
-                        <button class="ai-history-btn ai-history-btn-import" onclick="importHistoryQuestions(${item.id})">
+                        <button class="ai-history-btn ai-history-btn-import" onclick="importHistoryQuestions(${safeId})">
                             📥 导入
                         </button>
-                        <button class="ai-history-btn ai-history-btn-view" onclick="viewHistoryQuestions(${item.id})">
+                        <button class="ai-history-btn ai-history-btn-view" onclick="viewHistoryQuestions(${safeId})">
                             👁️ 查看
                         </button>
-                        <button class="ai-history-btn ai-history-btn-delete" onclick="deleteHistoryItem(${item.id})">
+                        <button class="ai-history-btn ai-history-btn-delete" onclick="deleteHistoryItem(${safeId})">
                             🗑️
                         </button>
                     </div>
@@ -2395,28 +2460,32 @@
                 return text;
             }).join('\n');
             
+            const safeModel = escapeHtml(item.model || '未知模型');
+            const safePrompt = escapeHtml(item.prompt || '无');
+            const safeQuestionsText = escapeHtml(questionsText);
+            const safeId = Number(item.id) || 0;
             $('modalTitle').textContent = `📚 历史记录详情 - ${item.model}`;
             $('modalBody').innerHTML = `
                 <div class="example-section">
                     <div class="example-title">📊 基本信息</div>
                     <div style="font-size:13px;line-height:1.8;color:var(--text-secondary);margin-bottom:15px;">
-                        • 模型: ${item.model}<br>
+                        • 模型: ${safeModel}<br>
                         • 题目数量: ${item.questionCount} 道<br>
                         • 生成时间: ${new Date(item.createdAt).toLocaleString('zh-CN')}<br>
-                        • 提示词: ${item.prompt || '无'}
+                        • 提示词: ${safePrompt}
                     </div>
                 </div>
                 <div class="example-section">
                     <div class="example-title">📝 题目内容</div>
-                    <div class="example-code" style="max-height: 400px; overflow-y: auto;">${questionsText}</div>
+                    <div class="example-code" style="max-height: 400px; overflow-y: auto;">${safeQuestionsText}</div>
                     <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
-                        <button class="copy-example-btn" onclick="copyHistoryQuestions(${item.id})" style="flex: 1; min-width: 140px;">
+                        <button class="copy-example-btn" onclick="copyHistoryQuestions(${safeId})" style="flex: 1; min-width: 140px;">
                             📋 复制文本
                         </button>
-                        <button class="copy-example-btn" onclick="exportHistoryQuestions(${item.id})" style="flex: 1; min-width: 140px; background: #10b981; color: white;">
+                        <button class="copy-example-btn" onclick="exportHistoryQuestions(${safeId})" style="flex: 1; min-width: 140px; background: #10b981; color: white;">
                             📤 导出文件
                         </button>
-                        <button class="copy-example-btn" onclick="importHistoryQuestions(${item.id}); closeExampleModal();" style="flex: 1; min-width: 140px; background: var(--primary-color);">
+                        <button class="copy-example-btn" onclick="importHistoryQuestions(${safeId}); closeExampleModal();" style="flex: 1; min-width: 140px; background: var(--primary-color);">
                             📥 导入题目
                         </button>
                     </div>
@@ -2549,16 +2618,18 @@
                         errorDetail = await response.text();
                     }
 
+                    const safeStatusText = escapeHtml(response.statusText || '');
+                    const safeErrorDetail = escapeHtml(errorDetail || '');
                     resultDiv.style.background = '#fee2e2';
                     resultDiv.style.border = '1px solid #fca5a5';
                     resultDiv.style.color = '#991b1b';
                     resultDiv.innerHTML = `
                         <div style="font-weight: 600; margin-bottom: 8px;">❌ API 测试失败</div>
-                        <div style="margin-bottom: 6px;"><strong>HTTP 状态码:</strong> ${response.status} ${response.statusText}</div>
+                        <div style="margin-bottom: 6px;"><strong>HTTP 状态码:</strong> ${response.status} ${safeStatusText}</div>
                         <div style="margin-bottom: 6px;"><strong>响应时间:</strong> ${responseTime}ms</div>
                         <details style="margin-top: 8px;">
                             <summary style="cursor: pointer; font-weight: 600; margin-bottom: 6px;">📋 查看详细错误信息</summary>
-                            <pre style="background: #1e293b; color: #e2e8f0; padding: 10px; border-radius: 6px; overflow-x: auto; font-size: 11px; margin-top: 6px; white-space: pre-wrap; word-wrap: break-word;">${errorDetail}</pre>
+                            <pre style="background: #1e293b; color: #e2e8f0; padding: 10px; border-radius: 6px; overflow-x: auto; font-size: 11px; margin-top: 6px; white-space: pre-wrap; word-wrap: break-word;">${safeErrorDetail}</pre>
                         </details>
                         <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #fca5a5; font-size: 12px;">
                             <strong>可能的原因：</strong><br>
@@ -2576,32 +2647,38 @@
                 const data = await response.json();
                 const content = data.choices?.[0]?.message?.content || '无响应内容';
 
+                const safeModel = escapeHtml(data.model || model);
+                const safeContent = escapeHtml(content);
+                const safeResponseJson = escapeHtml(JSON.stringify(data, null, 2));
                 resultDiv.style.background = '#d1fae5';
                 resultDiv.style.border = '1px solid #6ee7b7';
                 resultDiv.style.color = '#065f46';
                 resultDiv.innerHTML = `
                     <div style="font-weight: 600; margin-bottom: 8px;">✅ API 连接成功</div>
                     <div style="margin-bottom: 4px;"><strong>响应时间:</strong> ${responseTime}ms</div>
-                    <div style="margin-bottom: 4px;"><strong>模型:</strong> ${data.model || model}</div>
-                    <div style="margin-bottom: 4px;"><strong>AI 回复:</strong> ${content}</div>
+                    <div style="margin-bottom: 4px;"><strong>模型:</strong> ${safeModel}</div>
+                    <div style="margin-bottom: 4px;"><strong>AI 回复:</strong> ${safeContent}</div>
                     <details style="margin-top: 8px;">
                         <summary style="cursor: pointer; font-weight: 600; margin-bottom: 6px;">📋 查看完整响应</summary>
-                        <pre style="background: #1e293b; color: #e2e8f0; padding: 10px; border-radius: 6px; overflow-x: auto; font-size: 11px; margin-top: 6px; white-space: pre-wrap; word-wrap: break-word;">${JSON.stringify(data, null, 2)}</pre>
+                        <pre style="background: #1e293b; color: #e2e8f0; padding: 10px; border-radius: 6px; overflow-x: auto; font-size: 11px; margin-top: 6px; white-space: pre-wrap; word-wrap: break-word;">${safeResponseJson}</pre>
                     </details>
                 `;
 
             } catch (error) {
                 // 网络错误或其他异常
+                const safeErrorName = escapeHtml(error.name || 'Error');
+                const safeErrorMsg = escapeHtml(error.message || '未知错误');
+                const safeErrorStack = escapeHtml(error.stack || error.toString());
                 resultDiv.style.background = '#fee2e2';
                 resultDiv.style.border = '1px solid #fca5a5';
                 resultDiv.style.color = '#991b1b';
                 resultDiv.innerHTML = `
                     <div style="font-weight: 600; margin-bottom: 8px;">❌ 连接失败</div>
-                    <div style="margin-bottom: 6px;"><strong>错误类型:</strong> ${error.name}</div>
-                    <div style="margin-bottom: 6px;"><strong>错误信息:</strong> ${error.message}</div>
+                    <div style="margin-bottom: 6px;"><strong>错误类型:</strong> ${safeErrorName}</div>
+                    <div style="margin-bottom: 6px;"><strong>错误信息:</strong> ${safeErrorMsg}</div>
                     <details style="margin-top: 8px;">
                         <summary style="cursor: pointer; font-weight: 600; margin-bottom: 6px;">📋 查看详细错误</summary>
-                        <pre style="background: #1e293b; color: #e2e8f0; padding: 10px; border-radius: 6px; overflow-x: auto; font-size: 11px; margin-top: 6px; white-space: pre-wrap; word-wrap: break-word;">${error.stack || error.toString()}</pre>
+                        <pre style="background: #1e293b; color: #e2e8f0; padding: 10px; border-radius: 6px; overflow-x: auto; font-size: 11px; margin-top: 6px; white-space: pre-wrap; word-wrap: break-word;">${safeErrorStack}</pre>
                     </details>
                     <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #fca5a5; font-size: 12px;">
                         <strong>可能的原因：</strong><br>
@@ -2726,10 +2803,11 @@ ${formatExample}
 
             } catch (error) {
                 console.error('AI生成失败:', error);
+                const safeErrorMessage = escapeHtml(error.message || '未知错误');
                 resultContent.innerHTML = `
                     <div style="color: var(--wrong-text); font-size: 14px; margin-bottom: 8px;">❌ 生成失败</div>
                     <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
-                        ${error.message || '未知错误'}<br><br>
+                        ${safeErrorMessage}<br><br>
                         请检查：<br>
                         • API 地址是否正确<br>
                         • API 令牌是否有效<br>
@@ -2759,10 +2837,27 @@ ${formatExample}
 
         // ===== 初始化 =====
         function init() {
+            if (hasInitialized) return;
+            hasInitialized = true;
+
             loadCustomFormats();
             renderPresets();
             loadHotkeySettings();
             loadAISettings();
+
+            $('optionsContainer').addEventListener('click', (e) => {
+                const item = e.target.closest('.option-item');
+                if (!item || item.classList.contains('disabled')) return;
+                const letter = item.dataset.letter;
+                if (letter) selectAnswer(letter);
+            });
+
+            $('resultGrid').addEventListener('click', (e) => {
+                const dot = e.target.closest('.grid-dot');
+                if (!dot) return;
+                const idx = Number(dot.dataset.index);
+                if (Number.isInteger(idx) && idx >= 0) reviewQuestion(idx);
+            });
         }
 
         // ===== 界面切换 =====
@@ -2838,7 +2933,7 @@ ${formatExample}
                 card.style.borderColor = '#d1fae5';
                 card.onclick = () => selectPreset(format.id);
                 card.innerHTML = `
-                    <div class="preset-card-title">✨ ${format.name}</div>
+                    <div class="preset-card-title">✨ ${escapeHtml(format.name)}</div>
                     <div class="preset-card-desc">自定义格式 ${format.mode === 'advanced' ? '(高级)' : ''}</div>
                 `;
                 container.appendChild(card);
@@ -2847,10 +2942,10 @@ ${formatExample}
 
         function selectPreset(id) {
             selectedPreset = id;
-            document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('selected'));
+            const cards = document.querySelectorAll('.preset-card');
+            cards.forEach(c => c.classList.remove('selected'));
             const allFormats = [...PRESET_FORMATS, ...getCustomFormats()];
             const idx = allFormats.findIndex(f => f.id === id);
-            const cards = document.querySelectorAll('.preset-card');
             if (idx >= 0 && cards[idx]) cards[idx].classList.add('selected');
         }
 
@@ -2996,7 +3091,12 @@ ${formatExample}
         }
 
         function getCustomFormats() {
-            try { return JSON.parse(localStorage.getItem('customFormats') || '[]'); } catch { return []; }
+            try {
+                return JSON.parse(localStorage.getItem('customFormats') || '[]');
+            } catch (e) {
+                console.warn('读取自定义格式失败，已回退为空列表:', e);
+                return [];
+            }
         }
 
         function loadCustomFormats() {
@@ -3010,15 +3110,16 @@ ${formatExample}
             formats.forEach(format => {
                 const item = document.createElement('div');
                 item.className = 'saved-format-item';
+                const idLiteral = JSON.stringify(String(format.id));
                 item.innerHTML = `
                     <div class="saved-format-info">
-                        <div class="saved-format-name">${format.name}</div>
+                        <div class="saved-format-name">${escapeHtml(format.name)}</div>
                         <div class="saved-format-meta">${format.mode === 'advanced' ? '高级模式' : '简单模式'} · ${new Date(format.createdAt).toLocaleDateString()}</div>
                     </div>
                     <div class="saved-format-actions">
-                        <button class="icon-btn primary" onclick="useCustomFormat('${format.id}')">使用</button>
-                        <button class="icon-btn" onclick="editCustomFormat('${format.id}')">编辑</button>                        
-                        <button class="icon-btn" onclick="deleteCustomFormat('${format.id}')">删除</button>
+                        <button class="icon-btn primary" onclick='useCustomFormat(${idLiteral})'>使用</button>
+                        <button class="icon-btn" onclick='editCustomFormat(${idLiteral})'>编辑</button>
+                        <button class="icon-btn" onclick='deleteCustomFormat(${idLiteral})'>删除</button>
                     </div>
                 `;
                 container.appendChild(item);
@@ -3078,41 +3179,7 @@ ${formatExample}
         }
 
         function parseWithAdvancedFormat(text, config) {
-            const blocks = config.separatorPattern
-                ? text.split(new RegExp(config.separatorPattern, 'm'))
-                : [text];
-            const parsed = [];
-
-            const qr = new RegExp(config.questionPattern, 'i');
-            const or_ = new RegExp(config.optionPattern, 'i');
-            const ar = new RegExp(config.answerPattern, 'i');
-            const er = config.explanationPattern ? new RegExp(config.explanationPattern, 'i') : null;
-
-            blocks.forEach(block => {
-                const lines = block.split('\n').map(l => l.trim()).filter(l => l);
-                let q = null, opts = [], ans = null, expl = '';
-
-                lines.forEach(line => {
-                    if (ar.test(line)) {
-                        const m = line.match(ar);
-                        ans = m[1] ? m[1].trim().toUpperCase().charAt(0) : null;
-                    } else if (er && er.test(line)) {
-                        const m = line.match(er);
-                        expl = m[1] ? m[1].trim() : line;
-                    } else if (or_.test(line)) {
-                        const letter = line.match(/[A-Da-d]/);
-                        opts.push({ letter: letter ? letter[0].toUpperCase() : String.fromCharCode(65 + opts.length), text: line.replace(or_, '').trim() });
-                    } else if (qr.test(line)) {
-                        const m = line.match(qr);
-                        q = m[1] ? m[1].trim() : line.replace(qr, '').trim();
-                    }
-                });
-
-                if (q && opts.length >= 2 && ans) {
-                    parsed.push({ question: q, options: opts, answer: ans, explanation: expl });
-                }
-            });
-
+            const parsed = parseTextWithConfig(text, config);
             if (!parsed.length) { showError('高级模式未能解析出题目，请检查正则表达式', 'paste'); return; }
             finishParsing(parsed);
         }
@@ -3227,24 +3294,25 @@ ${formatExample}
             $('questionText').textContent = q.question;
 
             const container = $('optionsContainer');
-            container.innerHTML = '';
+            const fragment = document.createDocumentFragment();
 
             const answered = userAnswers[currentIndex] !== null;
 
-            q.options.forEach((opt, idx) => {
+            q.options.forEach((opt) => {
                 const div = document.createElement('div');
                 div.className = 'option-item';
+                div.dataset.letter = opt.letter;
                 div.textContent = `${opt.letter}. ${opt.text}`;
 
                 if (answered || isReviewMode) {
                     div.classList.add('disabled');
                     if (opt.letter === q.answer) div.classList.add('correct');
                     if (opt.letter === userAnswers[currentIndex] && opt.letter !== q.answer) div.classList.add('wrong');
-                } else {
-                    div.onclick = () => selectAnswer(opt.letter);
                 }
-                container.appendChild(div);
+                fragment.appendChild(div);
             });
+
+            container.replaceChildren(fragment);
 
             const analysisBox = $('analysisBox');
             const analysisContent = $('analysisContent');
@@ -3310,20 +3378,27 @@ ${formatExample}
             circle.style.strokeDashoffset = circumference;
             circle.style.transform = 'rotate(-90deg)';
             circle.style.transformOrigin = '50% 50%';
-            setTimeout(() => {
-                circle.style.strokeDashoffset = circumference - (circumference * pct / 100);
-            }, 100);
+            circle.style.transition = MOTION_REDUCED
+                ? 'stroke-dashoffset 0.35s ease-out'
+                : 'stroke-dashoffset 1s ease';
+            const targetOffset = circumference - (circumference * pct / 100);
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    circle.style.strokeDashoffset = targetOffset;
+                });
+            });
 
             // 结果网格
             const grid = $('resultGrid');
-            grid.innerHTML = '';
+            const fragment = document.createDocumentFragment();
             questions.forEach((q, i) => {
                 const dot = document.createElement('div');
                 dot.className = 'grid-dot ' + (userAnswers[i] === q.answer ? 'correct' : 'wrong');
+                dot.dataset.index = String(i);
                 dot.textContent = i + 1;
-                dot.onclick = () => reviewQuestion(i);
-                grid.appendChild(dot);
+                fragment.appendChild(dot);
             });
+            grid.replaceChildren(fragment);
         }
 
         function reviewQuestion(idx) {
@@ -3367,6 +3442,9 @@ ${formatExample}
             let hasMoved = false;
             let startX, startY, originX, originY;
             let snapTimer = null;
+            let dragRafId = 0;
+            let pendingX = 0;
+            let pendingY = 0;
 
             function clamp(x, y) {
                 const w = fab.offsetWidth, h = fab.offsetHeight;
@@ -3398,23 +3476,33 @@ ${formatExample}
 
             function onMove(ex, ey) {
                 if (!isDragging) return;
-                const dx = ex - startX, dy = ey - startY;
-                if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
-                const clamped = clamp(originX + dx, originY + dy);
-                // 用 transform 移动，GPU 加速不触发 layout
-                fab.style.transform = 'translate(' + (clamped.x - originX) + 'px,' + (clamped.y - originY) + 'px)';
+                pendingX = ex;
+                pendingY = ey;
+                if (dragRafId) return;
+
+                dragRafId = requestAnimationFrame(() => {
+                    dragRafId = 0;
+                    const dx = pendingX - startX;
+                    const dy = pendingY - startY;
+                    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
+                    const clamped = clamp(originX + dx, originY + dy);
+                    // 用 transform 移动，GPU 加速不触发 layout
+                    fab.style.transform = 'translate(' + (clamped.x - originX) + 'px,' + (clamped.y - originY) + 'px)';
+                });
             }
 
             function onEnd() {
                 if (!isDragging) return;
                 isDragging = false;
+                if (dragRafId) {
+                    cancelAnimationFrame(dragRafId);
+                    dragRafId = 0;
+                }
                 fab.classList.remove('dragging');
                 // 计算最终位置
                 const rect = fab.getBoundingClientRect();
                 const centerX = rect.left + rect.width / 2;
                 const isLeft = centerX < window.innerWidth / 2;
-                const finalRight = isLeft ? window.innerWidth - rect.width - 12 : 12;
-                const finalBottom = Math.max(12, window.innerHeight - rect.top - rect.height);
                 // 先清除 transform，设置到当前实际位置（用 right/bottom）
                 const curRight = window.innerWidth - rect.left - rect.width;
                 const curBottom = window.innerHeight - rect.top - rect.height;

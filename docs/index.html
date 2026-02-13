@@ -976,11 +976,45 @@
             margin-left: auto;
             margin-right: auto;
         }
+        .ai-history-toggle-btn {
+            width: 100%;
+            padding: 14px 20px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .ai-history-toggle-btn:hover {
+            border-color: var(--primary-color);
+            background: #f8fafc;
+        }
+        .ai-history-toggle-icon {
+            font-size: 16px;
+            transition: transform 0.3s;
+        }
+        .ai-history-toggle-btn.expanded .ai-history-toggle-icon {
+            transform: rotate(180deg);
+        }
+        .ai-history-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .ai-history-content.expanded {
+            max-height: 2000px;
+        }
         .ai-history-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin: 15px 0;
         }
         .ai-history-title {
             font-size: 15px;
@@ -1408,12 +1442,18 @@
                         
                         <!-- 历史记录区域 -->
                         <div class="ai-history-section">
-                            <div class="ai-history-header">
-                                <div class="ai-history-title">📚 历史记录</div>
-                                <button class="ai-history-clear-btn" onclick="clearAIHistory()" id="clearHistoryBtn" style="display:none;">清空</button>
-                            </div>
-                            <div class="ai-history-list" id="aiHistoryList">
-                                <div class="ai-history-empty">暂无历史记录</div>
+                            <button class="ai-history-toggle-btn" onclick="toggleAIHistory()" id="aiHistoryToggleBtn">
+                                <span>📚 历史记录</span>
+                                <span class="ai-history-toggle-icon">▼</span>
+                            </button>
+                            <div class="ai-history-content" id="aiHistoryContent">
+                                <div class="ai-history-header">
+                                    <div class="ai-history-title">历史记录列表</div>
+                                    <button class="ai-history-clear-btn" onclick="clearAIHistory()" id="clearHistoryBtn" style="display:none;">清空</button>
+                                </div>
+                                <div class="ai-history-list" id="aiHistoryList">
+                                    <div class="ai-history-empty">暂无历史记录</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2039,6 +2079,19 @@
         }
 
         // ===== AI历史记录功能 =====
+        function toggleAIHistory() {
+            const content = document.getElementById('aiHistoryContent');
+            const toggleBtn = document.getElementById('aiHistoryToggleBtn');
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                toggleBtn.classList.remove('expanded');
+            } else {
+                content.classList.add('expanded');
+                toggleBtn.classList.add('expanded');
+            }
+        }
+
         function loadAIHistory() {
             try {
                 aiHistory = JSON.parse(localStorage.getItem('aiHistory') || '[]');

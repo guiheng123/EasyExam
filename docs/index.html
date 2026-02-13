@@ -18,9 +18,25 @@
             --wrong-text: #d93025;
             --border-radius: 16px;
             --shadow-md: 0 8px 30px rgba(0,0,0,0.08);
+            --border-light: #e2e8f0;
+            --bg-subtle: #f8fafc;
+            --overlay-bg: rgba(0,0,0,0.35);
         }
 
         * { box-sizing: border-box; }
+
+        /* 通用 overlay 基类 - 消除4处重复的overlay样式 */
+        .overlay-base {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: var(--overlay-bg);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+        }
+        .overlay-base.active { display: flex; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -97,9 +113,14 @@
 
         .view-section.active { display: flex; }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes scaleIn { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+        @keyframes scaleIn { from { transform: scale(0.92); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+        @keyframes spin { to { transform: rotate(360deg) } }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 3px rgba(245,158,11,0.1) }
+            50% { box-shadow: 0 0 0 6px rgba(245,158,11,0.15) }
+        }
 
         /* ===== Header ===== */
         .header {
@@ -148,7 +169,6 @@
             .home-layout {
                 flex: 1;
                 overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
                 justify-content: flex-start;
                 padding-top: 40px;
             }
@@ -284,18 +304,7 @@
         .preset-card-example-btn:hover { background: #e0edff; }
 
         /* ===== 自定义对话框 ===== */
-        .dialog-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.35);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-        }
-        .dialog-overlay.active { display: flex; }
+        .dialog-overlay { z-index: 2000; }
 
         .dialog-box {
             background: white;
@@ -358,19 +367,7 @@
         .dialog-btn-danger:hover { background: #dc2626; }
 
         /* ===== 模态框 ===== */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.35);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.2s;
-        }
-        .modal-overlay.active { display: flex; }
+        .modal-overlay { z-index: 1000; animation: fadeIn 0.2s; }
 
         .modal-content {
             background: white;
@@ -657,7 +654,6 @@
             z-index: 2000;
             user-select: none;
             touch-action: none;
-            will-change: transform;
         }
         .settings-fab:hover {
             box-shadow: 0 6px 20px rgba(0,0,0,0.12);
@@ -681,18 +677,7 @@
         .settings-fab:hover svg { color: var(--primary-color); }
 
         /* ===== 设置面板 ===== */
-        .settings-panel {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.35);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            z-index: 1500;
-            align-items: center;
-            justify-content: center;
-        }
-        .settings-panel.active { display: flex; }
+        .settings-panel { z-index: 1500; }
 
         .settings-content {
             background: white;
@@ -831,10 +816,7 @@
             background: #fffbeb;
             animation: pulse 1s infinite;
         }
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 0 3px rgba(245,158,11,0.1); }
-            50% { box-shadow: 0 0 0 6px rgba(245,158,11,0.15); }
-        }
+        /* pulse 动画已在顶部统一定义 */
         .hotkey-reset-btn {
             padding: 4px 8px;
             border: none;
@@ -907,18 +889,7 @@
         }
 
         /* ===== AI出题模态框 ===== */
-        .ai-modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.35);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            z-index: 1500;
-            align-items: center;
-            justify-content: center;
-        }
-        .ai-modal-overlay.active { display: flex; }
+        .ai-modal-overlay { z-index: 1500; }
         .ai-modal-content {
             background: white;
             border-radius: 18px;
@@ -971,9 +942,7 @@
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        /* spin 动画已在顶部统一定义 */
 
         /* ===== AI历史记录 ===== */
         .ai-history-section {
@@ -1137,12 +1106,11 @@
             background: #fca5a5;
         }
 
-                /* ===== 答题页面 ===== */
+        /* ===== 答题页面 ===== */
         .quiz-content {
             flex: 1;
             padding: 20px 30px;
             overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
             min-height: 0;
         }
 
@@ -1219,7 +1187,6 @@
             flex: 1;
             padding: 30px;
             overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -1276,6 +1243,24 @@
             backdrop-filter: blur(4px);
         }
         .hotkey-hint.show { opacity: 1; }
+
+        /* ===== 内联样式提取 ===== */
+        .ai-entry-panel { text-align: center; padding: 40px 20px 20px; }
+        .ai-entry-icon { font-size: 48px; margin-bottom: 15px; }
+        .ai-entry-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; color: var(--text-main); }
+        .ai-entry-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 25px; line-height: 1.6; }
+        .ai-entry-hint { margin-top: 15px; font-size: 12px; color: var(--text-secondary); }
+        .file-card-icon { color: var(--correct-text); font-size: 24px; margin-bottom: 8px; }
+        .file-card-title { font-weight: 600; margin-bottom: 4px; }
+        .file-card-desc { color: var(--text-secondary); font-size: 13px; }
+        .shuffle-title { font-weight: 600; margin-bottom: 8px; color: var(--text-main); }
+        .analysis-label { font-weight: bold; margin-bottom: 5px; color: var(--text-main); }
+        .result-header-title { width: 100%; text-align: center; }
+        .score-unit { font-size: 14px; color: #999; }
+        .result-hint { font-size: 13px; color: var(--text-secondary); margin-bottom: 15px; }
+        .result-back-btn { margin-top: 40px; }
+        .api-test-result { display: none; margin-top: 12px; padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.6; }
+        .api-hint { margin-top: 10px; font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
     </style>
 </head>
 <body>
@@ -1294,7 +1279,7 @@
                     </div>
 
                     <div id="area-file" class="input-area active">
-                        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                        <div class="upload-zone" id="uploadZone" onclick="$('fileInput').click()">
                             <div class="upload-icon">📂</div>
                             <div class="upload-text">点击选择文件或拖拽至此</div>
                             <div class="upload-hint">支持 .txt .json 格式</div>
@@ -1435,16 +1420,14 @@
                     </div>
 
                     <div id="area-ai" class="input-area">
-                        <div style="text-align: center; padding: 40px 20px 20px;">
-                            <div style="font-size: 48px; margin-bottom: 15px;">🤖</div>
-                            <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px; color: var(--text-main);">AI 智能出题</div>
-                            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 25px; line-height: 1.6;">
+                        <div class="ai-entry-panel">
+                            <div class="ai-entry-icon">🤖</div>
+                            <div class="ai-entry-title">AI 智能出题</div>
+                            <div class="ai-entry-desc">
                                 描述您想要的题目类型和内容<br>AI 将为您生成专业的选择题
                             </div>
                             <button class="action-btn btn-primary" onclick="openAIModal()">🚀 开始 AI 出题</button>
-                            <div style="margin-top: 15px; font-size: 12px; color: var(--text-secondary);">
-                                💡 请先在设置中配置 AI API
-                            </div>
+                            <div class="ai-entry-hint">💡 请先在设置中配置 AI API</div>
                         </div>
                         
                         <!-- 历史记录区域 -->
@@ -1469,12 +1452,12 @@
                 <!-- 准备就绪 -->
                 <div id="ready-panel">
                     <div class="file-card">
-                        <div style="color: var(--correct-text); font-size: 24px; margin-bottom: 8px;">✓</div>
-                        <div style="font-weight: 600; margin-bottom: 4px;">题库已加载</div>
-                        <div style="color: var(--text-secondary); font-size: 13px;">共 <span id="qCount">0</span> 道题目</div>
+                        <div class="file-card-icon">✓</div>
+                        <div class="file-card-title">题库已加载</div>
+                        <div class="file-card-desc">共 <span id="qCount">0</span> 道题目</div>
                     </div>
                     <div class="shuffle-options">
-                        <div style="font-weight: 600; margin-bottom: 8px; color: var(--text-main);">🎲 答题设置</div>
+                        <div class="shuffle-title">🎲 答题设置</div>
                         <label><input type="checkbox" id="shuffleQuestions" checked> 打乱题目顺序</label>
                         <label><input type="checkbox" id="shuffleOptions" checked> 打乱选项顺序</label>
                     </div>
@@ -1500,7 +1483,7 @@
                     <div class="quiz-right-panel">
                         <div class="options-list" id="optionsContainer"></div>
                         <div class="analysis-box" id="analysisBox">
-                            <div style="font-weight:bold; margin-bottom:5px; color:var(--text-main)">💡 解析：</div>
+                            <div class="analysis-label">💡 解析：</div>
                             <div id="analysisContent"></div>
                         </div>
                     </div>
@@ -1515,7 +1498,7 @@
         <!-- 结果页 -->
         <div id="resultView" class="view-section">
             <div class="header">
-                <div style="width:100%; text-align:center;">结果概览</div>
+                <div class="result-header-title">结果概览</div>
             </div>
             <div class="result-layout">
                 <div class="score-circle-box">
@@ -1523,11 +1506,11 @@
                         <circle class="circle-bg" cx="70" cy="70" r="60"></circle>
                         <circle class="circle-bar" id="scoreCircle" cx="70" cy="70" r="60"></circle>
                     </svg>
-                    <div class="score-val"><span id="scoreVal">0</span><span style="font-size:14px; color:#999">%</span></div>
+                    <div class="score-val"><span id="scoreVal">0</span><span class="score-unit">%</span></div>
                 </div>
-                <div style="font-size:13px; color:var(--text-secondary); margin-bottom:15px;">题目回顾（点击可查看）</div>
+                <div class="result-hint">题目回顾（点击可查看）</div>
                 <div class="result-grid" id="resultGrid"></div>
-                <button class="action-btn btn-outline" style="margin-top: 40px;" onclick="resetImport()">← 返回首页</button>
+                <button class="action-btn btn-outline result-back-btn" onclick="resetImport()">← 返回首页</button>
             </div>
         </div>
     </div>
@@ -1541,7 +1524,7 @@
     </div>
 
     <!-- 例题模态框 -->
-    <div class="modal-overlay" id="exampleModal">
+    <div class="overlay-base modal-overlay" id="exampleModal">
         <div class="modal-content">
             <div class="modal-header">
                 <div class="modal-title" id="modalTitle">格式示例</div>
@@ -1552,7 +1535,7 @@
     </div>
 
     <!-- 自定义对话框 -->
-    <div class="dialog-overlay" id="dialogOverlay">
+    <div class="overlay-base dialog-overlay" id="dialogOverlay">
         <div class="dialog-box">
             <div class="dialog-icon" id="dialogIcon">💬</div>
             <div class="dialog-title" id="dialogTitle">提示</div>
@@ -1562,7 +1545,7 @@
     </div>
 
     <!-- 设置面板 -->
-    <div class="settings-panel" id="settingsPanel">
+    <div class="overlay-base settings-panel" id="settingsPanel">
         <div class="settings-content">
             <div class="settings-header">
                 <div class="settings-header-title">
@@ -1600,13 +1583,11 @@
                         <label>模型名称</label>
                         <input type="text" id="aiModel" placeholder="例如：gpt-3.5-turbo" oninput="saveAISettings()">
                     </div>
-                    <button class="action-btn btn-primary" onclick="testAPIConnection()" id="testApiBtn" style="margin-top: 10px;">
+                    <button class="action-btn btn-primary" onclick="testAPIConnection()" id="testApiBtn" style="margin-top:10px">
                         🔍 测试 API 连接
                     </button>
-                    <div id="apiTestResult" style="display: none; margin-top: 12px; padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.6;"></div>
-                    <div style="margin-top: 10px; font-size: 12px; color: var(--text-secondary); line-height: 1.5;">
-                        💡 支持兼容 OpenAI API 格式的第三方服务
-                    </div>
+                    <div id="apiTestResult" class="api-test-result"></div>
+                    <div class="api-hint">💡 支持兼容 OpenAI API 格式的第三方服务</div>
                 </div>
 
                 <div class="setting-group">
@@ -1676,7 +1657,7 @@
     <div class="hotkey-hint" id="hotkeyHint"></div>
 
     <!-- AI出题模态框 -->
-    <div class="ai-modal-overlay" id="aiModal">
+    <div class="overlay-base ai-modal-overlay" id="aiModal">
         <div class="ai-modal-content">
             <div class="modal-header">
                 <div class="modal-title">🤖 AI 智能出题</div>
@@ -1722,16 +1703,200 @@
         let aiGeneratedQuestions = [];
         let aiHistory = [];
 
+        // ===== DOM缓存 =====
+        const $ = id => document.getElementById(id);
+
+        // ===== 通用工具函数 =====
+
+        // 将题目数组转为标准TXT格式文本
+        function questionsToText(qs) {
+            const lines = [];
+            qs.forEach((q, idx) => {
+                if (idx > 0) lines.push('---');
+                lines.push(`Q: ${q.question}`);
+                q.options.forEach(opt => lines.push(`${opt.letter}: ${opt.text}`));
+                lines.push(`答案: ${q.answer}`);
+                if (q.explanation) lines.push(`解析: ${q.explanation}`);
+            });
+            return lines.join('\n');
+        }
+
+        // 通用文件下载
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 通用导出流程（供AI导出和历史导出共用）
+        async function exportQuestions(qs, filenamePrefix) {
+            if (!qs || qs.length === 0) {
+                await showAlert('没有可导出的题目', '⚠️');
+                return;
+            }
+            const format = await showDialog({
+                icon: '📤',
+                title: '选择导出方式',
+                message: '请选择要导出的格式',
+                buttons: [
+                    { text: '📋 复制到剪贴板', type: 'confirm', value: 'clipboard' },
+                    { text: '💾 下载 JSON 文件', type: 'confirm', value: 'json' },
+                    { text: '💾 下载 TXT 文件', type: 'confirm', value: 'txt' },
+                    { text: '取消', type: 'cancel', value: false }
+                ]
+            });
+            if (!format) return;
+
+            if (format === 'clipboard') {
+                try {
+                    await navigator.clipboard.writeText(questionsToText(qs));
+                    await showAlert(`✅ 已复制 ${qs.length} 道题目到剪贴板！`, '🎉');
+                } catch (e) {
+                    await showAlert('❌ 复制失败，请检查浏览器权限', '⚠️');
+                }
+                return;
+            }
+
+            const isJson = format === 'json';
+            const content = isJson ? JSON.stringify(qs, null, 2) : questionsToText(qs);
+            const ext = isJson ? 'json' : 'txt';
+            const mime = isJson ? 'application/json' : 'text/plain';
+            const filename = `${filenamePrefix}_${qs.length}题.${ext}`;
+
+            try {
+                downloadFile(content, filename, mime);
+                await showAlert(`✅ 题目已导出为 ${filename}`, '🎉');
+            } catch (error) {
+                await showAlert('❌ 导出失败: ' + error.message, '⚠️');
+            }
+        }
+
+        // ===== 通用解析引擎 =====
+        function createParser(config) {
+            const optionRe = config.optionPattern ? new RegExp(config.optionPattern, 'i') : null;
+
+            const isSeparator = (line) => {
+                const t = line.trim();
+                if (!t && config.separators && config.separators.includes('\\n\\n')) return false;
+                return config.separators && config.separators.some(s => t === s);
+            };
+            const isQuestion = (line) => {
+                const t = line.trim();
+                if (config.questionMarkers && config.questionMarkers.length)
+                    return config.questionMarkers.some(m => t.startsWith(m));
+                if (config.questionPattern)
+                    return new RegExp(config.questionPattern, 'i').test(t);
+                return false;
+            };
+            const getQuestionText = (line) => {
+                const t = line.trim();
+                if (config.questionMarkers && config.questionMarkers.length) {
+                    for (const m of config.questionMarkers) {
+                        if (t.startsWith(m)) return t.slice(m.length).trim();
+                    }
+                }
+                if (config.questionPattern)
+                    return t.replace(new RegExp(config.questionPattern, 'i'), '').trim();
+                return t;
+            };
+            const isOption = (line) => optionRe && optionRe.test(line.trim());
+            const getOptionText = (line) => line.trim().replace(optionRe, '').trim();
+            const getOptionLetter = (line) => {
+                const m = line.trim().match(/[A-Da-d]/);
+                return m ? m[0].toUpperCase() : null;
+            };
+            const matchMarker = (line, markers) => {
+                if (!markers || !markers.length) return null;
+                const t = line.trim();
+                const tl = t.toLowerCase();
+                for (const m of markers) {
+                    if (tl.startsWith(m.toLowerCase())) return t.slice(m.length).trim();
+                }
+                return null;
+            };
+            const isAnswer = (line) => matchMarker(line, config.answerMarkers) !== null;
+            const getAnswer = (line) => {
+                const v = matchMarker(line, config.answerMarkers);
+                return v ? v.toUpperCase().charAt(0) : null;
+            };
+            const isExplanation = (line) => config.explanationMarkers && config.explanationMarkers.length &&
+                matchMarker(line, config.explanationMarkers) !== null;
+            const getExplanation = (line) => matchMarker(line, config.explanationMarkers) || line.trim();
+
+            return { isSeparator, isQuestion, getQuestionText, isOption, getOptionText, getOptionLetter, isAnswer, getAnswer, isExplanation, getExplanation };
+        }
+
+        function parseTextWithConfig(text, config) {
+            const p = createParser(config);
+            const lines = text.split('\n');
+            const parsed = [];
+            let current = null;
+            const noQMarker = (!config.questionMarkers || !config.questionMarkers.length) && !config.questionPattern;
+
+            const saveCurrent = () => {
+                if (current && current.question && current.options.length >= 2 && current.answer)
+                    parsed.push({ ...current });
+            };
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const trimmed = line.trim();
+                if (!trimmed) continue;
+
+                if (p.isSeparator(line)) { saveCurrent(); current = null; continue; }
+                if (p.isAnswer(line)) { if (current) current.answer = p.getAnswer(line); continue; }
+                if (p.isExplanation(line)) { if (current) current.explanation = p.getExplanation(line); continue; }
+
+                if (p.isOption(line)) {
+                    if (!current && noQMarker && i > 0) {
+                        let qi = i - 1;
+                        while (qi >= 0 && !lines[qi].trim()) qi--;
+                        if (qi >= 0 && !p.isSeparator(lines[qi]) && !p.isOption(lines[qi]) && !p.isAnswer(lines[qi]) && !p.isExplanation(lines[qi])) {
+                            saveCurrent();
+                            current = { question: lines[qi].trim().replace(/^\d+[.、]\s*/, ''), options: [], answer: null, explanation: '' };
+                        }
+                    }
+                    if (current) {
+                        current.options.push({ letter: p.getOptionLetter(line), text: p.getOptionText(line) });
+                    }
+                    continue;
+                }
+
+                if (p.isQuestion(line)) {
+                    saveCurrent();
+                    current = { question: p.getQuestionText(line), options: [], answer: null, explanation: '' };
+                    continue;
+                }
+
+                if (noQMarker && !current) {
+                    let nextI = i + 1;
+                    while (nextI < lines.length && !lines[nextI].trim()) nextI++;
+                    if (nextI < lines.length && p.isOption(lines[nextI])) {
+                        saveCurrent();
+                        current = { question: trimmed.replace(/^\d+[.、]\s*/, ''), options: [], answer: null, explanation: '' };
+                    }
+                }
+            }
+            saveCurrent();
+            return parsed;
+        }
+
         // ===== 自定义对话框系统 =====
         let dialogResolve = null;
 
         function showDialog({ icon, title, message, buttons }) {
             return new Promise(resolve => {
                 dialogResolve = resolve;
-                document.getElementById('dialogIcon').textContent = icon || '💬';
-                document.getElementById('dialogTitle').textContent = title || '提示';
-                document.getElementById('dialogMessage').textContent = message || '';
-                const btnContainer = document.getElementById('dialogButtons');
+                $('dialogIcon').textContent = icon || '💬';
+                $('dialogTitle').textContent = title || '提示';
+                $('dialogMessage').textContent = message || '';
+                const btnContainer = $('dialogButtons');
                 btnContainer.innerHTML = '';
                 (buttons || [{ text: '确定', type: 'confirm', value: true }]).forEach(btn => {
                     const el = document.createElement('button');
@@ -1741,12 +1906,12 @@
                     else el.classList.add('dialog-btn-confirm');
                     el.textContent = btn.text;
                     el.onclick = () => {
-                        document.getElementById('dialogOverlay').classList.remove('active');
+                        $('dialogOverlay').classList.remove('active');
                         resolve(btn.value !== undefined ? btn.value : true);
                     };
                     btnContainer.appendChild(el);
                 });
-                document.getElementById('dialogOverlay').classList.add('active');
+                $('dialogOverlay').classList.add('active');
             });
         }
 
@@ -1784,7 +1949,7 @@
         }
 
         // 点击遮罩关闭
-        document.getElementById('dialogOverlay').addEventListener('click', function(e) {
+        $('dialogOverlay').addEventListener('click', function(e) {
             if (e.target === this) {
                 this.classList.remove('active');
                 if (dialogResolve) { dialogResolve(false); dialogResolve = null; }
@@ -1813,7 +1978,7 @@
                     if (saved.map) hotkeyMap = { ...hotkeyMap, ...saved.map };
                 }
             } catch(e) {}
-            document.getElementById('hotkeyToggle').checked = hotkeyEnabled;
+            $('hotkeyToggle').checked = hotkeyEnabled;
             toggleHotkeys();
             syncHotkeyInputs();
         }
@@ -1826,8 +1991,8 @@
         }
 
         function toggleHotkeys() {
-            hotkeyEnabled = document.getElementById('hotkeyToggle').checked;
-            const panel = document.getElementById('hotkeySettings');
+            hotkeyEnabled = $('hotkeyToggle').checked;
+            const panel = $('hotkeySettings');
             if (hotkeyEnabled) {
                 panel.classList.remove('disabled');
             } else {
@@ -1854,7 +2019,7 @@
 
         function syncHotkeyInputs() {
             Object.keys(hotkeyMap).forEach(action => {
-                const input = document.getElementById('hk_' + action);
+                const input = $('hk_' + action);
                 if (input) input.value = getKeyDisplayName(hotkeyMap[action]);
             });
         }
@@ -1872,7 +2037,7 @@
 
         function resetHotkey(action, defaultKey) {
             hotkeyMap[action] = defaultKey;
-            const input = document.getElementById('hk_' + action);
+            const input = $('hk_' + action);
             if (input) {
                 input.value = getKeyDisplayName(defaultKey);
                 input.classList.remove('recording');
@@ -1885,7 +2050,7 @@
         }
 
         function showHotkeyHint(text) {
-            const hint = document.getElementById('hotkeyHint');
+            const hint = $('hotkeyHint');
             hint.textContent = text;
             hint.classList.add('show');
             clearTimeout(hotkeyHintTimer);
@@ -1916,12 +2081,12 @@
             // 答题快捷键
             if (!hotkeyEnabled) return;
             // 如果有对话框或设置面板打开，不响应快捷键
-            if (document.getElementById('dialogOverlay').classList.contains('active')) return;
-            if (document.getElementById('settingsPanel').classList.contains('active')) return;
-            if (document.getElementById('exampleModal').classList.contains('active')) return;
+            if ($('dialogOverlay').classList.contains('active')) return;
+            if ($('settingsPanel').classList.contains('active')) return;
+            if ($('exampleModal').classList.contains('active')) return;
 
             // 只在答题页面生效
-            const quizView = document.getElementById('quizView');
+            const quizView = $('quizView');
             if (!quizView.classList.contains('active')) return;
 
             // 不在输入框中响应
@@ -1980,7 +2145,7 @@
 
         // ===== 设置面板 =====
         function openSettings() {
-            document.getElementById('settingsPanel').classList.add('active');
+            $('settingsPanel').classList.add('active');
         }
 
         function closeSettings() {
@@ -1991,10 +2156,10 @@
                 recordingTarget = null;
                 recordingInput = null;
             }
-            document.getElementById('settingsPanel').classList.remove('active');
+            $('settingsPanel').classList.remove('active');
         }
 
-        document.getElementById('settingsPanel').addEventListener('click', function(e) {
+        $('settingsPanel').addEventListener('click', function(e) {
             if (e.target === this) closeSettings();
         });
 
@@ -2077,18 +2242,18 @@
                     aiConfig = saved.config || { apiUrl: '', apiToken: '', model: '' };
                 }
             } catch(e) {}
-            document.getElementById('aiToggle').checked = aiEnabled;
-            document.getElementById('aiApiUrl').value = aiConfig.apiUrl || '';
-            document.getElementById('aiApiToken').value = aiConfig.apiToken || '';
-            document.getElementById('aiModel').value = aiConfig.model || '';
+            $('aiToggle').checked = aiEnabled;
+            $('aiApiUrl').value = aiConfig.apiUrl || '';
+            $('aiApiToken').value = aiConfig.apiToken || '';
+            $('aiModel').value = aiConfig.model || '';
             toggleAI();
             loadAIHistory();
         }
 
         // ===== AI历史记录功能 =====
         function toggleAIHistory() {
-            const content = document.getElementById('aiHistoryContent');
-            const toggleBtn = document.getElementById('aiHistoryToggleBtn');
+            const content = $('aiHistoryContent');
+            const toggleBtn = $('aiHistoryToggleBtn');
             
             if (content.classList.contains('expanded')) {
                 content.classList.remove('expanded');
@@ -2140,8 +2305,8 @@
         }
 
         function renderAIHistory() {
-            const container = document.getElementById('aiHistoryList');
-            const clearBtn = document.getElementById('clearHistoryBtn');
+            const container = $('aiHistoryList');
+            const clearBtn = $('clearHistoryBtn');
             
             if (!aiHistory || aiHistory.length === 0) {
                 container.innerHTML = '<div class="ai-history-empty">暂无历史记录</div>';
@@ -2229,8 +2394,8 @@
                 return text;
             }).join('\n');
             
-            document.getElementById('modalTitle').textContent = `📚 历史记录详情 - ${item.model}`;
-            document.getElementById('modalBody').innerHTML = `
+            $('modalTitle').textContent = `📚 历史记录详情 - ${item.model}`;
+            $('modalBody').innerHTML = `
                 <div class="example-section">
                     <div class="example-title">📊 基本信息</div>
                     <div style="font-size:13px;line-height:1.8;color:var(--text-secondary);margin-bottom:15px;">
@@ -2256,98 +2421,24 @@
                     </div>
                 </div>
             `;
-            document.getElementById('exampleModal').classList.add('active');
+            $('exampleModal').classList.add('active');
         }
 
         async function copyHistoryQuestions(id) {
             const item = aiHistory.find(h => h.id === id);
             if (!item) return;
-            
-            const lines = [];
-            item.questions.forEach((q, idx) => {
-                if (idx > 0) lines.push('---');
-                lines.push(`Q: ${q.question}`);
-                q.options.forEach(opt => {
-                    lines.push(`${opt.letter}: ${opt.text}`);
-                });
-                lines.push(`答案: ${q.answer}`);
-                if (q.explanation) {
-                    lines.push(`解析: ${q.explanation}`);
-                }
-            });
-            const content = lines.join('\n');
-            
             try {
-                await navigator.clipboard.writeText(content);
+                await navigator.clipboard.writeText(questionsToText(item.questions));
                 await showAlert('✅ 已复制到剪贴板！', '🎉');
-            } catch (error) {
+            } catch (e) {
                 await showAlert('❌ 复制失败，请检查浏览器权限', '⚠️');
             }
         }
 
         async function exportHistoryQuestions(id) {
             const item = aiHistory.find(h => h.id === id);
-            if (!item) {
-                await showAlert('历史记录不存在', '⚠️');
-                return;
-            }
-            
-            // 创建导出格式选择对话框
-            const format = await showDialog({
-                icon: '📤',
-                title: '选择导出方式',
-                message: '请选择要导出的格式',
-                buttons: [
-                    { text: '💾 下载 JSON 文件', type: 'confirm', value: 'json' },
-                    { text: '💾 下载 TXT 文件', type: 'confirm', value: 'txt' },
-                    { text: '取消', type: 'cancel', value: false }
-                ]
-            });
-            
-            if (!format) return;
-            
-            let content, filename, mimeType;
-            
-            if (format === 'json') {
-                // JSON 格式导出
-                content = JSON.stringify(item.questions, null, 2);
-                filename = `history_${item.id}_${item.questionCount}题.json`;
-                mimeType = 'application/json';
-            } else {
-                // TXT 格式导出（使用标准格式）
-                const lines = [];
-                item.questions.forEach((q, idx) => {
-                    if (idx > 0) lines.push('---');
-                    lines.push(`Q: ${q.question}`);
-                    q.options.forEach(opt => {
-                        lines.push(`${opt.letter}: ${opt.text}`);
-                    });
-                    lines.push(`答案: ${q.answer}`);
-                    if (q.explanation) {
-                        lines.push(`解析: ${q.explanation}`);
-                    }
-                });
-                content = lines.join('\n');
-                filename = `history_${item.id}_${item.questionCount}题.txt`;
-                mimeType = 'text/plain';
-            }
-            
-            // 创建下载
-            try {
-                const blob = new Blob([content], { type: mimeType });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                
-                await showAlert(`✅ 题目已导出为 ${filename}`, '🎉');
-            } catch (error) {
-                await showAlert('❌ 导出失败: ' + error.message, '⚠️');
-            }
+            if (!item) { await showAlert('历史记录不存在', '⚠️'); return; }
+            await exportQuestions(item.questions, `history_${item.id}`);
         }
 
         async function deleteHistoryItem(id) {
@@ -2373,9 +2464,9 @@
         }
 
         function saveAISettings() {
-            aiConfig.apiUrl = document.getElementById('aiApiUrl').value.trim();
-            aiConfig.apiToken = document.getElementById('aiApiToken').value.trim();
-            aiConfig.model = document.getElementById('aiModel').value.trim();
+            aiConfig.apiUrl = $('aiApiUrl').value.trim();
+            aiConfig.apiToken = $('aiApiToken').value.trim();
+            aiConfig.model = $('aiModel').value.trim();
             localStorage.setItem('aiSettings', JSON.stringify({
                 enabled: aiEnabled,
                 config: aiConfig
@@ -2383,9 +2474,9 @@
         }
 
         function toggleAI() {
-            aiEnabled = document.getElementById('aiToggle').checked;
-            const panel = document.getElementById('aiSettings');
-            const aiTabBtn = document.getElementById('aiTabBtn');
+            aiEnabled = $('aiToggle').checked;
+            const panel = $('aiSettings');
+            const aiTabBtn = $('aiTabBtn');
             if (aiEnabled) {
                 panel.classList.remove('disabled');
                 aiTabBtn.style.display = 'block';
@@ -2393,7 +2484,7 @@
                 panel.classList.add('disabled');
                 aiTabBtn.style.display = 'none';
                 // 如果当前在AI出题界面，切换到文件导入界面
-                const aiArea = document.getElementById('area-ai');
+                const aiArea = $('area-ai');
                 if (aiArea && aiArea.classList.contains('active')) {
                     setTab('file');
                 }
@@ -2402,11 +2493,11 @@
         }
 
         async function testAPIConnection() {
-            const apiUrl = document.getElementById('aiApiUrl').value.trim();
-            const apiToken = document.getElementById('aiApiToken').value.trim();
-            const model = document.getElementById('aiModel').value.trim();
-            const resultDiv = document.getElementById('apiTestResult');
-            const testBtn = document.getElementById('testApiBtn');
+            const apiUrl = $('aiApiUrl').value.trim();
+            const apiToken = $('aiApiToken').value.trim();
+            const model = $('aiModel').value.trim();
+            const resultDiv = $('apiTestResult');
+            const testBtn = $('testApiBtn');
 
             // 验证输入
             if (!apiUrl || !apiToken || !model) {
@@ -2531,31 +2622,31 @@
                 showAlert('请先在设置中配置 AI API 信息', '⚠️');
                 return;
             }
-            document.getElementById('aiModal').classList.add('active');
-            document.getElementById('aiResultBox').classList.remove('show');
-            document.getElementById('aiActionButtons').style.display = 'none';
+            $('aiModal').classList.add('active');
+            $('aiResultBox').classList.remove('show');
+            $('aiActionButtons').style.display = 'none';
         }
 
         function closeAIModal() {
-            document.getElementById('aiModal').classList.remove('active');
+            $('aiModal').classList.remove('active');
         }
 
-        document.getElementById('aiModal').addEventListener('click', function(e) {
+        $('aiModal').addEventListener('click', function(e) {
             if (e.target === this) closeAIModal();
         });
 
         async function generateAIQuestions() {
-            const count = parseInt(document.getElementById('aiQuestionCount').value) || 5;
-            const prompt = document.getElementById('aiPrompt').value.trim();
+            const count = parseInt($('aiQuestionCount').value) || 5;
+            const prompt = $('aiPrompt').value.trim();
             
             if (!prompt) {
                 await showAlert('请输入出题要求', '📝');
                 return;
             }
 
-            const btn = document.getElementById('aiGenerateBtn');
-            const resultBox = document.getElementById('aiResultBox');
-            const resultContent = document.getElementById('aiResultContent');
+            const btn = $('aiGenerateBtn');
+            const resultBox = $('aiResultBox');
+            const resultContent = $('aiResultContent');
             
             btn.disabled = true;
             btn.textContent = '生成中...';
@@ -2610,95 +2701,8 @@ ${formatExample}
                     throw new Error('AI 返回内容为空');
                 }
 
-                // 使用标准格式解析生成的题目
-                const config = standardFormat.config;
-                const lines = content.split('\n');
-                const parsed = [];
-                let current = null;
-
-                const isSeparator = (line) => config.separators && config.separators.some(s => line.trim() === s);
-                const isQuestion = (line) => {
-                    const trimmed = line.trim();
-                    return config.questionMarkers && config.questionMarkers.some(m => trimmed.startsWith(m));
-                };
-                const getQuestionText = (line) => {
-                    let trimmed = line.trim();
-                    for (const m of config.questionMarkers) {
-                        if (trimmed.startsWith(m)) return trimmed.slice(m.length).trim();
-                    }
-                    return trimmed;
-                };
-                const isOption = (line) => config.optionPattern && new RegExp(config.optionPattern, 'i').test(line.trim());
-                const getOptionText = (line) => line.trim().replace(new RegExp(config.optionPattern, 'i'), '').trim();
-                const getOptionLetter = (line) => {
-                    const m = line.trim().match(/[A-Da-d]/);
-                    return m ? m[0].toUpperCase() : null;
-                };
-                const isAnswer = (line) => config.answerMarkers && config.answerMarkers.some(m => line.trim().toLowerCase().startsWith(m.toLowerCase()));
-                const getAnswer = (line) => {
-                    let trimmed = line.trim();
-                    for (const m of config.answerMarkers) {
-                        if (trimmed.toLowerCase().startsWith(m.toLowerCase())) {
-                            return trimmed.slice(m.length).trim().toUpperCase().charAt(0);
-                        }
-                    }
-                    return null;
-                };
-                const isExplanation = (line) => config.explanationMarkers && config.explanationMarkers.length &&
-                    config.explanationMarkers.some(m => line.trim().toLowerCase().startsWith(m.toLowerCase()));
-                const getExplanation = (line) => {
-                    let trimmed = line.trim();
-                    for (const m of config.explanationMarkers) {
-                        if (trimmed.toLowerCase().startsWith(m.toLowerCase())) {
-                            return trimmed.slice(m.length).trim();
-                        }
-                    }
-                    return trimmed;
-                };
-
-                const saveCurrent = () => {
-                    if (current && current.question && current.options.length >= 2 && current.answer) {
-                        parsed.push({ ...current });
-                    }
-                };
-
-                for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i];
-                    const trimmed = line.trim();
-                    if (!trimmed) continue;
-
-                    if (isSeparator(line)) {
-                        saveCurrent();
-                        current = null;
-                        continue;
-                    }
-
-                    if (isAnswer(line)) {
-                        if (current) current.answer = getAnswer(line);
-                        continue;
-                    }
-
-                    if (isExplanation(line)) {
-                        if (current) current.explanation = getExplanation(line);
-                        continue;
-                    }
-
-                    if (isOption(line)) {
-                        if (current) {
-                            const letter = getOptionLetter(line);
-                            const text = getOptionText(line);
-                            current.options.push({ letter, text });
-                        }
-                        continue;
-                    }
-
-                    if (isQuestion(line)) {
-                        saveCurrent();
-                        current = { question: getQuestionText(line), options: [], answer: null, explanation: '' };
-                        continue;
-                    }
-                }
-                saveCurrent();
+                // 使用通用解析引擎解析AI生成的题目
+                const parsed = parseTextWithConfig(content, standardFormat.config);
 
                 if (parsed.length === 0) {
                     throw new Error('未能解析出有效的题目，AI 可能未按照指定格式输出');
@@ -2717,7 +2721,7 @@ ${formatExample}
                         您可以选择导出题目或直接导入开始答题
                     </div>
                 `;
-                document.getElementById('aiActionButtons').style.display = 'block';
+                $('aiActionButtons').style.display = 'block';
 
             } catch (error) {
                 console.error('AI生成失败:', error);
@@ -2739,79 +2743,7 @@ ${formatExample}
         }
 
         async function exportAIQuestions() {
-            if (aiGeneratedQuestions.length === 0) {
-                await showAlert('没有可导出的题目', '⚠️');
-                return;
-            }
-
-            // 创建导出格式选择对话框
-            const format = await showDialog({
-                icon: '📤',
-                title: '选择导出方式',
-                message: '请选择要导出的方式',
-                buttons: [
-                    { text: '📋 复制到剪贴板', type: 'confirm', value: 'clipboard' },
-                    { text: '💾 下载 JSON 文件', type: 'confirm', value: 'json' },
-                    { text: '💾 下载 TXT 文件', type: 'confirm', value: 'txt' },
-                    { text: '取消', type: 'cancel', value: false }
-                ]
-            });
-            
-            if (!format) return;
-            
-            let content, filename, mimeType;
-            
-            if (format === 'json') {
-                // JSON 格式导出
-                content = JSON.stringify(aiGeneratedQuestions, null, 2);
-                filename = `ai_questions_${Date.now()}.json`;
-                mimeType = 'application/json';
-            } else {
-                // TXT 格式导出（使用标准格式）
-                const lines = [];
-                aiGeneratedQuestions.forEach((q, idx) => {
-                    if (idx > 0) lines.push('---');
-                    lines.push(`Q: ${q.question}`);
-                    q.options.forEach(opt => {
-                        lines.push(`${opt.letter}: ${opt.text}`);
-                    });
-                    lines.push(`答案: ${q.answer}`);
-                    if (q.explanation) {
-                        lines.push(`解析: ${q.explanation}`);
-                    }
-                });
-                content = lines.join('\n');
-                filename = `ai_questions_${Date.now()}.txt`;
-                mimeType = 'text/plain';
-            }
-            
-            // 复制到剪贴板
-            if (format === 'clipboard') {
-                try {
-                    await navigator.clipboard.writeText(content);
-                    await showAlert(`✅ 已复制 ${aiGeneratedQuestions.length} 道题目到剪贴板！`, '🎉');
-                } catch (error) {
-                    await showAlert('❌ 复制失败，请检查浏览器权限', '⚠️');
-                }
-                return;
-            }
-            
-            // 创建下载
-            try {
-                const blob = new Blob([content], { type: mimeType });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                
-                await showAlert(`✅ 题目已导出为 ${filename}`, '🎉');
-            } catch (error) {
-                await showAlert('❌ 导出失败: ' + error.message, '⚠️');
-            }
+            await exportQuestions(aiGeneratedQuestions, `ai_${Date.now()}`);
         }
 
         function importAIQuestions() {
@@ -2836,23 +2768,20 @@ ${formatExample}
         function setTab(mode) {
             const btns = document.querySelectorAll('.tab-group .tab-btn');
             btns.forEach(b => b.classList.remove('active'));
-            document.getElementById('area-file').classList.remove('active');
-            document.getElementById('area-paste').classList.remove('active');
-            if (document.getElementById('area-ai')) {
-                document.getElementById('area-ai').classList.remove('active');
-            }
+            $('area-file').classList.remove('active');
+            $('area-paste').classList.remove('active');
+            const aiArea = $('area-ai');
+            if (aiArea) aiArea.classList.remove('active');
             
             if (mode === 'file') {
                 btns[0].classList.add('active');
-                document.getElementById('area-file').classList.add('active');
+                $('area-file').classList.add('active');
             } else if (mode === 'paste') {
                 btns[1].classList.add('active');
-                document.getElementById('area-paste').classList.add('active');
+                $('area-paste').classList.add('active');
             } else if (mode === 'ai') {
                 btns[2].classList.add('active');
-                if (document.getElementById('area-ai')) {
-                    document.getElementById('area-ai').classList.add('active');
-                }
+                if (aiArea) aiArea.classList.add('active');
             }
             hideErrors();
         }
@@ -2863,10 +2792,10 @@ ${formatExample}
             const tabs = document.querySelectorAll('#area-paste .sub-tab-btn');
             if (mode === 'preset') {
                 tabs[0].classList.add('active');
-                document.getElementById('sub-preset').classList.add('active');
+                $('sub-preset').classList.add('active');
             } else {
                 tabs[1].classList.add('active');
-                document.getElementById('sub-custom').classList.add('active');
+                $('sub-custom').classList.add('active');
             }
             hideErrors();
         }
@@ -2880,13 +2809,13 @@ ${formatExample}
         }
 
         function hideErrors() {
-            document.getElementById('fileError').style.display = 'none';
-            document.getElementById('pasteError').style.display = 'none';
+            $('fileError').style.display = 'none';
+            $('pasteError').style.display = 'none';
         }
 
         // ===== 预设格式 =====
         function renderPresets() {
-            const container = document.getElementById('presetList');
+            const container = $('presetList');
             container.innerHTML = '';
             PRESET_FORMATS.forEach(preset => {
                 const card = document.createElement('div');
@@ -2928,8 +2857,8 @@ ${formatExample}
             event.stopPropagation();
             const preset = PRESET_FORMATS.find(p => p.id === presetId);
             if (!preset || !preset.example) return;
-            document.getElementById('modalTitle').textContent = `${preset.name} - 格式示例`;
-            document.getElementById('modalBody').innerHTML = `
+            $('modalTitle').textContent = `${preset.name} - 格式示例`;
+            $('modalBody').innerHTML = `
                 <div class="example-section">
                     <div class="example-title">📝 示例题目</div>
                     <div class="example-code">${preset.example.replace(/\\n/g, '\n')}</div>
@@ -2940,7 +2869,7 @@ ${formatExample}
                     <div style="font-size:13px;line-height:1.8;color:var(--text-secondary);">${getFormatDescription(preset)}</div>
                 </div>
             `;
-            document.getElementById('exampleModal').classList.add('active');
+            $('exampleModal').classList.add('active');
         }
 
         function getFormatDescription(preset) {
@@ -2961,26 +2890,26 @@ ${formatExample}
             navigator.clipboard.writeText(text).then(() => {
                 closeExampleModal();
                 selectPreset(presetId);
-                document.getElementById('presetInput').value = text;
-                document.getElementById('presetInput').focus();
+                $('presetInput').value = text;
+                $('presetInput').focus();
             }).catch(() => {
-                document.getElementById('presetInput').value = text;
+                $('presetInput').value = text;
                 closeExampleModal();
                 selectPreset(presetId);
             });
         }
 
         function closeExampleModal() {
-            document.getElementById('exampleModal').classList.remove('active');
+            $('exampleModal').classList.remove('active');
         }
 
-        document.getElementById('exampleModal').addEventListener('click', function(e) {
+        $('exampleModal').addEventListener('click', function(e) {
             if (e.target === this) closeExampleModal();
         });
 
         function parseWithSelectedPreset() {
             if (!selectedPreset) { showError('请先选择一个格式', 'paste'); return; }
-            const text = document.getElementById('presetInput').value.trim();
+            const text = $('presetInput').value.trim();
             if (!text) { showError('请先粘贴题目内容', 'paste'); return; }
             const allFormats = [...PRESET_FORMATS, ...getCustomFormats()];
             const format = allFormats.find(f => f.id === selectedPreset);
@@ -3000,17 +2929,17 @@ ${formatExample}
                 separator: 'simpleSeparator'
             };
             if (map[field]) {
-                document.getElementById(map[field]).value = (value === '空行') ? '\\n\\n' : (value === '序号') ? '1.' : value;
+                $(map[field]).value = (value === '空行') ? '\\n\\n' : (value === '序号') ? '1.' : value;
             }
         }
 
         async function saveSimpleFormat() {
-            const name = document.getElementById('simpleFormatName').value.trim();
-            const qm = document.getElementById('simpleQuestionMarker').value.trim();
-            const om = document.getElementById('simpleOptionMarker').value.trim();
-            const am = document.getElementById('simpleAnswerMarker').value.trim();
-            const em = document.getElementById('simpleExplanationMarker').value.trim();
-            const sep = document.getElementById('simpleSeparator').value.trim();
+            const name = $('simpleFormatName').value.trim();
+            const qm = $('simpleQuestionMarker').value.trim();
+            const om = $('simpleOptionMarker').value.trim();
+            const am = $('simpleAnswerMarker').value.trim();
+            const em = $('simpleExplanationMarker').value.trim();
+            const sep = $('simpleSeparator').value.trim();
             if (!name) { await showAlert('请输入格式名称', '📝'); return; }
             if (!am) { await showAlert('请填写答案标记', '📝'); return; }
             if (!sep) { await showAlert('请填写题目分隔符', '📝'); return; }
@@ -3023,7 +2952,7 @@ ${formatExample}
                 separators: [sep === '\\n\\n' ? '\\n\\n' : sep]
             };
             saveFormatToStorage(name, config, 'simple');
-            ['simpleFormatName','simpleQuestionMarker','simpleOptionMarker','simpleAnswerMarker','simpleExplanationMarker','simpleSeparator'].forEach(id => document.getElementById(id).value = '');
+            ['simpleFormatName','simpleQuestionMarker','simpleOptionMarker','simpleAnswerMarker','simpleExplanationMarker','simpleSeparator'].forEach(id => $(id).value = '');
             await showAlert('格式已保存！', '✅');
             loadCustomFormats();
             renderPresets();
@@ -3040,19 +2969,19 @@ ${formatExample}
 
         // ===== 自定义格式 - 高级模式 =====
         async function saveAdvancedFormat() {
-            const name = document.getElementById('advancedFormatName').value.trim();
-            const qr = document.getElementById('advancedQuestionRegex').value.trim();
-            const or_ = document.getElementById('advancedOptionRegex').value.trim();
-            const ar = document.getElementById('advancedAnswerRegex').value.trim();
-            const er = document.getElementById('advancedExplanationRegex').value.trim();
-            const sep = document.getElementById('advancedSeparator').value.trim();
+            const name = $('advancedFormatName').value.trim();
+            const qr = $('advancedQuestionRegex').value.trim();
+            const or_ = $('advancedOptionRegex').value.trim();
+            const ar = $('advancedAnswerRegex').value.trim();
+            const er = $('advancedExplanationRegex').value.trim();
+            const sep = $('advancedSeparator').value.trim();
             if (!name || !qr || !or_ || !ar || !sep) { await showAlert('请填写所有必填项', '📝'); return; }
             try { [qr, or_, ar, sep].forEach(r => new RegExp(r)); if (er) new RegExp(er); }
             catch (e) { await showAlert('正则表达式错误: ' + e.message, '❌'); return; }
 
             const config = { questionPattern: qr, optionPattern: or_, answerPattern: ar, explanationPattern: er || null, separatorPattern: sep };
             saveFormatToStorage(name, config, 'advanced');
-            ['advancedFormatName','advancedQuestionRegex','advancedOptionRegex','advancedAnswerRegex','advancedExplanationRegex','advancedSeparator'].forEach(id => document.getElementById(id).value = '');
+            ['advancedFormatName','advancedQuestionRegex','advancedOptionRegex','advancedAnswerRegex','advancedExplanationRegex','advancedSeparator'].forEach(id => $(id).value = '');
             await showAlert('高级格式已保存！', '✅');
             loadCustomFormats();
             renderPresets();
@@ -3071,7 +3000,7 @@ ${formatExample}
 
         function loadCustomFormats() {
             const formats = getCustomFormats();
-            const container = document.getElementById('savedFormatsList');
+            const container = $('savedFormatsList');
             container.innerHTML = '';
             if (!formats.length) {
                 container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary);font-size:13px;">暂无保存的格式</div>';
@@ -3106,21 +3035,21 @@ ${formatExample}
             if (!format) return;
             if (format.mode === 'advanced') {
                 setCustomMode('advanced');
-                document.getElementById('advancedFormatName').value = format.name;
-                document.getElementById('advancedQuestionRegex').value = format.config.questionPattern || '';
-                document.getElementById('advancedOptionRegex').value = format.config.optionPattern || '';
-                document.getElementById('advancedAnswerRegex').value = format.config.answerPattern || '';
-                document.getElementById('advancedExplanationRegex').value = format.config.explanationPattern || '';
-                document.getElementById('advancedSeparator').value = format.config.separatorPattern || '';
+                $('advancedFormatName').value = format.name;
+                $('advancedQuestionRegex').value = format.config.questionPattern || '';
+                $('advancedOptionRegex').value = format.config.optionPattern || '';
+                $('advancedAnswerRegex').value = format.config.answerPattern || '';
+                $('advancedExplanationRegex').value = format.config.explanationPattern || '';
+                $('advancedSeparator').value = format.config.separatorPattern || '';
             } else {
                 setCustomMode('simple');
-                document.getElementById('simpleFormatName').value = format.name;
+                $('simpleFormatName').value = format.name;
                 const c = format.config;
-                document.getElementById('simpleQuestionMarker').value = (c.questionMarkers && c.questionMarkers[0]) || '';
-                document.getElementById('simpleOptionMarker').value = '';
-                document.getElementById('simpleAnswerMarker').value = (c.answerMarkers && c.answerMarkers[0]) || '';
-                document.getElementById('simpleExplanationMarker').value = (c.explanationMarkers && c.explanationMarkers[0]) || '';
-                document.getElementById('simpleSeparator').value = (c.separators && c.separators[0]) || '';
+                $('simpleQuestionMarker').value = (c.questionMarkers && c.questionMarkers[0]) || '';
+                $('simpleOptionMarker').value = '';
+                $('simpleAnswerMarker').value = (c.answerMarkers && c.answerMarkers[0]) || '';
+                $('simpleExplanationMarker').value = (c.explanationMarkers && c.explanationMarkers[0]) || '';
+                $('simpleSeparator').value = (c.separators && c.separators[0]) || '';
             }
             deleteCustomFormatSilent(id);
         }
@@ -3140,153 +3069,9 @@ ${formatExample}
             renderPresets();
         }
 
-        // ===== 解析引擎 =====
+        // ===== 解析引擎（使用通用 parseTextWithConfig） =====
         function parseWithFormat(text, config) {
-            const lines = text.split('\n');
-            const parsed = [];
-            let current = null;
-
-            const isSeparator = (line) => {
-                const trimmed = line.trim();
-                if (!trimmed && config.separators && config.separators.includes('\\n\\n')) return false;
-                return config.separators && config.separators.some(s => trimmed === s);
-            };
-
-            const isQuestion = (line) => {
-                const trimmed = line.trim();
-                if (config.questionMarkers && config.questionMarkers.length) {
-                    return config.questionMarkers.some(m => trimmed.startsWith(m));
-                }
-                if (config.questionPattern) {
-                    return new RegExp(config.questionPattern, 'i').test(trimmed);
-                }
-                return false;
-            };
-
-            const getQuestionText = (line) => {
-                let trimmed = line.trim();
-                if (config.questionMarkers && config.questionMarkers.length) {
-                    for (const m of config.questionMarkers) {
-                        if (trimmed.startsWith(m)) return trimmed.slice(m.length).trim();
-                    }
-                }
-                if (config.questionPattern) {
-                    return trimmed.replace(new RegExp(config.questionPattern, 'i'), '').trim();
-                }
-                return trimmed;
-            };
-
-            const isOption = (line) => {
-                return config.optionPattern && new RegExp(config.optionPattern, 'i').test(line.trim());
-            };
-
-            const getOptionText = (line) => {
-                return line.trim().replace(new RegExp(config.optionPattern, 'i'), '').trim();
-            };
-
-            const getOptionLetter = (line) => {
-                const m = line.trim().match(/[A-Da-d]/);
-                return m ? m[0].toUpperCase() : null;
-            };
-
-            const isAnswer = (line) => {
-                return config.answerMarkers && config.answerMarkers.some(m => line.trim().toLowerCase().startsWith(m.toLowerCase()));
-            };
-
-            const getAnswer = (line) => {
-                let trimmed = line.trim();
-                for (const m of config.answerMarkers) {
-                    if (trimmed.toLowerCase().startsWith(m.toLowerCase())) {
-                        return trimmed.slice(m.length).trim().toUpperCase().charAt(0);
-                    }
-                }
-                return null;
-            };
-
-            const isExplanation = (line) => {
-                return config.explanationMarkers && config.explanationMarkers.length &&
-                    config.explanationMarkers.some(m => line.trim().toLowerCase().startsWith(m.toLowerCase()));
-            };
-
-            const getExplanation = (line) => {
-                let trimmed = line.trim();
-                for (const m of config.explanationMarkers) {
-                    if (trimmed.toLowerCase().startsWith(m.toLowerCase())) {
-                        return trimmed.slice(m.length).trim();
-                    }
-                }
-                return trimmed;
-            };
-
-            const saveCurrent = () => {
-                if (current && current.question && current.options.length >= 2 && current.answer) {
-                    parsed.push({ ...current });
-                }
-            };
-
-            // 如果没有题目标记，自动检测模式
-            const noQuestionMarker = (!config.questionMarkers || !config.questionMarkers.length) && !config.questionPattern;
-
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
-                const trimmed = line.trim();
-                if (!trimmed) continue;
-
-                if (isSeparator(line)) {
-                    saveCurrent();
-                    current = null;
-                    continue;
-                }
-
-                if (isAnswer(line)) {
-                    if (current) current.answer = getAnswer(line);
-                    continue;
-                }
-
-                if (isExplanation(line)) {
-                    if (current) current.explanation = getExplanation(line);
-                    continue;
-                }
-
-                if (isOption(line)) {
-                    if (!current) {
-                        // 如果前一行是非选项/非答案/非解析，当作题目
-                        if (noQuestionMarker && i > 0) {
-                            let qi = i - 1;
-                            while (qi >= 0 && !lines[qi].trim()) qi--;
-                            if (qi >= 0 && !isSeparator(lines[qi]) && !isOption(lines[qi]) && !isAnswer(lines[qi]) && !isExplanation(lines[qi])) {
-                                saveCurrent();
-                                current = { question: lines[qi].trim().replace(/^\d+[.、]\s*/, ''), options: [], answer: null, explanation: '' };
-                            }
-                        }
-                    }
-                    if (current) {
-                        const letter = getOptionLetter(line);
-                        const text = getOptionText(line);
-                        current.options.push({ letter, text });
-                    }
-                    continue;
-                }
-
-                if (isQuestion(line)) {
-                    saveCurrent();
-                    current = { question: getQuestionText(line), options: [], answer: null, explanation: '' };
-                    continue;
-                }
-
-                if (noQuestionMarker && !current) {
-                    // 看看下一行是不是选项
-                    let nextI = i + 1;
-                    while (nextI < lines.length && !lines[nextI].trim()) nextI++;
-                    if (nextI < lines.length && isOption(lines[nextI])) {
-                        saveCurrent();
-                        current = { question: trimmed.replace(/^\d+[.、]\s*/, ''), options: [], answer: null, explanation: '' };
-                        continue;
-                    }
-                }
-            }
-            saveCurrent();
-
+            const parsed = parseTextWithConfig(text, config);
             if (!parsed.length) { showError('未能解析出任何题目，请检查格式是否正确', 'paste'); return; }
             finishParsing(parsed);
         }
@@ -3297,25 +3082,25 @@ ${formatExample}
                 : [text];
             const parsed = [];
 
+            const qr = new RegExp(config.questionPattern, 'i');
+            const or_ = new RegExp(config.optionPattern, 'i');
+            const ar = new RegExp(config.answerPattern, 'i');
+            const er = config.explanationPattern ? new RegExp(config.explanationPattern, 'i') : null;
+
             blocks.forEach(block => {
                 const lines = block.split('\n').map(l => l.trim()).filter(l => l);
                 let q = null, opts = [], ans = null, expl = '';
 
                 lines.forEach(line => {
-                    const qr = new RegExp(config.questionPattern, 'i');
-                    const or_ = new RegExp(config.optionPattern, 'i');
-                    const ar = new RegExp(config.answerPattern, 'i');
-
                     if (ar.test(line)) {
                         const m = line.match(ar);
                         ans = m[1] ? m[1].trim().toUpperCase().charAt(0) : null;
-                    } else if (config.explanationPattern && new RegExp(config.explanationPattern, 'i').test(line)) {
-                        const m = line.match(new RegExp(config.explanationPattern, 'i'));
+                    } else if (er && er.test(line)) {
+                        const m = line.match(er);
                         expl = m[1] ? m[1].trim() : line;
                     } else if (or_.test(line)) {
                         const letter = line.match(/[A-Da-d]/);
-                        const optText = line.replace(or_, '').trim();
-                        opts.push({ letter: letter ? letter[0].toUpperCase() : String.fromCharCode(65 + opts.length), text: optText });
+                        opts.push({ letter: letter ? letter[0].toUpperCase() : String.fromCharCode(65 + opts.length), text: line.replace(or_, '').trim() });
                     } else if (qr.test(line)) {
                         const m = line.match(qr);
                         q = m[1] ? m[1].trim() : line.replace(qr, '').trim();
@@ -3334,19 +3119,19 @@ ${formatExample}
         function finishParsing(parsed) {
             originalQuestions = parsed.map(q => JSON.parse(JSON.stringify(q)));
             questions = parsed;
-            document.getElementById('qCount').textContent = questions.length;
-            document.getElementById('setup-panel').style.display = 'none';
-            document.getElementById('ready-panel').style.display = 'block';
+            $('qCount').textContent = questions.length;
+            $('setup-panel').style.display = 'none';
+            $('ready-panel').style.display = 'block';
         }
 
         function showError(msg, target) {
-            const el = document.getElementById(target === 'paste' ? 'pasteError' : 'fileError');
+            const el = $(target === 'paste' ? 'pasteError' : 'fileError');
             el.textContent = msg;
             el.style.display = 'block';
         }
 
         // ===== 文件导入 =====
-        const uploadZone = document.getElementById('uploadZone');
+        const uploadZone = $('uploadZone');
 
         uploadZone.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -3398,18 +3183,16 @@ ${formatExample}
                         finishParsing(parsed);
                     } catch (e) { showError('JSON 解析失败: ' + e.message, 'file'); }
                 } else {
-                    // txt 文件，先用标准格式尝试
-                    const defaultConfig = PRESET_FORMATS[0].config;
-                    tryParseText(content, defaultConfig);
+                    // txt 文件，自动尝试所有预设格式
+                    tryParseText(content);
                 }
             };
             reader.readAsText(file);
         }
 
-        function tryParseText(text, config) {
-            // 尝试每个预设格式
+        function tryParseText(text) {
             for (const preset of PRESET_FORMATS) {
-                const result = tryParseWithFormat(text, preset.config);
+                const result = parseTextWithConfig(text, preset.config);
                 if (result.length > 0) {
                     finishParsing(result);
                     return;
@@ -3418,91 +3201,10 @@ ${formatExample}
             showError('未能自动识别文件格式，请尝试使用文本粘贴功能手动选择格式', 'file');
         }
 
-        function tryParseWithFormat(text, config) {
-            const lines = text.split('\n');
-            const parsed = [];
-            let current = null;
-
-            const isSeparator = (line) => config.separators && config.separators.some(s => line.trim() === s);
-            const isOption = (line) => config.optionPattern && new RegExp(config.optionPattern, 'i').test(line.trim());
-            const isAnswer = (line) => config.answerMarkers && config.answerMarkers.some(m => line.trim().toLowerCase().startsWith(m.toLowerCase()));
-            const isExplanation = (line) => config.explanationMarkers && config.explanationMarkers.length && config.explanationMarkers.some(m => line.trim().toLowerCase().startsWith(m.toLowerCase()));
-
-            const isQuestion = (line) => {
-                const trimmed = line.trim();
-                if (config.questionMarkers && config.questionMarkers.length) return config.questionMarkers.some(m => trimmed.startsWith(m));
-                if (config.questionPattern) return new RegExp(config.questionPattern, 'i').test(trimmed);
-                return false;
-            };
-
-            const getQuestionText = (line) => {
-                let trimmed = line.trim();
-                if (config.questionMarkers) for (const m of config.questionMarkers) { if (trimmed.startsWith(m)) return trimmed.slice(m.length).trim(); }
-                if (config.questionPattern) return trimmed.replace(new RegExp(config.questionPattern, 'i'), '').trim();
-                return trimmed;
-            };
-
-            const noQuestionMarker = (!config.questionMarkers || !config.questionMarkers.length) && !config.questionPattern;
-
-            const saveCurrent = () => {
-                if (current && current.question && current.options.length >= 2 && current.answer) parsed.push({ ...current });
-            };
-
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i], trimmed = line.trim();
-                if (!trimmed) continue;
-                if (isSeparator(line)) { saveCurrent(); current = null; continue; }
-                if (isAnswer(line)) {
-                    if (current) {
-                        let ans = null;
-                        for (const m of config.answerMarkers) {
-                            if (trimmed.toLowerCase().startsWith(m.toLowerCase())) { ans = trimmed.slice(m.length).trim().toUpperCase().charAt(0); break; }
-                        }
-                        current.answer = ans;
-                    }
-                    continue;
-                }
-                if (isExplanation(line)) {
-                    if (current) {
-                        for (const m of config.explanationMarkers) {
-                            if (trimmed.toLowerCase().startsWith(m.toLowerCase())) { current.explanation = trimmed.slice(m.length).trim(); break; }
-                        }
-                    }
-                    continue;
-                }
-                if (isOption(line)) {
-                    if (!current && noQuestionMarker) {
-                        let qi = i - 1;
-                        while (qi >= 0 && !lines[qi].trim()) qi--;
-                        if (qi >= 0 && !isSeparator(lines[qi]) && !isOption(lines[qi]) && !isAnswer(lines[qi]) && !isExplanation(lines[qi])) {
-                            saveCurrent();
-                            current = { question: lines[qi].trim().replace(/^\d+[.、]\s*/, ''), options: [], answer: null, explanation: '' };
-                        }
-                    }
-                    if (current) {
-                        const letter = (line.trim().match(/[A-Da-d]/)||[])[0];
-                        current.options.push({ letter: letter ? letter.toUpperCase() : String.fromCharCode(65 + current.options.length), text: line.trim().replace(new RegExp(config.optionPattern, 'i'), '').trim() });
-                    }
-                    continue;
-                }
-                if (isQuestion(line)) { saveCurrent(); current = { question: getQuestionText(line), options: [], answer: null, explanation: '' }; continue; }
-                if (noQuestionMarker && !current) {
-                    let nextI = i + 1;
-                    while (nextI < lines.length && !lines[nextI].trim()) nextI++;
-                    if (nextI < lines.length && isOption(lines[nextI])) {
-                        saveCurrent();
-                        current = { question: trimmed.replace(/^\d+[.、]\s*/, ''), options: [], answer: null, explanation: '' };
-                    }
-                }
-            }
-            saveCurrent();
-            return parsed;
-        }
-
         // ===== 答题逻辑 =====
         function startQuiz() {
-            if (document.getElementById('shuffleQuestions').checked) shuffleArray(questions);
-            if (document.getElementById('shuffleOptions').checked) {
+            if ($('shuffleQuestions').checked) shuffleArray(questions);
+            if ($('shuffleOptions').checked) {
                 questions.forEach(q => {
                     const correctText = q.options.find(o => o.letter === q.answer)?.text;
                     shuffleArray(q.options);
@@ -3520,10 +3222,10 @@ ${formatExample}
 
         function renderQuestion() {
             const q = questions[currentIndex];
-            document.getElementById('progressText').textContent = `${currentIndex + 1}/${questions.length}`;
-            document.getElementById('questionText').textContent = q.question;
+            $('progressText').textContent = `${currentIndex + 1}/${questions.length}`;
+            $('questionText').textContent = q.question;
 
-            const container = document.getElementById('optionsContainer');
+            const container = $('optionsContainer');
             container.innerHTML = '';
 
             const answered = userAnswers[currentIndex] !== null;
@@ -3543,8 +3245,8 @@ ${formatExample}
                 container.appendChild(div);
             });
 
-            const analysisBox = document.getElementById('analysisBox');
-            const analysisContent = document.getElementById('analysisContent');
+            const analysisBox = $('analysisBox');
+            const analysisContent = $('analysisContent');
             if ((answered || isReviewMode) && q.explanation) {
                 analysisContent.textContent = q.explanation;
                 analysisBox.style.display = 'block';
@@ -3552,10 +3254,10 @@ ${formatExample}
                 analysisBox.style.display = 'none';
             }
 
-            const prevBtn = document.getElementById('prevBtn');
+            const prevBtn = $('prevBtn');
             prevBtn.style.visibility = currentIndex > 0 ? 'visible' : 'hidden';
 
-            const nextBtn = document.getElementById('nextBtn');
+            const nextBtn = $('nextBtn');
             if (isReviewMode) {
                 nextBtn.textContent = currentIndex === questions.length - 1 ? '返回结果' : '下一题';
             } else {
@@ -3598,10 +3300,10 @@ ${formatExample}
 
             showView('resultView');
 
-            document.getElementById('scoreVal').textContent = pct;
+            $('scoreVal').textContent = pct;
 
             // SVG 动画
-            const circle = document.getElementById('scoreCircle');
+            const circle = $('scoreCircle');
             const circumference = 2 * Math.PI * 60;
             circle.style.strokeDasharray = circumference;
             circle.style.strokeDashoffset = circumference;
@@ -3612,7 +3314,7 @@ ${formatExample}
             }, 100);
 
             // 结果网格
-            const grid = document.getElementById('resultGrid');
+            const grid = $('resultGrid');
             grid.innerHTML = '';
             questions.forEach((q, i) => {
                 const dot = document.createElement('div');
@@ -3637,9 +3339,9 @@ ${formatExample}
             currentIndex = 0;
             isReviewMode = false;
             selectedPreset = null;
-            document.getElementById('setup-panel').style.display = 'block';
-            document.getElementById('ready-panel').style.display = 'none';
-            document.getElementById('fileInput').value = '';
+            $('setup-panel').style.display = 'block';
+            $('ready-panel').style.display = 'none';
+            $('fileInput').value = '';
             document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('selected'));
             hideErrors();
             showView('homeView');
@@ -3647,7 +3349,7 @@ ${formatExample}
 
         function showView(viewId) {
             document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
+            $(viewId).classList.add('active');
         }
 
         function shuffleArray(arr) {

@@ -121,12 +121,19 @@
             margin-right: 15px;
             font-size: 20px;
             cursor: pointer;
-            padding: 5px;
-            border-radius: 50%;
-            transition: background 0.2s;
+            padding: 8px 12px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
             color: var(--text-secondary);
+            border: 2px solid transparent;
         }
-        .back-icon:hover { background-color: #f5f5f5; }
+        .back-icon:hover {
+            background-color: #f0f7ff;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transform: translateX(-2px);
+            box-shadow: 0 2px 12px rgba(78, 110, 242, 0.25);
+        }
 
         /* ===== 首页布局 ===== */
         .home-layout {

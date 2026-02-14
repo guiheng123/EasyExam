@@ -678,6 +678,44 @@
             box-shadow: 0 6px 20px rgba(0,0,0,0.12);
             border-color: var(--primary-color);
         }
+
+        /* ===== AI解析悬浮球 ===== */
+        .ai-analyze-fab {
+            position: fixed;
+            bottom: 76px;
+            right: 24px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border: 1px solid #c7d2fe;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.2);
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
+            z-index: 2000;
+            user-select: none;
+            touch-action: none;
+            color: #4f46e5;
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .ai-analyze-fab:hover {
+            border-color: #818cf8;
+            box-shadow: 0 8px 24px rgba(79, 70, 229, 0.28);
+            transform: translateY(-1px);
+        }
+        .ai-analyze-fab.dragging {
+            cursor: grabbing;
+            opacity: 0.9;
+            transition: none !important;
+            will-change: transform;
+        }
+        .ai-analyze-fab.snapping {
+            transition: right 0.3s ease, bottom 0.3s ease, box-shadow 0.2s, border-color 0.2s;
+        }
         .settings-fab.dragging {
             cursor: grabbing;
             box-shadow: 0 8px 25px rgba(0,0,0,0.18);
@@ -1265,6 +1303,195 @@
         }
         .hotkey-hint.show { opacity: 1; }
 
+        /* ===== AI解析对话窗口 ===== */
+        .ai-chat-panel {
+            position: fixed;
+            right: 78px;
+            bottom: 76px;
+            width: min(360px, calc(100vw - 24px));
+            height: min(520px, calc(100vh - 120px));
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.16);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 1999;
+        }
+        .ai-chat-panel.active { display: flex; animation: scaleIn 0.2s ease; }
+        .ai-chat-header {
+            height: 46px;
+            padding: 0 12px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: 700;
+            color: #312e81;
+            background: linear-gradient(90deg, #eef2ff, #f8fafc);
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+        }
+        .ai-chat-panel.dragging {
+            will-change: transform;
+        }
+        .ai-chat-panel.dragging .ai-chat-header {
+            cursor: grabbing;
+        }
+        .ai-chat-close {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            border: 1px solid #dbeafe;
+            background: #fff;
+            color: #64748b;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+        }
+        .ai-chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .ai-chat-msg {
+            max-width: 88%;
+            font-size: 13px;
+            line-height: 1.55;
+            padding: 8px 10px;
+            border-radius: 10px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .ai-chat-msg.user {
+            margin-left: auto;
+            color: #1e3a8a;
+            background: #dbeafe;
+            border: 1px solid #bfdbfe;
+        }
+        .ai-chat-msg.assistant {
+            margin-right: auto;
+            color: #334155;
+            background: white;
+            border: 1px solid #e2e8f0;
+        }
+        .ai-chat-msg.loading {
+            color: #64748b;
+            font-style: italic;
+        }
+        .ai-chat-msg.markdown h1,
+        .ai-chat-msg.markdown h2,
+        .ai-chat-msg.markdown h3,
+        .ai-chat-msg.markdown h4 {
+            margin: 0 0 8px;
+            line-height: 1.4;
+            color: #0f172a;
+        }
+        .ai-chat-msg.markdown h3 { font-size: 14px; }
+        .ai-chat-msg.markdown p {
+            margin: 0 0 8px;
+            line-height: 1.65;
+        }
+        .ai-chat-msg.markdown hr {
+            border: none;
+            border-top: 1px dashed #cbd5e1;
+            margin: 10px 0;
+        }
+        .ai-chat-msg.markdown ul {
+            margin: 0 0 8px;
+            padding-left: 18px;
+        }
+        .ai-chat-msg.markdown li {
+            margin: 4px 0;
+            line-height: 1.6;
+        }
+        .ai-chat-msg.markdown code {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 1px 5px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 12px;
+        }
+        .ai-chat-msg.markdown strong {
+            color: #1e293b;
+            font-weight: 700;
+        }
+        .ai-chat-footer {
+            border-top: 1px solid #f1f5f9;
+            padding: 10px;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .ai-chat-quick {
+            width: 100%;
+            border: 1px solid #c7d2fe;
+            background: #eef2ff;
+            color: #4338ca;
+            border-radius: 8px;
+            padding: 7px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .ai-chat-input-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .ai-chat-input {
+            flex: 1;
+            min-width: 0;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 8px 10px;
+            font-size: 13px;
+            outline: none;
+        }
+        .ai-chat-input:focus {
+            border-color: #818cf8;
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+            background: #fff;
+        }
+        .ai-chat-send {
+            border: none;
+            background: var(--primary-color);
+            color: #fff;
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .ai-chat-send:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        @media (max-width: 767px) {
+            .ai-chat-panel {
+                right: 12px;
+                bottom: 132px;
+                left: 12px;
+                width: auto;
+                height: min(56vh, 460px);
+            }
+            .ai-analyze-fab {
+                bottom: 76px;
+                right: 24px;
+            }
+        }
+
         /* ===== 内联样式提取 ===== */
         .ai-entry-panel { text-align: center; padding: 40px 20px 20px; }
         .ai-entry-icon { font-size: 48px; margin-bottom: 15px; }
@@ -1544,6 +1771,23 @@
         </svg>
     </div>
 
+    <!-- AI解析按钮与对话窗（不遮挡主流程） -->
+    <div class="ai-analyze-fab" id="aiAnalyzeFab" title="AI解析">✨</div>
+    <div class="ai-chat-panel" id="aiChatPanel" aria-live="polite">
+        <div class="ai-chat-header">
+            <span>🤖 AI 解析</span>
+            <button class="ai-chat-close" type="button" onclick="toggleAIChatPanel(false)">×</button>
+        </div>
+        <div class="ai-chat-messages" id="aiChatMessages"></div>
+        <div class="ai-chat-footer">
+            <button class="ai-chat-quick" type="button" onclick="askCurrentQuestionAnalysis()">🧠 解析当前题目</button>
+            <div class="ai-chat-input-row">
+                <input class="ai-chat-input" id="aiChatInput" type="text" placeholder="输入你的问题，例如：为什么答案是B？">
+                <button class="ai-chat-send" id="aiChatSendBtn" type="button" onclick="sendAIChatMessage()">发送</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 例题模态框 -->
     <div class="overlay-base modal-overlay" id="exampleModal">
         <div class="modal-content">
@@ -1723,6 +1967,13 @@
         let aiConfig = { apiUrl: '', apiToken: '', model: '' };
         let aiGeneratedQuestions = [];
         let aiHistory = [];
+        let aiChatHistory = [];
+        let aiChatSessions = Object.create(null);
+        let aiChatCurrentSessionKey = 'global';
+        let aiChatPanelPinnedPosition = null;
+        let aiChatPanelDragging = false;
+        let aiChatRequesting = false;
+        let aiChatRequestVersion = 0;
         const MOTION_REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         // ===== DOM缓存 =====
@@ -2145,6 +2396,7 @@
             if ($('dialogOverlay').classList.contains('active')) return;
             if ($('settingsPanel').classList.contains('active')) return;
             if ($('exampleModal').classList.contains('active')) return;
+            if ($('aiChatPanel').classList.contains('active')) return;
 
             // 只在答题页面生效
             const quizView = $('quizView');
@@ -2223,6 +2475,445 @@
         $('settingsPanel').addEventListener('click', function(e) {
             if (e.target === this) closeSettings();
         });
+
+        function getAIChatSessionKey(index = currentIndex) {
+            const quizView = $('quizView');
+            const quizActive = quizView && quizView.classList.contains('active');
+            if (!quizActive || !questions.length) return 'global';
+            const safeIndex = Number.isInteger(index) ? index : currentIndex;
+            return `q_${Math.max(0, safeIndex)}`;
+        }
+
+        function createAIChatWelcomeText() {
+            return '你好，我是 AI 解析助手。\n你可以点击“解析当前题目”，或直接输入问题。';
+        }
+
+        function ensureAIChatSession(key, forceNew) {
+            if (forceNew || !aiChatSessions[key]) {
+                aiChatSessions[key] = {
+                    messages: [{ role: 'assistant', text: createAIChatWelcomeText(), extraClass: '' }],
+                    history: []
+                };
+            }
+            return aiChatSessions[key];
+        }
+
+        function cancelAIChatPendingRequest() {
+            aiChatRequestVersion++;
+            aiChatRequesting = false;
+            const sendBtn = $('aiChatSendBtn');
+            if (sendBtn) sendBtn.disabled = false;
+            document.querySelectorAll('#aiChatMessages .ai-chat-msg.loading').forEach(node => node.remove());
+        }
+
+        function activateAIChatSessionForQuestion(index, forceNew = false) {
+            const nextKey = getAIChatSessionKey(index);
+            if (aiChatCurrentSessionKey !== nextKey) {
+                cancelAIChatPendingRequest();
+            }
+            aiChatCurrentSessionKey = nextKey;
+            const session = ensureAIChatSession(nextKey, forceNew);
+            aiChatHistory = session.history.slice();
+            return session;
+        }
+
+        function renderAIChatSession(session) {
+            const wrap = $('aiChatMessages');
+            wrap.innerHTML = '';
+            session.messages.forEach(msg => {
+                appendAIChatMessage(msg.role, msg.text, msg.extraClass, { skipCache: true, sessionKey: aiChatCurrentSessionKey });
+            });
+            scrollAIChatToBottom();
+        }
+
+        function clearAIChatCache() {
+            cancelAIChatPendingRequest();
+            aiChatSessions = Object.create(null);
+            aiChatCurrentSessionKey = 'global';
+            aiChatHistory = [];
+            aiChatPanelPinnedPosition = null;
+            const wrap = $('aiChatMessages');
+            if (wrap) wrap.innerHTML = '';
+            const input = $('aiChatInput');
+            if (input) input.value = '';
+            toggleAIChatPanel(false);
+        }
+
+        function updateAIChatPanelPosition(forceAuto) {
+            const fab = $('aiAnalyzeFab');
+            const panel = $('aiChatPanel');
+            if (!fab || !panel || !panel.classList.contains('active')) return;
+            if (aiChatPanelDragging) return;
+
+            const viewportPadding = 12;
+            const panelRect = panel.getBoundingClientRect();
+            const panelWidth = panelRect.width || Math.min(360, window.innerWidth - viewportPadding * 2);
+            const panelHeight = panelRect.height || Math.min(520, window.innerHeight - 120);
+
+            const clampPosition = (left, top) => ({
+                left: Math.max(viewportPadding, Math.min(left, window.innerWidth - panelWidth - viewportPadding)),
+                top: Math.max(viewportPadding, Math.min(top, window.innerHeight - panelHeight - viewportPadding))
+            });
+
+            if (!forceAuto && aiChatPanelPinnedPosition) {
+                const pinned = clampPosition(aiChatPanelPinnedPosition.left, aiChatPanelPinnedPosition.top);
+                aiChatPanelPinnedPosition = pinned;
+                panel.style.left = pinned.left + 'px';
+                panel.style.top = pinned.top + 'px';
+                panel.style.right = 'auto';
+                panel.style.bottom = 'auto';
+                return;
+            }
+
+            const gap = 10;
+            const fabRect = fab.getBoundingClientRect();
+            const shouldPlaceAbove = fabRect.top >= panelHeight + gap + viewportPadding;
+            let top = shouldPlaceAbove
+                ? (fabRect.top - panelHeight - gap)
+                : (fabRect.bottom + gap);
+            const preferredLeft = fabRect.right - panelWidth;
+            const autoPos = clampPosition(preferredLeft, top);
+
+            panel.style.left = autoPos.left + 'px';
+            panel.style.top = autoPos.top + 'px';
+            panel.style.right = 'auto';
+            panel.style.bottom = 'auto';
+        }
+
+        function toggleAIChatPanel(open) {
+            const panel = $('aiChatPanel');
+            const willOpen = typeof open === 'boolean' ? open : !panel.classList.contains('active');
+            panel.classList.toggle('active', willOpen);
+            if (!willOpen) return;
+
+            const session = activateAIChatSessionForQuestion(currentIndex);
+            renderAIChatSession(session);
+            requestAnimationFrame(() => updateAIChatPanelPosition());
+            const input = $('aiChatInput');
+            if (input) input.focus();
+        }
+
+        function formatInlineMarkdown(rawText) {
+            return rawText
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/`([^`]+?)`/g, '<code>$1</code>');
+        }
+
+        function renderMarkdownToHtml(markdownText) {
+            const source = escapeHtml(String(markdownText || '')).replace(/\r\n?/g, '\n');
+            const lines = source.split('\n');
+            const html = [];
+            let inList = false;
+
+            const closeList = () => {
+                if (inList) {
+                    html.push('</ul>');
+                    inList = false;
+                }
+            };
+
+            for (const rawLine of lines) {
+                const line = rawLine.trimEnd();
+                const trimmed = line.trim();
+
+                if (!trimmed) {
+                    closeList();
+                    continue;
+                }
+
+                const headingMatch = trimmed.match(/^(#{1,4})\s+(.+)$/);
+                if (headingMatch) {
+                    closeList();
+                    const level = headingMatch[1].length;
+                    html.push(`<h${level}>${formatInlineMarkdown(headingMatch[2])}</h${level}>`);
+                    continue;
+                }
+
+                if (/^-{3,}$/.test(trimmed)) {
+                    closeList();
+                    html.push('<hr>');
+                    continue;
+                }
+
+                const listMatch = trimmed.match(/^[-*]\s+(.+)$/);
+                if (listMatch) {
+                    if (!inList) {
+                        html.push('<ul>');
+                        inList = true;
+                    }
+                    html.push(`<li>${formatInlineMarkdown(listMatch[1])}</li>`);
+                    continue;
+                }
+
+                closeList();
+                html.push(`<p>${formatInlineMarkdown(trimmed)}</p>`);
+            }
+
+            closeList();
+            return html.join('');
+        }
+
+        function appendAIChatMessage(role, text, extraClass, options) {
+            const opts = options || {};
+            const sessionKey = opts.sessionKey || aiChatCurrentSessionKey || getAIChatSessionKey(currentIndex);
+            const shouldCache = !opts.skipCache && extraClass !== 'loading';
+
+            if (shouldCache) {
+                const session = ensureAIChatSession(sessionKey);
+                session.messages.push({ role, text, extraClass: extraClass || '' });
+            }
+
+            if (opts.skipRender || sessionKey !== aiChatCurrentSessionKey) {
+                return null;
+            }
+
+            const wrap = $('aiChatMessages');
+            const row = document.createElement('div');
+            row.className = 'ai-chat-msg ' + role + (extraClass ? (' ' + extraClass) : '');
+
+            const enableMarkdown = role === 'assistant' && extraClass !== 'loading';
+            if (enableMarkdown) {
+                row.classList.add('markdown');
+                row.innerHTML = renderMarkdownToHtml(text);
+            } else {
+                row.textContent = text;
+            }
+
+            wrap.appendChild(row);
+            scrollAIChatToBottom();
+            return row;
+        }
+
+        function scrollAIChatToBottom() {
+            const wrap = $('aiChatMessages');
+            wrap.scrollTop = wrap.scrollHeight;
+        }
+
+        function getCurrentQuestionSnapshot() {
+            if (!questions || !questions.length || !questions[currentIndex]) return null;
+            const q = questions[currentIndex];
+            const selected = userAnswers[currentIndex] || '未作答';
+            const options = q.options.map(opt => `${opt.letter}. ${opt.text}`).join('\n');
+            return {
+                question: q.question,
+                options,
+                answer: q.answer,
+                explanation: q.explanation || '',
+                selected
+            };
+        }
+
+        function askCurrentQuestionAnalysis() {
+            const snap = getCurrentQuestionSnapshot();
+            if (!snap) {
+                appendAIChatMessage('assistant', '当前没有可解析的题目，请先开始答题。');
+                toggleAIChatPanel(true);
+                return;
+            }
+            const prompt = `请解析这道题，并说明各选项差异，最后给出记忆方法：\n题目：${snap.question}\n${snap.options}\n我的选择：${snap.selected}`;
+            sendAIChatMessage(prompt);
+        }
+
+        async function sendAIChatMessage(customText) {
+            if (aiChatRequesting) return;
+            const input = $('aiChatInput');
+            const sendBtn = $('aiChatSendBtn');
+            const text = (typeof customText === 'string' ? customText : input.value).trim();
+            if (!text) return;
+
+            if (input && typeof customText !== 'string') input.value = '';
+            toggleAIChatPanel(true);
+
+            const sessionKey = aiChatCurrentSessionKey;
+            const session = ensureAIChatSession(sessionKey);
+            appendAIChatMessage('user', text, '', { sessionKey });
+
+            aiChatRequesting = true;
+            sendBtn.disabled = true;
+            const requestVersion = ++aiChatRequestVersion;
+            const loadingNode = appendAIChatMessage('assistant', '正在思考中...', 'loading', { sessionKey });
+
+            try {
+                const snap = getCurrentQuestionSnapshot();
+                const hasApi = !!(aiConfig.apiUrl && aiConfig.apiToken && aiConfig.model);
+
+                let replyText = '';
+                if (!hasApi) {
+                    if (snap) {
+                        replyText = snap.explanation
+                            ? `参考题目解析：\n${snap.explanation}\n\n建议：先排除明显错误项，再对比剩余选项关键词。`
+                            : `当前未配置 AI API。\n你可在设置中填写 API 后获得更详细解析。\n\n临时建议：关注题干关键词，逐项对照定义与场景。`;
+                    } else {
+                        replyText = '当前未配置 AI API，且没有题目上下文。请先开始答题，或在设置中配置 API。';
+                    }
+                } else {
+                    const context = snap
+                        ? `\n\n【当前题目上下文】\n题目：${snap.question}\n${snap.options}\n标准答案：${snap.answer}\n我的答案：${snap.selected}\n已有解析：${snap.explanation || '无'}`
+                        : '';
+
+                    const messages = [
+                        { role: 'system', content: '你是一个简洁、准确的答题解析助手。回答要聚焦题目，中文输出，先结论再理由。' },
+                        ...session.history.slice(-8),
+                        { role: 'user', content: text + context }
+                    ];
+
+                    const response = await fetch(aiConfig.apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${aiConfig.apiToken}`
+                        },
+                        body: JSON.stringify({
+                            model: aiConfig.model,
+                            messages,
+                            temperature: 0.4
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`AI 请求失败：${response.status} ${response.statusText || ''}`);
+                    }
+
+                    const data = await response.json();
+                    replyText = (data.choices?.[0]?.message?.content || '').trim();
+                    if (!replyText) {
+                        throw new Error('AI 返回为空');
+                    }
+                }
+
+                if (requestVersion !== aiChatRequestVersion || sessionKey !== aiChatCurrentSessionKey) return;
+
+                if (loadingNode && loadingNode.parentNode) loadingNode.remove();
+                appendAIChatMessage('assistant', replyText, '', { sessionKey });
+                session.history.push({ role: 'user', content: text });
+                session.history.push({ role: 'assistant', content: replyText });
+                if (session.history.length > 20) session.history = session.history.slice(-20);
+                aiChatHistory = session.history.slice();
+            } catch (error) {
+                if (requestVersion !== aiChatRequestVersion || sessionKey !== aiChatCurrentSessionKey) return;
+                if (loadingNode && loadingNode.parentNode) loadingNode.remove();
+                appendAIChatMessage('assistant', `解析失败：${error.message || '未知错误'}`, '', { sessionKey });
+            } finally {
+                if (requestVersion !== aiChatRequestVersion) return;
+                aiChatRequesting = false;
+                sendBtn.disabled = false;
+                if (input) input.focus();
+            }
+        }
+
+        function initAIAnalysisWidget() {
+            const input = $('aiChatInput');
+            if (input) {
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendAIChatMessage();
+                    }
+                });
+            }
+
+            const panel = $('aiChatPanel');
+            const header = panel ? panel.querySelector('.ai-chat-header') : null;
+            if (!panel || !header) return;
+
+            let dragging = false;
+            let pointerId = null;
+            let startX = 0;
+            let startY = 0;
+            let originLeft = 0;
+            let originTop = 0;
+            let lastClamped = null;
+
+            const clampPos = (left, top) => {
+                const rect = panel.getBoundingClientRect();
+                const width = rect.width || panel.offsetWidth || Math.min(360, window.innerWidth - 24);
+                const height = rect.height || panel.offsetHeight || Math.min(520, window.innerHeight - 120);
+                return {
+                    left: Math.max(12, Math.min(left, window.innerWidth - width - 12)),
+                    top: Math.max(12, Math.min(top, window.innerHeight - height - 12))
+                };
+            };
+
+            const updateDragPosition = (clientX, clientY) => {
+                const dx = clientX - startX;
+                const dy = clientY - startY;
+                const clamped = clampPos(originLeft + dx, originTop + dy);
+                lastClamped = clamped;
+                panel.style.transform = 'translate(' + (clamped.left - originLeft) + 'px,' + (clamped.top - originTop) + 'px)';
+            };
+
+            const beginDrag = (e) => {
+                if (!panel.classList.contains('active')) return;
+                if (e.pointerType === 'mouse' && e.button !== 0) return;
+                if (e.target.closest('.ai-chat-close')) return;
+
+                dragging = true;
+                aiChatPanelDragging = true;
+                pointerId = e.pointerId;
+                panel.classList.add('dragging');
+
+                const rect = panel.getBoundingClientRect();
+                startX = e.clientX;
+                startY = e.clientY;
+                originLeft = rect.left;
+                originTop = rect.top;
+                pendingX = e.clientX;
+                pendingY = e.clientY;
+                lastClamped = { left: originLeft, top: originTop };
+
+                panel.style.left = originLeft + 'px';
+                panel.style.top = originTop + 'px';
+                panel.style.right = 'auto';
+                panel.style.bottom = 'auto';
+                panel.style.transform = 'translate(0px,0px)';
+
+                if (header.setPointerCapture && Number.isInteger(pointerId)) {
+                    try { header.setPointerCapture(pointerId); } catch (_) {}
+                }
+
+                e.preventDefault();
+            };
+
+            const moveDrag = (e) => {
+                if (!dragging || e.pointerId !== pointerId) return;
+                
+                // 直接更新位置，不使用 RAF 节流，实现完全跟手
+                updateDragPosition(e.clientX, e.clientY);
+                
+                e.preventDefault();
+            };
+
+            const endDrag = (e) => {
+                if (!dragging) return;
+                if (e && e.pointerId !== pointerId) return;
+
+                dragging = false;
+                aiChatPanelDragging = false;
+                panel.classList.remove('dragging');
+
+                const finalPos = lastClamped || clampPos(originLeft, originTop);
+                panel.style.transform = 'translate(0px,0px)';
+                panel.style.left = finalPos.left + 'px';
+                panel.style.top = finalPos.top + 'px';
+                aiChatPanelPinnedPosition = { left: finalPos.left, top: finalPos.top };
+
+                if (header.releasePointerCapture && Number.isInteger(pointerId)) {
+                    try { header.releasePointerCapture(pointerId); } catch (_) {}
+                }
+
+                pointerId = null;
+                lastClamped = null;
+            };
+
+            header.addEventListener('pointerdown', beginDrag);
+            header.addEventListener('pointermove', moveDrag);
+            header.addEventListener('pointerup', endDrag);
+            header.addEventListener('pointercancel', endDrag);
+
+            document.addEventListener('pointermove', moveDrag);
+            document.addEventListener('pointerup', endDrag);
+            document.addEventListener('pointercancel', endDrag);
+        }
 
         // ===== 预设格式 =====
         const PRESET_FORMATS = [
@@ -2844,6 +3535,7 @@ ${formatExample}
             renderPresets();
             loadHotkeySettings();
             loadAISettings();
+            initAIAnalysisWidget();
 
             $('optionsContainer').addEventListener('click', (e) => {
                 const item = e.target.closest('.option-item');
@@ -3281,11 +3973,13 @@ ${formatExample}
                     if (newCorrect) q.answer = newCorrect.letter;
                 });
             }
+            clearAIChatCache();
             userAnswers = new Array(questions.length).fill(null);
             currentIndex = 0;
             isReviewMode = false;
             showView('quizView');
             renderQuestion();
+            activateAIChatSessionForQuestion(currentIndex, true);
         }
 
         function renderQuestion() {
@@ -3340,24 +4034,55 @@ ${formatExample}
         }
 
         function prevQ() {
-            if (currentIndex > 0) { currentIndex--; renderQuestion(); }
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderQuestion();
+                activateAIChatSessionForQuestion(currentIndex);
+                // 只在对话框已打开时刷新内容，不强制打开
+                if ($('aiChatPanel').classList.contains('active')) {
+                    const session = activateAIChatSessionForQuestion(currentIndex);
+                    renderAIChatSession(session);
+                }
+            }
         }
 
         function nextQ() {
             if (isReviewMode) {
-                if (currentIndex < questions.length - 1) { currentIndex++; renderQuestion(); }
-                else showResult();
+                if (currentIndex < questions.length - 1) {
+                    currentIndex++;
+                    renderQuestion();
+                    activateAIChatSessionForQuestion(currentIndex);
+                    // 只在对话框已打开时刷新内容，不强制打开
+                    if ($('aiChatPanel').classList.contains('active')) {
+                        const session = activateAIChatSessionForQuestion(currentIndex);
+                        renderAIChatSession(session);
+                    }
+                } else {
+                    showResult();
+                }
                 return;
             }
             if (currentIndex < questions.length - 1) {
                 currentIndex++;
                 renderQuestion();
+                activateAIChatSessionForQuestion(currentIndex);
+                // 只在对话框已打开时刷新内容，不强制打开
+                if ($('aiChatPanel').classList.contains('active')) {
+                    const session = activateAIChatSessionForQuestion(currentIndex);
+                    renderAIChatSession(session);
+                }
             } else {
                 showResult();
             }
         }
 
         async function confirmExit() {
+            // 如果是回顾模式，直接返回结果页
+            if (isReviewMode) {
+                showResult();
+                return;
+            }
+            // 否则确认退出
             const confirmed = await showDangerConfirm('确定要退出答题吗？当前进度不会保存。');
             if (confirmed) resetImport();
         }
@@ -3367,6 +4092,7 @@ ${formatExample}
             userAnswers.forEach((a, i) => { if (a === questions[i].answer) correct++; });
             const pct = Math.round((correct / questions.length) * 100);
 
+            clearAIChatCache();
             showView('resultView');
 
             $('scoreVal').textContent = pct;
@@ -3406,9 +4132,14 @@ ${formatExample}
             currentIndex = idx;
             showView('quizView');
             renderQuestion();
+            activateAIChatSessionForQuestion(currentIndex);
+            if ($('aiChatPanel').classList.contains('active')) {
+                toggleAIChatPanel(true);
+            }
         }
 
         function resetImport() {
+            clearAIChatCache();
             questions = [];
             originalQuestions = [];
             userAnswers = [];
@@ -3435,6 +4166,150 @@ ${formatExample}
             }
         }
 
+        // ===== AI解析小球拖拽 =====
+        (function() {
+            const fab = $('aiAnalyzeFab');
+            if (!fab) return;
+            let isDragging = false;
+            let hasMoved = false;
+            let startX, startY, originX, originY;
+            let snapTimer = null;
+            let dragRafId = 0;
+            let pendingX = 0;
+            let pendingY = 0;
+            const defaultBottom = parseFloat(getComputedStyle(fab).bottom) || 76;
+            const snapInset = parseFloat(getComputedStyle(fab).right) || 24;
+
+            function clamp(x, y) {
+                const w = fab.offsetWidth, h = fab.offsetHeight;
+                return {
+                    x: Math.max(0, Math.min(x, window.innerWidth - w)),
+                    y: Math.max(0, Math.min(y, window.innerHeight - h))
+                };
+            }
+
+            function onStart(ex, ey) {
+                isDragging = true;
+                hasMoved = false;
+                if (snapTimer) { clearTimeout(snapTimer); snapTimer = null; }
+                fab.classList.remove('snapping');
+                fab.classList.add('dragging');
+                const rect = fab.getBoundingClientRect();
+                originX = rect.left;
+                originY = rect.top;
+                startX = ex;
+                startY = ey;
+                fab.style.right = 'auto';
+                fab.style.bottom = 'auto';
+                fab.style.left = originX + 'px';
+                fab.style.top = originY + 'px';
+                fab.style.transform = 'none';
+            }
+
+            function onMove(ex, ey) {
+                if (!isDragging) return;
+                pendingX = ex;
+                pendingY = ey;
+                if (dragRafId) return;
+
+                dragRafId = requestAnimationFrame(() => {
+                    dragRafId = 0;
+                    const dx = pendingX - startX;
+                    const dy = pendingY - startY;
+                    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
+                    const clamped = clamp(originX + dx, originY + dy);
+                    fab.style.transform = 'translate(' + (clamped.x - originX) + 'px,' + (clamped.y - originY) + 'px)';
+                    // 只在对话框未被手动定位时才跟随小球移动
+                    if (!aiChatPanelPinnedPosition) {
+                        updateAIChatPanelPosition();
+                    }
+                });
+            }
+
+            function onEnd() {
+                if (!isDragging) return;
+                isDragging = false;
+                if (dragRafId) {
+                    cancelAnimationFrame(dragRafId);
+                    dragRafId = 0;
+                }
+                fab.classList.remove('dragging');
+                const rect = fab.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const isLeft = centerX < window.innerWidth / 2;
+                const curRight = window.innerWidth - rect.left - rect.width;
+                const curBottom = window.innerHeight - rect.top - rect.height;
+                const safeBottom = Math.max(12, Math.min(curBottom, window.innerHeight - rect.height - 12));
+                const targetRight = isLeft ? window.innerWidth - rect.width - snapInset : snapInset;
+                fab.style.transform = 'none';
+                fab.style.left = 'auto';
+                fab.style.top = 'auto';
+                fab.style.right = curRight + 'px';
+                fab.style.bottom = safeBottom + 'px';
+                fab.offsetHeight;
+                fab.classList.add('snapping');
+                fab.style.right = targetRight + 'px';
+                snapTimer = setTimeout(() => {
+                    fab.classList.remove('snapping');
+                    snapTimer = null;
+                    // 只在对话框未被手动定位时才跟随小球移动
+                    if (!aiChatPanelPinnedPosition) {
+                        updateAIChatPanelPosition();
+                    }
+                }, 350);
+                // 只在对话框未被手动定位时才跟随小球移动
+                if (!aiChatPanelPinnedPosition) {
+                    updateAIChatPanelPosition();
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(updateAIChatPanelPosition);
+                    });
+                }
+            }
+
+            fab.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                onStart(e.clientX, e.clientY);
+            });
+            document.addEventListener('mousemove', function(e) {
+                if (isDragging) { e.preventDefault(); onMove(e.clientX, e.clientY); }
+            });
+            document.addEventListener('mouseup', function() { onEnd(); });
+
+            fab.addEventListener('touchstart', function(e) {
+                const t = e.touches[0];
+                onStart(t.clientX, t.clientY);
+            }, { passive: true });
+            document.addEventListener('touchmove', function(e) {
+                if (isDragging) {
+                    e.preventDefault();
+                    const t = e.touches[0];
+                    onMove(t.clientX, t.clientY);
+                }
+            }, { passive: false });
+            document.addEventListener('touchend', function() { onEnd(); });
+
+            fab.addEventListener('click', function(e) {
+                if (hasMoved) { e.stopPropagation(); return; }
+                toggleAIChatPanel();
+            });
+
+            window.addEventListener('resize', function() {
+                if (isDragging) return;
+                const rect = fab.getBoundingClientRect();
+                const maxBottom = Math.max(12, window.innerHeight - rect.height - 12);
+                const inlineBottom = parseFloat(fab.style.bottom);
+                const currentBottom = Number.isFinite(inlineBottom) ? inlineBottom : defaultBottom;
+                const safeBottom = Math.max(12, Math.min(currentBottom, maxBottom));
+                const isLeft = (rect.left + rect.width / 2) < window.innerWidth / 2;
+                const targetRight = isLeft ? Math.max(12, window.innerWidth - rect.width - snapInset) : snapInset;
+                fab.style.left = 'auto';
+                fab.style.top = 'auto';
+                fab.style.right = targetRight + 'px';
+                fab.style.bottom = safeBottom + 'px';
+                updateAIChatPanelPosition();
+            });
+        })();
+
         // ===== 设置小球拖拽 =====
         (function() {
             const fab = document.querySelector('.settings-fab');
@@ -3445,6 +4320,8 @@ ${formatExample}
             let dragRafId = 0;
             let pendingX = 0;
             let pendingY = 0;
+            const defaultBottom = parseFloat(getComputedStyle(fab).bottom) || 24;
+            const snapInset = parseFloat(getComputedStyle(fab).right) || 24;
 
             function clamp(x, y) {
                 const w = fab.offsetWidth, h = fab.offsetHeight;
@@ -3506,16 +4383,17 @@ ${formatExample}
                 // 先清除 transform，设置到当前实际位置（用 right/bottom）
                 const curRight = window.innerWidth - rect.left - rect.width;
                 const curBottom = window.innerHeight - rect.top - rect.height;
+                const safeBottom = Math.max(12, Math.min(curBottom, window.innerHeight - rect.height - 12));
+                const targetRight = isLeft ? window.innerWidth - rect.width - snapInset : snapInset;
                 fab.style.transform = 'none';
                 fab.style.left = 'auto';
                 fab.style.top = 'auto';
                 fab.style.right = curRight + 'px';
-                fab.style.bottom = curBottom + 'px';
+                fab.style.bottom = safeBottom + 'px';
                 // 强制 reflow 后添加过渡动画吸附到边缘
                 fab.offsetHeight;
                 fab.classList.add('snapping');
-                fab.style.right = (isLeft ? window.innerWidth - rect.width - 12 : 12) + 'px';
-                fab.style.bottom = Math.max(12, Math.min(curBottom, window.innerHeight - rect.height - 12)) + 'px';
+                fab.style.right = targetRight + 'px';
                 snapTimer = setTimeout(() => {
                     fab.classList.remove('snapping');
                     snapTimer = null;
@@ -3551,6 +4429,21 @@ ${formatExample}
             fab.addEventListener('click', function(e) {
                 if (hasMoved) { e.stopPropagation(); return; }
                 openSettings();
+            });
+
+            window.addEventListener('resize', function() {
+                if (isDragging) return;
+                const rect = fab.getBoundingClientRect();
+                const maxBottom = Math.max(12, window.innerHeight - rect.height - 12);
+                const inlineBottom = parseFloat(fab.style.bottom);
+                const currentBottom = Number.isFinite(inlineBottom) ? inlineBottom : defaultBottom;
+                const safeBottom = Math.max(12, Math.min(currentBottom, maxBottom));
+                const isLeft = (rect.left + rect.width / 2) < window.innerWidth / 2;
+                const targetRight = isLeft ? Math.max(12, window.innerWidth - rect.width - snapInset) : snapInset;
+                fab.style.left = 'auto';
+                fab.style.top = 'auto';
+                fab.style.right = targetRight + 'px';
+                fab.style.bottom = safeBottom + 'px';
             });
         })();
 

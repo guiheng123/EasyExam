@@ -23,7 +23,11 @@
             --overlay-bg: rgba(0,0,0,0.35);
         }
 
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         /* 通用 overlay 基类 - 消除4处重复的overlay样式 */
         .overlay-base {
@@ -35,6 +39,7 @@
             -webkit-backdrop-filter: blur(4px);
             align-items: center;
             justify-content: center;
+            z-index: 1000;
         }
         .overlay-base.active { display: flex; }
 
@@ -386,7 +391,7 @@
         .dialog-btn-danger:hover { background: #dc2626; }
 
         /* ===== 模态框 ===== */
-        .modal-overlay { z-index: 1000; animation: fadeIn 0.2s; }
+        .modal-overlay { animation: fadeIn 0.2s; }
 
         .modal-content {
             background: white;
@@ -1719,7 +1724,7 @@
         <!-- 答题页 -->
         <div id="quizView" class="view-section">
             <div class="header">
-                <span class="back-icon" onclick="confirmExit()">←</span>
+                <span class="back-icon" role="button" tabindex="0" aria-label="返回" onclick="confirmExit()" onkeydown="handleAccessibleAction(event, confirmExit, this)">←</span>
                 <span>答题中</span>
             </div>
             <div class="quiz-content">
@@ -1764,7 +1769,7 @@
     </div>
 
     <!-- 设置按钮（放在 container 外部，避免被 overflow 裁切） -->
-    <div class="settings-fab" title="设置">
+    <div class="settings-fab" title="设置" role="button" tabindex="0" aria-label="打开设置" onkeydown="handleAccessibleAction(event, openSettings, this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"></circle>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -1772,7 +1777,7 @@
     </div>
 
     <!-- AI解析按钮与对话窗（不遮挡主流程） -->
-    <div class="ai-analyze-fab" id="aiAnalyzeFab" title="AI解析">✨</div>
+    <div class="ai-analyze-fab" id="aiAnalyzeFab" title="AI解析" role="button" tabindex="0" aria-label="打开AI解析" onkeydown="handleAccessibleAction(event, toggleAIChatPanel, this)">✨</div>
     <div class="ai-chat-panel" id="aiChatPanel" aria-live="polite">
         <div class="ai-chat-header">
             <span>🤖 AI 解析</span>
@@ -1793,7 +1798,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <div class="modal-title" id="modalTitle">格式示例</div>
-                <div class="modal-close" onclick="closeExampleModal()">×</div>
+                <div class="modal-close" role="button" tabindex="0" aria-label="关闭示例窗口" onclick="closeExampleModal()" onkeydown="handleAccessibleAction(event, closeExampleModal, this)">×</div>
             </div>
             <div class="modal-body" id="modalBody"></div>
         </div>
@@ -1817,7 +1822,7 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                     设置
                 </div>
-                <div class="modal-close" onclick="closeSettings()">×</div>
+                <div class="modal-close" role="button" tabindex="0" aria-label="关闭设置" onclick="closeSettings()" onkeydown="handleAccessibleAction(event, closeSettings, this)">×</div>
             </div>
             <div class="settings-body">
                 <div class="setting-group">
@@ -1926,7 +1931,7 @@
         <div class="ai-modal-content">
             <div class="modal-header">
                 <div class="modal-title">🤖 AI 智能出题</div>
-                <div class="modal-close" onclick="closeAIModal()">×</div>
+                <div class="modal-close" role="button" tabindex="0" aria-label="关闭AI出题" onclick="closeAIModal()" onkeydown="handleAccessibleAction(event, closeAIModal, this)">×</div>
             </div>
             <div class="modal-body">
                 <div class="ai-input-field">
@@ -1976,18 +1981,202 @@
         let aiChatRequestVersion = 0;
         const MOTION_REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-        // ===== DOM缓存 =====
+        // ===== DOM缓存优化 =====
         const $ = id => document.getElementById(id);
+        const $$ = selector => document.querySelectorAll(selector);
         let hasInitialized = false;
+        
+        // 缓存常用DOM元素
+        const DOM_CACHE = {};
+        const getCachedElement = (id) => {
+            if (!DOM_CACHE[id]) {
+                DOM_CACHE[id] = $(id);
+            }
+            return DOM_CACHE[id];
+        };
 
         // ===== 通用工具函数 =====
         function escapeHtml(value) {
-            return String(value)
-                .split(String.fromCharCode(38)).join(String.fromCharCode(38, 97, 109, 112, 59))
-                .split(String.fromCharCode(60)).join(String.fromCharCode(38, 108, 116, 59))
-                .split(String.fromCharCode(62)).join(String.fromCharCode(38, 103, 116, 59))
-                .split(String.fromCharCode(34)).join(String.fromCharCode(38, 113, 117, 111, 116, 59))
-                .split(String.fromCharCode(39)).join(String.fromCharCode(38, 35, 51, 57, 59));
+            if (value == null) return '';
+            const str = String(value);
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // 安全的 JSON 解析
+        function safeJsonParse(text, fallback = null) {
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                console.error('JSON 解析失败:', e);
+                return fallback;
+            }
+        }
+
+        // 安全的 localStorage 操作
+        function safeLocalStorageGet(key, fallback = null) {
+            try {
+                const value = localStorage.getItem(key);
+                return value !== null ? value : fallback;
+            } catch (e) {
+                console.error('localStorage 读取失败:', e);
+                return fallback;
+            }
+        }
+
+        function safeLocalStorageSet(key, value) {
+            try {
+                localStorage.setItem(key, value);
+                return true;
+            } catch (e) {
+                console.error('localStorage 写入失败:', e);
+                return false;
+            }
+        }
+
+        // 防抖函数 - 优化版
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // 节流函数 - 优化版
+        function throttle(func, limit) {
+            let lastRun = 0;
+            return function(...args) {
+                const now = Date.now();
+                if (now - lastRun >= limit) {
+                    lastRun = now;
+                    func.apply(this, args);
+                }
+            };
+        }
+
+        function handleAccessibleAction(event, action, contextEl) {
+            if (!event) return;
+            const key = event.key;
+            if (key !== 'Enter' && key !== ' ' && key !== 'Spacebar') return;
+            event.preventDefault();
+            if (typeof action === 'function') {
+                action.call(contextEl || null);
+            }
+        }
+
+        const FILE_SIZE_LIMIT = 5 * 1024 * 1024; // 5MB
+        const FETCH_TIMEOUT_MS = 20000;
+        const VALID_HTTP_PROTOCOLS = new Set(['http:', 'https:']);
+
+        function isValidApiUrl(url) {
+            if (!url || typeof url !== 'string') return false;
+            try {
+                const parsed = new URL(url);
+                return VALID_HTTP_PROTOCOLS.has(parsed.protocol);
+            } catch (_) {
+                return false;
+            }
+        }
+
+        async function fetchWithTimeout(url, options, timeoutMs = FETCH_TIMEOUT_MS) {
+            const timerMs = Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : FETCH_TIMEOUT_MS;
+            const baseOptions = (options && typeof options === 'object') ? options : {};
+            const controller = new AbortController();
+            const externalSignal = baseOptions.signal;
+            let externalAbortHandler = null;
+
+            if (externalSignal && typeof externalSignal.addEventListener === 'function') {
+                if (externalSignal.aborted) {
+                    controller.abort();
+                } else {
+                    externalAbortHandler = () => controller.abort();
+                    externalSignal.addEventListener('abort', externalAbortHandler, { once: true });
+                }
+            }
+
+            const timeoutId = setTimeout(() => controller.abort(), timerMs);
+
+            try {
+                return await fetch(url, { ...baseOptions, signal: controller.signal });
+            } catch (error) {
+                if (error && error.name === 'AbortError' && !(externalSignal && externalSignal.aborted)) {
+                    throw new Error(`请求超时（>${timerMs}ms）`);
+                }
+                throw error;
+            } finally {
+                clearTimeout(timeoutId);
+                if (externalSignal && externalAbortHandler && typeof externalSignal.removeEventListener === 'function') {
+                    externalSignal.removeEventListener('abort', externalAbortHandler);
+                }
+            }
+        }
+
+        // 优化：减少字符串操作和查找次数
+        function normalizeQuestions(rawQuestions) {
+            if (!Array.isArray(rawQuestions)) return [];
+            
+            const results = [];
+            for (const rawQuestion of rawQuestions) {
+                if (!rawQuestion || typeof rawQuestion !== 'object') continue;
+
+                const question = String(rawQuestion.question || rawQuestion.q || rawQuestion.title || '').trim();
+                if (!question) continue;
+
+                const sourceOptions = Array.isArray(rawQuestion.options) ? rawQuestion.options : [];
+                const options = [];
+                
+                for (let i = 0; i < sourceOptions.length; i++) {
+                    const rawOption = sourceOptions[i];
+                    let opt = null;
+                    
+                    if (typeof rawOption === 'string') {
+                        const text = rawOption.trim();
+                        if (text) {
+                            opt = { letter: String.fromCharCode(65 + i), text };
+                        }
+                    } else if (rawOption && typeof rawOption === 'object') {
+                        const text = String(rawOption.text || rawOption.content || '').trim();
+                        if (text) {
+                            const letter = String(rawOption.letter || '').trim().toUpperCase().charAt(0);
+                            opt = {
+                                letter: /^[A-Z]$/.test(letter) ? letter : String.fromCharCode(65 + i),
+                                text
+                            };
+                        }
+                    }
+                    
+                    if (opt) options.push(opt);
+                }
+
+                if (options.length < 2) continue;
+
+                // 确保字母唯一性
+                const usedLetters = new Set();
+                for (let i = 0; i < options.length; i++) {
+                    const opt = options[i];
+                    const fallbackLetter = String.fromCharCode(65 + i);
+                    if (usedLetters.has(opt.letter)) {
+                        opt.letter = fallbackLetter;
+                    }
+                    usedLetters.add(opt.letter);
+                }
+
+                let answer = String(rawQuestion.answer || rawQuestion.a || '').trim().toUpperCase().charAt(0);
+                if (!answer || !usedLetters.has(answer)) {
+                    const numericAnswer = Number(rawQuestion.answer);
+                    if (Number.isInteger(numericAnswer) && numericAnswer >= 1 && numericAnswer <= options.length) {
+                        answer = options[numericAnswer - 1].letter;
+                    }
+                }
+                if (!answer || !usedLetters.has(answer)) continue;
+
+                const explanation = String(rawQuestion.explanation || rawQuestion.explain || rawQuestion.analysis || '').trim();
+                results.push({ question, options, answer, explanation });
+            }
+            
+            return results;
         }
 
         // 将题目数组转为标准TXT格式文本
@@ -2003,17 +2192,22 @@
             return lines.join('\n');
         }
 
-        // 通用文件下载
+        // 通用文件下载 - 优化版
         function downloadFile(content, filename, mimeType) {
             const blob = new Blob([content], { type: mimeType });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = filename;
+            a.style.display = 'none';
             document.body.appendChild(a);
             a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            
+            // 延迟清理，确保下载完成
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
         }
 
         // 通用导出流程（供AI导出和历史导出共用）
@@ -2136,15 +2330,26 @@
         }
 
         function parseTextWithConfig(text, config) {
-            const p = createParser(config);
-            const lines = text.split('\n');
+            if (typeof text !== 'string' || !text.trim()) return [];
+            if (!config || typeof config !== 'object') return [];
+
+            let p;
+            try {
+                p = createParser(config);
+            } catch (error) {
+                console.error('解析器配置错误:', error);
+                return [];
+            }
+
+            const lines = text.replace(/\r\n?/g, '\n').split('\n');
             const parsed = [];
             let current = null;
             const noQMarker = (!config.questionMarkers || !config.questionMarkers.length) && !config.questionPattern;
 
             const saveCurrent = () => {
-                if (current && current.question && current.options.length >= 2 && current.answer)
-                    parsed.push({ ...current });
+                if (!current) return;
+                if (!current.question || current.options.length < 2 || !current.answer) return;
+                parsed.push({ ...current });
             };
 
             for (let i = 0; i < lines.length; i++) {
@@ -2194,7 +2399,7 @@
                 }
             }
             saveCurrent();
-            return parsed;
+            return normalizeQuestions(parsed);
         }
 
         // ===== 自定义对话框系统 =====
@@ -2202,26 +2407,52 @@
 
         function showDialog({ icon, title, message, buttons }) {
             return new Promise(resolve => {
-                dialogResolve = resolve;
-                $('dialogIcon').textContent = icon || '💬';
-                $('dialogTitle').textContent = title || '提示';
-                $('dialogMessage').textContent = message || '';
+                const overlay = $('dialogOverlay');
+                const iconEl = $('dialogIcon');
+                const titleEl = $('dialogTitle');
+                const messageEl = $('dialogMessage');
                 const btnContainer = $('dialogButtons');
+
+                if (!overlay || !iconEl || !titleEl || !messageEl || !btnContainer) {
+                    resolve(false);
+                    return;
+                }
+
+                if (typeof dialogResolve === 'function') {
+                    dialogResolve(false);
+                }
+
+                let finalized = false;
+                const finalize = (value) => {
+                    if (finalized) return;
+                    finalized = true;
+                    overlay.classList.remove('active');
+                    dialogResolve = null;
+                    resolve(value);
+                };
+
+                dialogResolve = finalize;
+                iconEl.textContent = icon || '💬';
+                titleEl.textContent = title || '提示';
+                messageEl.textContent = message || '';
                 btnContainer.innerHTML = '';
-                (buttons || [{ text: '确定', type: 'confirm', value: true }]).forEach(btn => {
+
+                const normalizedButtons = Array.isArray(buttons) && buttons.length
+                    ? buttons
+                    : [{ text: '确定', type: 'confirm', value: true }];
+
+                normalizedButtons.forEach(btn => {
                     const el = document.createElement('button');
                     el.className = 'dialog-btn';
                     if (btn.type === 'cancel') el.classList.add('dialog-btn-cancel');
                     else if (btn.type === 'danger') el.classList.add('dialog-btn-danger');
                     else el.classList.add('dialog-btn-confirm');
                     el.textContent = btn.text;
-                    el.onclick = () => {
-                        $('dialogOverlay').classList.remove('active');
-                        resolve(btn.value !== undefined ? btn.value : true);
-                    };
+                    el.onclick = () => finalize(btn.value !== undefined ? btn.value : true);
                     btnContainer.appendChild(el);
                 });
-                $('dialogOverlay').classList.add('active');
+
+                overlay.classList.add('active');
             });
         }
 
@@ -2259,12 +2490,15 @@
         }
 
         // 点击遮罩关闭
-        $('dialogOverlay').addEventListener('click', function(e) {
-            if (e.target === this) {
-                this.classList.remove('active');
-                if (dialogResolve) { dialogResolve(false); dialogResolve = null; }
-            }
-        });
+        const dialogOverlayEl = $('dialogOverlay');
+        if (dialogOverlayEl) {
+            dialogOverlayEl.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                    if (dialogResolve) { dialogResolve(false); dialogResolve = null; }
+                }
+            });
+        }
 
         // ===== 快捷键系统 =====
         let hotkeyEnabled = false;
@@ -2282,29 +2516,38 @@
 
         function loadHotkeySettings() {
             try {
-                const saved = JSON.parse(localStorage.getItem('hotkeySettings'));
-                if (saved) {
+                const savedRaw = safeLocalStorageGet('hotkeySettings');
+                const saved = savedRaw ? safeJsonParse(savedRaw) : null;
+                if (saved && typeof saved === 'object') {
                     hotkeyEnabled = !!saved.enabled;
-                    if (saved.map) hotkeyMap = { ...hotkeyMap, ...saved.map };
+                    if (saved.map && typeof saved.map === 'object') {
+                        hotkeyMap = { ...hotkeyMap, ...saved.map };
+                    }
                 }
             } catch(e) {
                 console.warn('读取快捷键配置失败，已回退默认配置:', e);
             }
-            $('hotkeyToggle').checked = hotkeyEnabled;
+            const toggleEl = $('hotkeyToggle');
+            if (toggleEl) toggleEl.checked = hotkeyEnabled;
             toggleHotkeys();
             syncHotkeyInputs();
         }
 
         function saveHotkeySettings() {
-            localStorage.setItem('hotkeySettings', JSON.stringify({
+            safeLocalStorageSet('hotkeySettings', JSON.stringify({
                 enabled: hotkeyEnabled,
                 map: hotkeyMap
             }));
         }
 
         function toggleHotkeys() {
-            hotkeyEnabled = $('hotkeyToggle').checked;
+            const toggleEl = $('hotkeyToggle');
             const panel = $('hotkeySettings');
+            hotkeyEnabled = !!(toggleEl && toggleEl.checked);
+            if (!panel) {
+                saveHotkeySettings();
+                return;
+            }
             if (hotkeyEnabled) {
                 panel.classList.remove('disabled');
             } else {
@@ -2363,6 +2606,7 @@
 
         function showHotkeyHint(text) {
             const hint = $('hotkeyHint');
+            if (!hint) return;
             hint.textContent = text;
             hint.classList.add('show');
             clearTimeout(hotkeyHintTimer);
@@ -2375,6 +2619,15 @@
             if (recordingTarget) {
                 e.preventDefault();
                 const key = e.key;
+                if (key === 'Escape') {
+                    if (recordingInput) {
+                        recordingInput.classList.remove('recording');
+                        syncHotkeyInputs();
+                    }
+                    recordingTarget = null;
+                    recordingInput = null;
+                    return;
+                }
                 // 检测按键冲突
                 const conflictAction = Object.keys(hotkeyMap).find(a => a !== recordingTarget && hotkeyMap[a] === key);
                 if (conflictAction) {
@@ -2388,6 +2641,18 @@
                 recordingInput = null;
                 saveHotkeySettings();
                 return;
+            }
+
+            if (e.key === 'Escape') {
+                if ($('aiModal') && $('aiModal').classList.contains('active')) { closeAIModal(); return; }
+                if ($('settingsPanel') && $('settingsPanel').classList.contains('active')) { closeSettings(); return; }
+                if ($('exampleModal') && $('exampleModal').classList.contains('active')) { closeExampleModal(); return; }
+                if ($('dialogOverlay') && $('dialogOverlay').classList.contains('active')) {
+                    $('dialogOverlay').classList.remove('active');
+                    if (dialogResolve) { dialogResolve(false); dialogResolve = null; }
+                    return;
+                }
+                if ($('aiChatPanel') && $('aiChatPanel').classList.contains('active')) { toggleAIChatPanel(false); return; }
             }
 
             // 答题快捷键
@@ -2458,7 +2723,8 @@
 
         // ===== 设置面板 =====
         function openSettings() {
-            $('settingsPanel').classList.add('active');
+            const panel = $('settingsPanel');
+            if (panel) panel.classList.add('active');
         }
 
         function closeSettings() {
@@ -2469,12 +2735,16 @@
                 recordingTarget = null;
                 recordingInput = null;
             }
-            $('settingsPanel').classList.remove('active');
+            const panel = $('settingsPanel');
+            if (panel) panel.classList.remove('active');
         }
 
-        $('settingsPanel').addEventListener('click', function(e) {
-            if (e.target === this) closeSettings();
-        });
+        const settingsPanelEl = $('settingsPanel');
+        if (settingsPanelEl) {
+            settingsPanelEl.addEventListener('click', function(e) {
+                if (e.target === this) closeSettings();
+            });
+        }
 
         function getAIChatSessionKey(index = currentIndex) {
             const quizView = $('quizView');
@@ -2518,7 +2788,9 @@
         }
 
         function renderAIChatSession(session) {
+            if (!session || !Array.isArray(session.messages)) return;
             const wrap = $('aiChatMessages');
+            if (!wrap) return;
             wrap.innerHTML = '';
             session.messages.forEach(msg => {
                 appendAIChatMessage(msg.role, msg.text, msg.extraClass, { skipCache: true, sessionKey: aiChatCurrentSessionKey });
@@ -2582,6 +2854,7 @@
 
         function toggleAIChatPanel(open) {
             const panel = $('aiChatPanel');
+            if (!panel) return;
             const willOpen = typeof open === 'boolean' ? open : !panel.classList.contains('active');
             panel.classList.toggle('active', willOpen);
             if (!willOpen) return;
@@ -2668,6 +2941,7 @@
             }
 
             const wrap = $('aiChatMessages');
+            if (!wrap) return null;
             const row = document.createElement('div');
             row.className = 'ai-chat-msg ' + role + (extraClass ? (' ' + extraClass) : '');
 
@@ -2686,6 +2960,7 @@
 
         function scrollAIChatToBottom() {
             const wrap = $('aiChatMessages');
+            if (!wrap) return;
             wrap.scrollTop = wrap.scrollHeight;
         }
 
@@ -2718,7 +2993,12 @@
             if (aiChatRequesting) return;
             const input = $('aiChatInput');
             const sendBtn = $('aiChatSendBtn');
-            const text = (typeof customText === 'string' ? customText : input.value).trim();
+            if (!sendBtn) return;
+
+            const sourceText = typeof customText === 'string'
+                ? customText
+                : (input ? input.value : '');
+            const text = String(sourceText || '').trim();
             if (!text) return;
 
             if (input && typeof customText !== 'string') input.value = '';
@@ -2746,6 +3026,8 @@
                     } else {
                         replyText = '当前未配置 AI API，且没有题目上下文。请先开始答题，或在设置中配置 API。';
                     }
+                } else if (!isValidApiUrl(aiConfig.apiUrl)) {
+                    replyText = 'AI API 地址无效，请在设置中填写以 http:// 或 https:// 开头的完整地址。';
                 } else {
                     const context = snap
                         ? `\n\n【当前题目上下文】\n题目：${snap.question}\n${snap.options}\n标准答案：${snap.answer}\n我的答案：${snap.selected}\n已有解析：${snap.explanation || '无'}`
@@ -2757,7 +3039,7 @@
                         { role: 'user', content: text + context }
                     ];
 
-                    const response = await fetch(aiConfig.apiUrl, {
+                    const response = await fetchWithTimeout(aiConfig.apiUrl, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -2775,7 +3057,7 @@
                     }
 
                     const data = await response.json();
-                    replyText = (data.choices?.[0]?.message?.content || '').trim();
+                    replyText = String(data.choices?.[0]?.message?.content || '').trim();
                     if (!replyText) {
                         throw new Error('AI 返回为空');
                     }
@@ -2822,6 +3104,8 @@
             let startY = 0;
             let originLeft = 0;
             let originTop = 0;
+            let pendingX = 0;
+            let pendingY = 0;
             let lastClamped = null;
 
             const clampPos = (left, top) => {
@@ -2988,18 +3272,25 @@
         // ===== AI 功能 =====
         function loadAISettings() {
             try {
-                const saved = JSON.parse(localStorage.getItem('aiSettings'));
-                if (saved) {
+                const savedRaw = safeLocalStorageGet('aiSettings');
+                const saved = savedRaw ? safeJsonParse(savedRaw) : null;
+                if (saved && typeof saved === 'object') {
                     aiEnabled = !!saved.enabled;
-                    aiConfig = saved.config || { apiUrl: '', apiToken: '', model: '' };
+                    aiConfig = (saved.config && typeof saved.config === 'object')
+                        ? saved.config
+                        : { apiUrl: '', apiToken: '', model: '' };
                 }
             } catch(e) {
                 console.warn('读取 AI 配置失败，已回退默认配置:', e);
             }
-            $('aiToggle').checked = aiEnabled;
-            $('aiApiUrl').value = aiConfig.apiUrl || '';
-            $('aiApiToken').value = aiConfig.apiToken || '';
-            $('aiModel').value = aiConfig.model || '';
+            const toggle = $('aiToggle');
+            if (toggle) toggle.checked = aiEnabled;
+            const apiUrlInput = $('aiApiUrl');
+            const tokenInput = $('aiApiToken');
+            const modelInput = $('aiModel');
+            if (apiUrlInput) apiUrlInput.value = aiConfig.apiUrl || '';
+            if (tokenInput) tokenInput.value = aiConfig.apiToken || '';
+            if (modelInput) modelInput.value = aiConfig.model || '';
             toggleAI();
             loadAIHistory();
         }
@@ -3008,7 +3299,8 @@
         function toggleAIHistory() {
             const content = $('aiHistoryContent');
             const toggleBtn = $('aiHistoryToggleBtn');
-            
+            if (!content || !toggleBtn) return;
+
             if (content.classList.contains('expanded')) {
                 content.classList.remove('expanded');
                 toggleBtn.classList.remove('expanded');
@@ -3020,7 +3312,8 @@
 
         function loadAIHistory() {
             try {
-                aiHistory = JSON.parse(localStorage.getItem('aiHistory') || '[]');
+                const saved = safeJsonParse(safeLocalStorageGet('aiHistory', '[]'), []);
+                aiHistory = Array.isArray(saved) ? saved : [];
             } catch(e) {
                 aiHistory = [];
             }
@@ -3028,10 +3321,8 @@
         }
 
         function saveAIHistory() {
-            try {
-                localStorage.setItem('aiHistory', JSON.stringify(aiHistory));
-            } catch(e) {
-                console.error('保存历史记录失败:', e);
+            if (!safeLocalStorageSet('aiHistory', JSON.stringify(aiHistory))) {
+                console.error('保存历史记录失败: 存储空间不足或浏览器限制');
             }
         }
 
@@ -3061,16 +3352,17 @@
         function renderAIHistory() {
             const container = $('aiHistoryList');
             const clearBtn = $('clearHistoryBtn');
-            
+            if (!container) return;
+
             if (!aiHistory || aiHistory.length === 0) {
                 container.innerHTML = '<div class="ai-history-empty">暂无历史记录</div>';
-                clearBtn.style.display = 'none';
+                if (clearBtn) clearBtn.style.display = 'none';
                 return;
             }
-            
-            clearBtn.style.display = 'block';
+
+            if (clearBtn) clearBtn.style.display = 'block';
             container.innerHTML = '';
-            
+
             aiHistory.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'ai-history-card';
@@ -3225,25 +3517,28 @@
         }
 
         function saveAISettings() {
-            aiConfig.apiUrl = $('aiApiUrl').value.trim();
-            aiConfig.apiToken = $('aiApiToken').value.trim();
-            aiConfig.model = $('aiModel').value.trim();
-            localStorage.setItem('aiSettings', JSON.stringify({
+            const apiUrlInput = $('aiApiUrl');
+            const tokenInput = $('aiApiToken');
+            const modelInput = $('aiModel');
+            aiConfig.apiUrl = apiUrlInput ? apiUrlInput.value.trim() : '';
+            aiConfig.apiToken = tokenInput ? tokenInput.value.trim() : '';
+            aiConfig.model = modelInput ? modelInput.value.trim() : '';
+            safeLocalStorageSet('aiSettings', JSON.stringify({
                 enabled: aiEnabled,
                 config: aiConfig
             }));
         }
 
         function toggleAI() {
-            aiEnabled = $('aiToggle').checked;
+            const toggle = $('aiToggle');
             const panel = $('aiSettings');
             const aiTabBtn = $('aiTabBtn');
-            if (aiEnabled) {
-                panel.classList.remove('disabled');
-                aiTabBtn.style.display = 'block';
-            } else {
-                panel.classList.add('disabled');
-                aiTabBtn.style.display = 'none';
+            aiEnabled = !!(toggle && toggle.checked);
+
+            if (panel) panel.classList.toggle('disabled', !aiEnabled);
+            if (aiTabBtn) aiTabBtn.style.display = aiEnabled ? 'block' : 'none';
+
+            if (!aiEnabled) {
                 // 如果当前在AI出题界面，切换到文件导入界面
                 const aiArea = $('area-ai');
                 if (aiArea && aiArea.classList.contains('active')) {
@@ -3254,11 +3549,19 @@
         }
 
         async function testAPIConnection() {
-            const apiUrl = $('aiApiUrl').value.trim();
-            const apiToken = $('aiApiToken').value.trim();
-            const model = $('aiModel').value.trim();
+            const apiUrlInput = $('aiApiUrl');
+            const apiTokenInput = $('aiApiToken');
+            const modelInput = $('aiModel');
             const resultDiv = $('apiTestResult');
             const testBtn = $('testApiBtn');
+
+            if (!apiUrlInput || !apiTokenInput || !modelInput || !resultDiv || !testBtn) {
+                return;
+            }
+
+            const apiUrl = apiUrlInput.value.trim();
+            const apiToken = apiTokenInput.value.trim();
+            const model = modelInput.value.trim();
 
             // 验证输入
             if (!apiUrl || !apiToken || !model) {
@@ -3267,6 +3570,15 @@
                 resultDiv.style.border = '1px solid #fca5a5';
                 resultDiv.style.color = '#991b1b';
                 resultDiv.innerHTML = '❌ 请先填写完整的 API 配置信息';
+                return;
+            }
+
+            if (!isValidApiUrl(apiUrl)) {
+                resultDiv.style.display = 'block';
+                resultDiv.style.background = '#fee2e2';
+                resultDiv.style.border = '1px solid #fca5a5';
+                resultDiv.style.color = '#991b1b';
+                resultDiv.innerHTML = '❌ API 地址格式无效，请使用 http:// 或 https:// 开头的完整地址';
                 return;
             }
 
@@ -3281,7 +3593,7 @@
 
             try {
                 const startTime = Date.now();
-                const response = await fetch(apiUrl, {
+                const response = await fetchWithTimeout(apiUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -3381,8 +3693,10 @@
                     </div>
                 `;
             } finally {
-                testBtn.disabled = false;
-                testBtn.textContent = '🔍 测试 API 连接';
+                if (testBtn) {
+                    testBtn.disabled = false;
+                    testBtn.textContent = '🔍 测试 API 连接';
+                }
             }
         }
 
@@ -3391,32 +3705,56 @@
                 showAlert('请先在设置中配置 AI API 信息', '⚠️');
                 return;
             }
-            $('aiModal').classList.add('active');
-            $('aiResultBox').classList.remove('show');
-            $('aiActionButtons').style.display = 'none';
+            if (!isValidApiUrl(aiConfig.apiUrl)) {
+                showAlert('API 地址格式无效，请使用 http:// 或 https:// 开头', '⚠️');
+                return;
+            }
+            const modal = $('aiModal');
+            const resultBox = $('aiResultBox');
+            const actionButtons = $('aiActionButtons');
+            if (!modal || !resultBox || !actionButtons) return;
+            modal.classList.add('active');
+            resultBox.classList.remove('show');
+            actionButtons.style.display = 'none';
         }
 
         function closeAIModal() {
-            $('aiModal').classList.remove('active');
+            const modal = $('aiModal');
+            if (modal) modal.classList.remove('active');
         }
 
-        $('aiModal').addEventListener('click', function(e) {
-            if (e.target === this) closeAIModal();
-        });
+        const aiModalEl = $('aiModal');
+        if (aiModalEl) {
+            aiModalEl.addEventListener('click', function(e) {
+                if (e.target === this) closeAIModal();
+            });
+        }
 
         async function generateAIQuestions() {
-            const count = parseInt($('aiQuestionCount').value) || 5;
-            const prompt = $('aiPrompt').value.trim();
-            
+            const countInput = $('aiQuestionCount');
+            const promptInput = $('aiPrompt');
+            const btn = $('aiGenerateBtn');
+            const resultBox = $('aiResultBox');
+            const resultContent = $('aiResultContent');
+
+            if (!countInput || !promptInput || !btn || !resultBox || !resultContent) return;
+
+            const count = Number.parseInt(countInput.value, 10);
+            const prompt = promptInput.value.trim();
+
             if (!prompt) {
                 await showAlert('请输入出题要求', '📝');
                 return;
             }
+            if (!Number.isInteger(count) || count < 1 || count > 50) {
+                await showAlert('题目数量必须是 1-50 的整数', '⚠️');
+                return;
+            }
+            if (!isValidApiUrl(aiConfig.apiUrl)) {
+                await showAlert('API 地址格式无效，请先在设置中修正', '⚠️');
+                return;
+            }
 
-            const btn = $('aiGenerateBtn');
-            const resultBox = $('aiResultBox');
-            const resultContent = $('aiResultContent');
-            
             btn.disabled = true;
             btn.textContent = '生成中...';
             resultBox.classList.add('show');
@@ -3443,7 +3781,7 @@ ${formatExample}
 
 请直接输出题目文本，不要使用 JSON 或其他格式。`;
 
-                const response = await fetch(aiConfig.apiUrl, {
+                const response = await fetchWithTimeout(aiConfig.apiUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -3537,40 +3875,50 @@ ${formatExample}
             loadAISettings();
             initAIAnalysisWidget();
 
-            $('optionsContainer').addEventListener('click', (e) => {
-                const item = e.target.closest('.option-item');
-                if (!item || item.classList.contains('disabled')) return;
-                const letter = item.dataset.letter;
-                if (letter) selectAnswer(letter);
-            });
+            const optionsContainer = $('optionsContainer');
+            if (optionsContainer) {
+                optionsContainer.addEventListener('click', (e) => {
+                    const item = e.target.closest('.option-item');
+                    if (!item || item.classList.contains('disabled')) return;
+                    const letter = item.dataset.letter;
+                    if (letter) selectAnswer(letter);
+                });
+            }
 
-            $('resultGrid').addEventListener('click', (e) => {
-                const dot = e.target.closest('.grid-dot');
-                if (!dot) return;
-                const idx = Number(dot.dataset.index);
-                if (Number.isInteger(idx) && idx >= 0) reviewQuestion(idx);
-            });
+            const resultGrid = $('resultGrid');
+            if (resultGrid) {
+                resultGrid.addEventListener('click', (e) => {
+                    const dot = e.target.closest('.grid-dot');
+                    if (!dot) return;
+                    const idx = Number(dot.dataset.index);
+                    if (Number.isInteger(idx) && idx >= 0) reviewQuestion(idx);
+                });
+            }
         }
 
         // ===== 界面切换 =====
+        // 优化：减少DOM查询
         function setTab(mode) {
-            const btns = document.querySelectorAll('.tab-group .tab-btn');
-            btns.forEach(b => b.classList.remove('active'));
-            $('area-file').classList.remove('active');
-            $('area-paste').classList.remove('active');
-            const aiArea = $('area-ai');
-            if (aiArea) aiArea.classList.remove('active');
+            const btns = $$('.tab-group .tab-btn');
+            const areas = {
+                file: $('area-file'),
+                paste: $('area-paste'),
+                ai: $('area-ai')
+            };
             
-            if (mode === 'file') {
-                btns[0].classList.add('active');
-                $('area-file').classList.add('active');
-            } else if (mode === 'paste') {
-                btns[1].classList.add('active');
-                $('area-paste').classList.add('active');
-            } else if (mode === 'ai') {
-                btns[2].classList.add('active');
-                if (aiArea) aiArea.classList.add('active');
+            // 批量移除active类
+            btns.forEach(b => b.classList.remove('active'));
+            Object.values(areas).forEach(area => area && area.classList.remove('active'));
+            
+            // 添加对应的active类
+            const modeIndex = { file: 0, paste: 1, ai: 2 }[mode];
+            if (modeIndex !== undefined && btns[modeIndex]) {
+                btns[modeIndex].classList.add('active');
             }
+            if (areas[mode]) {
+                areas[mode].classList.add('active');
+            }
+            
             hideErrors();
         }
 
@@ -3688,23 +4036,30 @@ ${formatExample}
         }
 
         function closeExampleModal() {
-            $('exampleModal').classList.remove('active');
+            const modal = $('exampleModal');
+            if (modal) modal.classList.remove('active');
         }
 
-        $('exampleModal').addEventListener('click', function(e) {
-            if (e.target === this) closeExampleModal();
-        });
+        const exampleModalEl = $('exampleModal');
+        if (exampleModalEl) {
+            exampleModalEl.addEventListener('click', function(e) {
+                if (e.target === this) closeExampleModal();
+            });
+        }
 
         function parseWithSelectedPreset() {
             if (!selectedPreset) { showError('请先选择一个格式', 'paste'); return; }
-            const text = $('presetInput').value.trim();
+            const input = $('presetInput');
+            const text = input ? input.value.trim() : '';
             if (!text) { showError('请先粘贴题目内容', 'paste'); return; }
             const allFormats = [...PRESET_FORMATS, ...getCustomFormats()];
             const format = allFormats.find(f => f.id === selectedPreset);
-            if (format) {
-                if (format.mode === 'advanced') parseWithAdvancedFormat(text, format.config);
-                else parseWithFormat(text, format.config);
+            if (!format) {
+                showError('所选格式不存在，请重新选择', 'paste');
+                return;
             }
+            if (format.mode === 'advanced') parseWithAdvancedFormat(text, format.config);
+            else parseWithFormat(text, format.config);
         }
 
         // ===== 自定义格式 - 简单模式 =====
@@ -3779,12 +4134,13 @@ ${formatExample}
         function saveFormatToStorage(name, config, mode) {
             const formats = getCustomFormats();
             formats.push({ id: 'custom_' + Date.now(), name, config, mode, createdAt: new Date().toISOString() });
-            localStorage.setItem('customFormats', JSON.stringify(formats));
+            safeLocalStorageSet('customFormats', JSON.stringify(formats));
         }
 
         function getCustomFormats() {
             try {
-                return JSON.parse(localStorage.getItem('customFormats') || '[]');
+                const data = safeJsonParse(safeLocalStorageGet('customFormats', '[]'), []);
+                return Array.isArray(data) ? data : [];
             } catch (e) {
                 console.warn('读取自定义格式失败，已回退为空列表:', e);
                 return [];
@@ -3858,7 +4214,7 @@ ${formatExample}
         function deleteCustomFormatSilent(id) {
             let formats = getCustomFormats();
             formats = formats.filter(f => f.id !== id);
-            localStorage.setItem('customFormats', JSON.stringify(formats));
+            safeLocalStorageSet('customFormats', JSON.stringify(formats));
             loadCustomFormats();
             renderPresets();
         }
@@ -3877,11 +4233,28 @@ ${formatExample}
         }
 
         function finishParsing(parsed) {
-            originalQuestions = parsed.map(q => JSON.parse(JSON.stringify(q)));
-            questions = parsed;
+            const normalized = normalizeQuestions(parsed);
+            if (!normalized.length) {
+                showAlert('题目数据无效，请检查格式后重试', '⚠️');
+                return false;
+            }
+
+            originalQuestions = normalized.map(q => ({
+                question: q.question,
+                options: q.options.map(opt => ({ letter: opt.letter, text: opt.text })),
+                answer: q.answer,
+                explanation: q.explanation || ''
+            }));
+            questions = normalized.map(q => ({
+                question: q.question,
+                options: q.options.map(opt => ({ letter: opt.letter, text: opt.text })),
+                answer: q.answer,
+                explanation: q.explanation || ''
+            }));
             $('qCount').textContent = questions.length;
             $('setup-panel').style.display = 'none';
             $('ready-panel').style.display = 'block';
+            return true;
         }
 
         function showError(msg, target) {
@@ -3916,45 +4289,57 @@ ${formatExample}
 
         function processFile(file) {
             hideErrors();
+            if (!file || typeof file.name !== 'string') {
+                showError('无效文件，请重新选择', 'file');
+                return;
+            }
+
+            const lowerName = file.name.toLowerCase();
+            if (!(lowerName.endsWith('.txt') || lowerName.endsWith('.json'))) {
+                showError('仅支持 .txt 或 .json 文件', 'file');
+                return;
+            }
+
+            if (file.size > FILE_SIZE_LIMIT) {
+                showError(`文件过大，请控制在 ${Math.round(FILE_SIZE_LIMIT / 1024 / 1024)}MB 以内`, 'file');
+                return;
+            }
+
             const reader = new FileReader();
+            reader.onerror = () => showError('文件读取失败，请重试', 'file');
             reader.onload = (e) => {
-                const content = e.target.result;
-                if (file.name.endsWith('.json')) {
-                    try {
-                        const data = JSON.parse(content);
-                        const arr = Array.isArray(data) ? data : (data.questions || []);
-                        if (!arr.length) { showError('JSON 中未找到题目', 'file'); return; }
-                        const parsed = arr.map(q => {
-                            let opts = [];
-                            if (Array.isArray(q.options)) {
-                                opts = q.options.map((o, idx) => {
-                                    if (typeof o === 'string') return { letter: String.fromCharCode(65 + idx), text: o };
-                                    return { letter: o.letter || String.fromCharCode(65 + idx), text: o.text || o.content || '' };
-                                });
-                            }
-                            return {
-                                question: q.question || q.q || q.title || '',
-                                options: opts,
-                                answer: (q.answer || q.a || '').toString().toUpperCase().charAt(0),
-                                explanation: q.explanation || q.explain || q.analysis || ''
-                            };
-                        }).filter(q => q.question && q.options.length >= 2 && q.answer);
-                        if (!parsed.length) { showError('JSON 格式不正确或题目数据不完整', 'file'); return; }
-                        finishParsing(parsed);
-                    } catch (e) { showError('JSON 解析失败: ' + e.message, 'file'); }
-                } else {
-                    // txt 文件，自动尝试所有预设格式
-                    tryParseText(content);
+                const content = typeof (e && e.target && e.target.result) === 'string' ? e.target.result : '';
+                if (!content.trim()) {
+                    showError('文件内容为空', 'file');
+                    return;
                 }
+
+                if (lowerName.endsWith('.json')) {
+                    const data = safeJsonParse(content);
+                    const arr = Array.isArray(data) ? data : (Array.isArray(data?.questions) ? data.questions : []);
+                    if (!arr.length) {
+                        showError('JSON 中未找到题目', 'file');
+                        return;
+                    }
+                    const normalized = normalizeQuestions(arr);
+                    if (!normalized.length) {
+                        showError('JSON 格式不正确或题目数据不完整', 'file');
+                        return;
+                    }
+                    finishParsing(normalized);
+                    return;
+                }
+
+                // txt 文件，自动尝试所有预设格式
+                tryParseText(content);
             };
-            reader.readAsText(file);
+            reader.readAsText(file, 'utf-8');
         }
 
         function tryParseText(text) {
             for (const preset of PRESET_FORMATS) {
                 const result = parseTextWithConfig(text, preset.config);
-                if (result.length > 0) {
-                    finishParsing(result);
+                if (result.length > 0 && finishParsing(result)) {
                     return;
                 }
             }
@@ -3962,17 +4347,35 @@ ${formatExample}
         }
 
         // ===== 答题逻辑 =====
+        // 优化：减少不必要的查找操作
         function startQuiz() {
-            if ($('shuffleQuestions').checked) shuffleArray(questions);
-            if ($('shuffleOptions').checked) {
-                questions.forEach(q => {
-                    const correctText = q.options.find(o => o.letter === q.answer)?.text;
-                    shuffleArray(q.options);
-                    q.options.forEach((opt, idx) => opt.letter = String.fromCharCode(65 + idx));
-                    const newCorrect = q.options.find(o => o.text === correctText);
-                    if (newCorrect) q.answer = newCorrect.letter;
-                });
+            if (!Array.isArray(questions) || questions.length === 0) {
+                showAlert('没有可用题目，请先导入题库', '⚠️');
+                return;
             }
+            
+            if ($('shuffleQuestions').checked) {
+                shuffleArray(questions);
+            }
+            
+            if ($('shuffleOptions').checked) {
+                for (const q of questions) {
+                    const correctOption = q.options.find(o => o.letter === q.answer);
+                    if (!correctOption) continue;
+                    
+                    const correctText = correctOption.text;
+                    shuffleArray(q.options);
+                    
+                    // 重新分配字母并找到正确答案
+                    for (let i = 0; i < q.options.length; i++) {
+                        q.options[i].letter = String.fromCharCode(65 + i);
+                        if (q.options[i].text === correctText) {
+                            q.answer = q.options[i].letter;
+                        }
+                    }
+                }
+            }
+            
             clearAIChatCache();
             userAnswers = new Array(questions.length).fill(null);
             currentIndex = 0;
@@ -3982,17 +4385,22 @@ ${formatExample}
             activateAIChatSessionForQuestion(currentIndex, true);
         }
 
+        // 优化：减少DOM操作和重复计算
         function renderQuestion() {
             const q = questions[currentIndex];
+            const isLastQuestion = currentIndex === questions.length - 1;
+            const answered = userAnswers[currentIndex] !== null;
+            const userAnswer = userAnswers[currentIndex];
+            
+            // 批量更新文本内容
             $('progressText').textContent = `${currentIndex + 1}/${questions.length}`;
             $('questionText').textContent = q.question;
 
+            // 使用DocumentFragment优化DOM插入
             const container = $('optionsContainer');
             const fragment = document.createDocumentFragment();
 
-            const answered = userAnswers[currentIndex] !== null;
-
-            q.options.forEach((opt) => {
+            for (const opt of q.options) {
                 const div = document.createElement('div');
                 div.className = 'option-item';
                 div.dataset.letter = opt.letter;
@@ -4000,32 +4408,31 @@ ${formatExample}
 
                 if (answered || isReviewMode) {
                     div.classList.add('disabled');
-                    if (opt.letter === q.answer) div.classList.add('correct');
-                    if (opt.letter === userAnswers[currentIndex] && opt.letter !== q.answer) div.classList.add('wrong');
+                    if (opt.letter === q.answer) {
+                        div.classList.add('correct');
+                    } else if (opt.letter === userAnswer) {
+                        div.classList.add('wrong');
+                    }
                 }
                 fragment.appendChild(div);
-            });
+            }
 
             container.replaceChildren(fragment);
 
+            // 更新解析显示
             const analysisBox = $('analysisBox');
-            const analysisContent = $('analysisContent');
             if ((answered || isReviewMode) && q.explanation) {
-                analysisContent.textContent = q.explanation;
+                $('analysisContent').textContent = q.explanation;
                 analysisBox.style.display = 'block';
             } else {
                 analysisBox.style.display = 'none';
             }
 
-            const prevBtn = $('prevBtn');
-            prevBtn.style.visibility = currentIndex > 0 ? 'visible' : 'hidden';
-
-            const nextBtn = $('nextBtn');
-            if (isReviewMode) {
-                nextBtn.textContent = currentIndex === questions.length - 1 ? '返回结果' : '下一题';
-            } else {
-                nextBtn.textContent = currentIndex === questions.length - 1 ? '提交' : '下一题';
-            }
+            // 更新按钮状态
+            $('prevBtn').style.visibility = currentIndex > 0 ? 'visible' : 'hidden';
+            $('nextBtn').textContent = isLastQuestion
+                ? (isReviewMode ? '返回结果' : '提交')
+                : '下一题';
         }
 
         function selectAnswer(letter) {
@@ -4156,7 +4563,8 @@ ${formatExample}
 
         function showView(viewId) {
             document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-            $(viewId).classList.add('active');
+            const view = $(viewId);
+            if (view) view.classList.add('active');
         }
 
         function shuffleArray(arr) {
@@ -4293,7 +4701,7 @@ ${formatExample}
                 toggleAIChatPanel();
             });
 
-            window.addEventListener('resize', function() {
+            const handleAnalyzeFabResize = throttle(function() {
                 if (isDragging) return;
                 const rect = fab.getBoundingClientRect();
                 const maxBottom = Math.max(12, window.innerHeight - rect.height - 12);
@@ -4307,12 +4715,14 @@ ${formatExample}
                 fab.style.right = targetRight + 'px';
                 fab.style.bottom = safeBottom + 'px';
                 updateAIChatPanelPosition();
-            });
+            }, 120);
+            window.addEventListener('resize', handleAnalyzeFabResize);
         })();
 
         // ===== 设置小球拖拽 =====
         (function() {
             const fab = document.querySelector('.settings-fab');
+            if (!fab) return;
             let isDragging = false;
             let hasMoved = false;
             let startX, startY, originX, originY;
@@ -4431,7 +4841,7 @@ ${formatExample}
                 openSettings();
             });
 
-            window.addEventListener('resize', function() {
+            const handleSettingsFabResize = throttle(function() {
                 if (isDragging) return;
                 const rect = fab.getBoundingClientRect();
                 const maxBottom = Math.max(12, window.innerHeight - rect.height - 12);
@@ -4444,7 +4854,8 @@ ${formatExample}
                 fab.style.top = 'auto';
                 fab.style.right = targetRight + 'px';
                 fab.style.bottom = safeBottom + 'px';
-            });
+            }, 120);
+            window.addEventListener('resize', handleSettingsFabResize);
         })();
 
         // ===== 初始化 =====

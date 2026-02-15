@@ -1968,6 +1968,7 @@
         let isReviewMode = false;
         let selectedPreset = null;
         let currentCustomMode = 'simple';
+        let editingCustomFormatId = null;
         let aiEnabled = false;
         let aiConfig = { apiUrl: '', apiToken: '', model: '' };
         let aiGeneratedQuestions = [];
@@ -1979,6 +1980,8 @@
         let aiChatPanelDragging = false;
         let aiChatRequesting = false;
         let aiChatRequestVersion = 0;
+        let currentFileReadVersion = 0;
+        let currentFileReader = null;
         const MOTION_REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         // ===== DOM缓存优化 =====
@@ -2002,6 +2005,37 @@
             const div = document.createElement('div');
             div.textContent = str;
             return div.innerHTML;
+        }
+
+        // ===== 安全存储工具 =====
+        // 使用简单的混淆来保护敏感数据（注意：这不是真正的加密，只是增加读取难度）
+        function obfuscateToken(token) {
+            if (!token) return '';
+            try {
+                // 使用 Base64 + 简单字符替换进行混淆
+                const encoded = btoa(unescape(encodeURIComponent(token)));
+                // 添加随机前缀和后缀作为盐值
+                const salt = Math.random().toString(36).substring(2, 10);
+                return `${salt}:${encoded}:${salt.split('').reverse().join('')}`;
+            } catch (e) {
+                console.error('Token 混淆失败:', e);
+                return token;
+            }
+        }
+
+        function deobfuscateToken(obfuscated) {
+            if (!obfuscated) return '';
+            try {
+                // 移除盐值并解码
+                const parts = obfuscated.split(':');
+                if (parts.length !== 3) return obfuscated; // 旧格式，直接返回
+                const encoded = parts[1];
+                const decoded = decodeURIComponent(escape(atob(encoded)));
+                return decoded;
+            } catch (e) {
+                console.error('Token 解混淆失败:', e);
+                return obfuscated; // 解码失败，返回原值
+            }
         }
 
         // 安全的 JSON 解析
@@ -2031,6 +2065,70 @@
                 return true;
             } catch (e) {
                 console.error('localStorage 写入失败:', e);
+                // 如果是容量超限，尝试清理旧数据
+                if (e.name === 'QuotaExceededError') {
+                    console.warn('localStorage 容量不足，尝试清理旧数据...');
+                    return false;
+                }
+                return false;
+            }
+        }
+
+        // 检查localStorage剩余容量（估算）
+        function checkLocalStorageSpace() {
+            try {
+                const testKey = '__storage_test__';
+                const testData = new Array(1024).join('a'); // 1KB
+                let size = 0;
+                
+                // 计算当前使用量
+                for (let key in localStorage) {
+                    if (localStorage.hasOwnProperty(key)) {
+                        size += localStorage[key].length + key.length;
+                    }
+                }
+                
+                // 尝试写入测试数据
+                localStorage.setItem(testKey, testData);
+                localStorage.removeItem(testKey);
+                
+                return {
+                    used: size,
+                    usedKB: (size / 1024).toFixed(2),
+                    available: true
+                };
+            } catch (e) {
+                return {
+                    used: 0,
+                    usedKB: 0,
+                    available: false,
+                    error: e.message
+                };
+            }
+        }
+
+        // 安全的localStorage设置（带容量检查）
+        function safeLocalStorageSetWithCheck(key, value, maxSizeKB = 2048) {
+            try {
+                const valueSize = (value.length + key.length) / 1024;
+                
+                // 如果单个值超过限制，直接拒绝
+                if (valueSize > maxSizeKB) {
+                    console.error(`数据过大 (${valueSize.toFixed(2)}KB)，超过限制 ${maxSizeKB}KB`);
+                    return false;
+                }
+                
+                localStorage.setItem(key, value);
+                return true;
+            } catch (e) {
+                console.error('localStorage 写入失败:', e);
+                
+                // 如果是容量超限
+                if (e.name === 'QuotaExceededError') {
+                    console.warn('localStorage 容量不足');
+                    const space = checkLocalStorageSpace();
+                    console.log(`当前使用: ${space.usedKB}KB`);
+                }
                 return false;
             }
         }
@@ -2407,11 +2505,11 @@
 
         function showDialog({ icon, title, message, buttons }) {
             return new Promise(resolve => {
-                const overlay = $('dialogOverlay');
-                const iconEl = $('dialogIcon');
-                const titleEl = $('dialogTitle');
-                const messageEl = $('dialogMessage');
-                const btnContainer = $('dialogButtons');
+                const overlay = getCachedElement('dialogOverlay');
+                const iconEl = getCachedElement('dialogIcon');
+                const titleEl = getCachedElement('dialogTitle');
+                const messageEl = getCachedElement('dialogMessage');
+                const btnContainer = getCachedElement('dialogButtons');
 
                 if (!overlay || !iconEl || !titleEl || !messageEl || !btnContainer) {
                     resolve(false);
@@ -2490,7 +2588,7 @@
         }
 
         // 点击遮罩关闭
-        const dialogOverlayEl = $('dialogOverlay');
+        const dialogOverlayEl = getCachedElement('dialogOverlay');
         if (dialogOverlayEl) {
             dialogOverlayEl.addEventListener('click', function(e) {
                 if (e.target === this) {
@@ -2527,7 +2625,7 @@
             } catch(e) {
                 console.warn('读取快捷键配置失败，已回退默认配置:', e);
             }
-            const toggleEl = $('hotkeyToggle');
+            const toggleEl = getCachedElement('hotkeyToggle');
             if (toggleEl) toggleEl.checked = hotkeyEnabled;
             toggleHotkeys();
             syncHotkeyInputs();
@@ -2541,8 +2639,8 @@
         }
 
         function toggleHotkeys() {
-            const toggleEl = $('hotkeyToggle');
-            const panel = $('hotkeySettings');
+            const toggleEl = getCachedElement('hotkeyToggle');
+            const panel = getCachedElement('hotkeySettings');
             hotkeyEnabled = !!(toggleEl && toggleEl.checked);
             if (!panel) {
                 saveHotkeySettings();
@@ -2605,7 +2703,7 @@
         }
 
         function showHotkeyHint(text) {
-            const hint = $('hotkeyHint');
+            const hint = getCachedElement('hotkeyHint');
             if (!hint) return;
             hint.textContent = text;
             hint.classList.add('show');
@@ -2643,29 +2741,35 @@
                 return;
             }
 
+            const aiModal = $('aiModal');
+            const settingsPanel = $('settingsPanel');
+            const exampleModal = $('exampleModal');
+            const dialogOverlay = $('dialogOverlay');
+            const aiChatPanel = $('aiChatPanel');
+
             if (e.key === 'Escape') {
-                if ($('aiModal') && $('aiModal').classList.contains('active')) { closeAIModal(); return; }
-                if ($('settingsPanel') && $('settingsPanel').classList.contains('active')) { closeSettings(); return; }
-                if ($('exampleModal') && $('exampleModal').classList.contains('active')) { closeExampleModal(); return; }
-                if ($('dialogOverlay') && $('dialogOverlay').classList.contains('active')) {
-                    $('dialogOverlay').classList.remove('active');
+                if (aiModal && aiModal.classList.contains('active')) { closeAIModal(); return; }
+                if (settingsPanel && settingsPanel.classList.contains('active')) { closeSettings(); return; }
+                if (exampleModal && exampleModal.classList.contains('active')) { closeExampleModal(); return; }
+                if (dialogOverlay && dialogOverlay.classList.contains('active')) {
+                    dialogOverlay.classList.remove('active');
                     if (dialogResolve) { dialogResolve(false); dialogResolve = null; }
                     return;
                 }
-                if ($('aiChatPanel') && $('aiChatPanel').classList.contains('active')) { toggleAIChatPanel(false); return; }
+                if (aiChatPanel && aiChatPanel.classList.contains('active')) { toggleAIChatPanel(false); return; }
             }
 
             // 答题快捷键
             if (!hotkeyEnabled) return;
             // 如果有对话框或设置面板打开，不响应快捷键
-            if ($('dialogOverlay').classList.contains('active')) return;
-            if ($('settingsPanel').classList.contains('active')) return;
-            if ($('exampleModal').classList.contains('active')) return;
-            if ($('aiChatPanel').classList.contains('active')) return;
+            if (dialogOverlay && dialogOverlay.classList.contains('active')) return;
+            if (settingsPanel && settingsPanel.classList.contains('active')) return;
+            if (exampleModal && exampleModal.classList.contains('active')) return;
+            if (aiChatPanel && aiChatPanel.classList.contains('active')) return;
 
             // 只在答题页面生效
             const quizView = $('quizView');
-            if (!quizView.classList.contains('active')) return;
+            if (!quizView || !quizView.classList.contains('active')) return;
 
             // 不在输入框中响应
             if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) return;
@@ -2723,7 +2827,7 @@
 
         // ===== 设置面板 =====
         function openSettings() {
-            const panel = $('settingsPanel');
+            const panel = getCachedElement('settingsPanel');
             if (panel) panel.classList.add('active');
         }
 
@@ -2735,11 +2839,11 @@
                 recordingTarget = null;
                 recordingInput = null;
             }
-            const panel = $('settingsPanel');
+            const panel = getCachedElement('settingsPanel');
             if (panel) panel.classList.remove('active');
         }
 
-        const settingsPanelEl = $('settingsPanel');
+        const settingsPanelEl = getCachedElement('settingsPanel');
         if (settingsPanelEl) {
             settingsPanelEl.addEventListener('click', function(e) {
                 if (e.target === this) closeSettings();
@@ -2771,7 +2875,7 @@
         function cancelAIChatPendingRequest() {
             aiChatRequestVersion++;
             aiChatRequesting = false;
-            const sendBtn = $('aiChatSendBtn');
+            const sendBtn = getCachedElement('aiChatSendBtn');
             if (sendBtn) sendBtn.disabled = false;
             document.querySelectorAll('#aiChatMessages .ai-chat-msg.loading').forEach(node => node.remove());
         }
@@ -2789,7 +2893,7 @@
 
         function renderAIChatSession(session) {
             if (!session || !Array.isArray(session.messages)) return;
-            const wrap = $('aiChatMessages');
+            const wrap = getCachedElement('aiChatMessages');
             if (!wrap) return;
             wrap.innerHTML = '';
             session.messages.forEach(msg => {
@@ -2804,16 +2908,16 @@
             aiChatCurrentSessionKey = 'global';
             aiChatHistory = [];
             aiChatPanelPinnedPosition = null;
-            const wrap = $('aiChatMessages');
+            const wrap = getCachedElement('aiChatMessages');
             if (wrap) wrap.innerHTML = '';
-            const input = $('aiChatInput');
+            const input = getCachedElement('aiChatInput');
             if (input) input.value = '';
             toggleAIChatPanel(false);
         }
 
         function updateAIChatPanelPosition(forceAuto) {
-            const fab = $('aiAnalyzeFab');
-            const panel = $('aiChatPanel');
+            const fab = getCachedElement('aiAnalyzeFab');
+            const panel = getCachedElement('aiChatPanel');
             if (!fab || !panel || !panel.classList.contains('active')) return;
             if (aiChatPanelDragging) return;
 
@@ -2853,7 +2957,7 @@
         }
 
         function toggleAIChatPanel(open) {
-            const panel = $('aiChatPanel');
+            const panel = getCachedElement('aiChatPanel');
             if (!panel) return;
             const willOpen = typeof open === 'boolean' ? open : !panel.classList.contains('active');
             panel.classList.toggle('active', willOpen);
@@ -2862,7 +2966,7 @@
             const session = activateAIChatSessionForQuestion(currentIndex);
             renderAIChatSession(session);
             requestAnimationFrame(() => updateAIChatPanelPosition());
-            const input = $('aiChatInput');
+            const input = getCachedElement('aiChatInput');
             if (input) input.focus();
         }
 
@@ -2940,7 +3044,7 @@
                 return null;
             }
 
-            const wrap = $('aiChatMessages');
+            const wrap = getCachedElement('aiChatMessages');
             if (!wrap) return null;
             const row = document.createElement('div');
             row.className = 'ai-chat-msg ' + role + (extraClass ? (' ' + extraClass) : '');
@@ -2959,7 +3063,7 @@
         }
 
         function scrollAIChatToBottom() {
-            const wrap = $('aiChatMessages');
+            const wrap = getCachedElement('aiChatMessages');
             if (!wrap) return;
             wrap.scrollTop = wrap.scrollHeight;
         }
@@ -2991,8 +3095,8 @@
 
         async function sendAIChatMessage(customText) {
             if (aiChatRequesting) return;
-            const input = $('aiChatInput');
-            const sendBtn = $('aiChatSendBtn');
+            const input = getCachedElement('aiChatInput');
+            const sendBtn = getCachedElement('aiChatSendBtn');
             if (!sendBtn) return;
 
             const sourceText = typeof customText === 'string'
@@ -3084,7 +3188,7 @@
         }
 
         function initAIAnalysisWidget() {
-            const input = $('aiChatInput');
+            const input = getCachedElement('aiChatInput');
             if (input) {
                 input.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
@@ -3094,7 +3198,7 @@
                 });
             }
 
-            const panel = $('aiChatPanel');
+            const panel = getCachedElement('aiChatPanel');
             const header = panel ? panel.querySelector('.ai-chat-header') : null;
             if (!panel || !header) return;
 
@@ -3276,18 +3380,25 @@
                 const saved = savedRaw ? safeJsonParse(savedRaw) : null;
                 if (saved && typeof saved === 'object') {
                     aiEnabled = !!saved.enabled;
-                    aiConfig = (saved.config && typeof saved.config === 'object')
-                        ? saved.config
-                        : { apiUrl: '', apiToken: '', model: '' };
+                    if (saved.config && typeof saved.config === 'object') {
+                        // 解混淆 API Token
+                        aiConfig = {
+                            apiUrl: saved.config.apiUrl || '',
+                            apiToken: deobfuscateToken(saved.config.apiToken || ''),
+                            model: saved.config.model || ''
+                        };
+                    } else {
+                        aiConfig = { apiUrl: '', apiToken: '', model: '' };
+                    }
                 }
             } catch(e) {
                 console.warn('读取 AI 配置失败，已回退默认配置:', e);
             }
-            const toggle = $('aiToggle');
+            const toggle = getCachedElement('aiToggle');
             if (toggle) toggle.checked = aiEnabled;
-            const apiUrlInput = $('aiApiUrl');
-            const tokenInput = $('aiApiToken');
-            const modelInput = $('aiModel');
+            const apiUrlInput = getCachedElement('aiApiUrl');
+            const tokenInput = getCachedElement('aiApiToken');
+            const modelInput = getCachedElement('aiModel');
             if (apiUrlInput) apiUrlInput.value = aiConfig.apiUrl || '';
             if (tokenInput) tokenInput.value = aiConfig.apiToken || '';
             if (modelInput) modelInput.value = aiConfig.model || '';
@@ -3297,8 +3408,8 @@
 
         // ===== AI历史记录功能 =====
         function toggleAIHistory() {
-            const content = $('aiHistoryContent');
-            const toggleBtn = $('aiHistoryToggleBtn');
+            const content = getCachedElement('aiHistoryContent');
+            const toggleBtn = getCachedElement('aiHistoryToggleBtn');
             if (!content || !toggleBtn) return;
 
             if (content.classList.contains('expanded')) {
@@ -3321,9 +3432,27 @@
         }
 
         function saveAIHistory() {
-            if (!safeLocalStorageSet('aiHistory', JSON.stringify(aiHistory))) {
-                console.error('保存历史记录失败: 存储空间不足或浏览器限制');
+            const source = Array.isArray(aiHistory) ? aiHistory : [];
+            const snapshots = [
+                source,
+                source.slice(0, 10),
+                source.slice(0, 5),
+                source.slice(0, 1),
+                []
+            ];
+
+            for (const candidate of snapshots) {
+                const historyJson = JSON.stringify(candidate);
+                const saved = safeLocalStorageSetWithCheck('aiHistory', historyJson, 1024)
+                    || safeLocalStorageSet('aiHistory', historyJson);
+                if (saved) {
+                    aiHistory = candidate;
+                    return true;
+                }
             }
+
+            console.error('保存历史记录失败: 存储空间不足且降级保存失败');
+            return false;
         }
 
         function addToAIHistory(questions, prompt, count) {
@@ -3345,13 +3474,17 @@
                 aiHistory = aiHistory.slice(0, 20);
             }
             
-            saveAIHistory();
+            // 保存并检查是否成功
+            const saved = saveAIHistory();
+            if (!saved) {
+                console.warn('历史记录已自动清理以释放空间');
+            }
             renderAIHistory();
         }
 
         function renderAIHistory() {
-            const container = $('aiHistoryList');
-            const clearBtn = $('clearHistoryBtn');
+            const container = getCachedElement('aiHistoryList');
+            const clearBtn = getCachedElement('clearHistoryBtn');
             if (!container) return;
 
             if (!aiHistory || aiHistory.length === 0) {
@@ -3517,22 +3650,30 @@
         }
 
         function saveAISettings() {
-            const apiUrlInput = $('aiApiUrl');
-            const tokenInput = $('aiApiToken');
-            const modelInput = $('aiModel');
+            const apiUrlInput = getCachedElement('aiApiUrl');
+            const tokenInput = getCachedElement('aiApiToken');
+            const modelInput = getCachedElement('aiModel');
             aiConfig.apiUrl = apiUrlInput ? apiUrlInput.value.trim() : '';
             aiConfig.apiToken = tokenInput ? tokenInput.value.trim() : '';
             aiConfig.model = modelInput ? modelInput.value.trim() : '';
+            
+            // 混淆 API Token 后再保存
+            const configToSave = {
+                apiUrl: aiConfig.apiUrl,
+                apiToken: obfuscateToken(aiConfig.apiToken),
+                model: aiConfig.model
+            };
+            
             safeLocalStorageSet('aiSettings', JSON.stringify({
                 enabled: aiEnabled,
-                config: aiConfig
+                config: configToSave
             }));
         }
 
         function toggleAI() {
-            const toggle = $('aiToggle');
-            const panel = $('aiSettings');
-            const aiTabBtn = $('aiTabBtn');
+            const toggle = getCachedElement('aiToggle');
+            const panel = getCachedElement('aiSettings');
+            const aiTabBtn = getCachedElement('aiTabBtn');
             aiEnabled = !!(toggle && toggle.checked);
 
             if (panel) panel.classList.toggle('disabled', !aiEnabled);
@@ -3549,11 +3690,11 @@
         }
 
         async function testAPIConnection() {
-            const apiUrlInput = $('aiApiUrl');
-            const apiTokenInput = $('aiApiToken');
-            const modelInput = $('aiModel');
-            const resultDiv = $('apiTestResult');
-            const testBtn = $('testApiBtn');
+            const apiUrlInput = getCachedElement('aiApiUrl');
+            const apiTokenInput = getCachedElement('aiApiToken');
+            const modelInput = getCachedElement('aiModel');
+            const resultDiv = getCachedElement('apiTestResult');
+            const testBtn = getCachedElement('testApiBtn');
 
             if (!apiUrlInput || !apiTokenInput || !modelInput || !resultDiv || !testBtn) {
                 return;
@@ -3709,9 +3850,9 @@
                 showAlert('API 地址格式无效，请使用 http:// 或 https:// 开头', '⚠️');
                 return;
             }
-            const modal = $('aiModal');
-            const resultBox = $('aiResultBox');
-            const actionButtons = $('aiActionButtons');
+            const modal = getCachedElement('aiModal');
+            const resultBox = getCachedElement('aiResultBox');
+            const actionButtons = getCachedElement('aiActionButtons');
             if (!modal || !resultBox || !actionButtons) return;
             modal.classList.add('active');
             resultBox.classList.remove('show');
@@ -3719,11 +3860,11 @@
         }
 
         function closeAIModal() {
-            const modal = $('aiModal');
+            const modal = getCachedElement('aiModal');
             if (modal) modal.classList.remove('active');
         }
 
-        const aiModalEl = $('aiModal');
+        const aiModalEl = getCachedElement('aiModal');
         if (aiModalEl) {
             aiModalEl.addEventListener('click', function(e) {
                 if (e.target === this) closeAIModal();
@@ -3731,11 +3872,11 @@
         }
 
         async function generateAIQuestions() {
-            const countInput = $('aiQuestionCount');
-            const promptInput = $('aiPrompt');
-            const btn = $('aiGenerateBtn');
-            const resultBox = $('aiResultBox');
-            const resultContent = $('aiResultContent');
+            const countInput = getCachedElement('aiQuestionCount');
+            const promptInput = getCachedElement('aiPrompt');
+            const btn = getCachedElement('aiGenerateBtn');
+            const resultBox = getCachedElement('aiResultBox');
+            const resultContent = getCachedElement('aiResultContent');
 
             if (!countInput || !promptInput || !btn || !resultBox || !resultContent) return;
 
@@ -3875,7 +4016,7 @@ ${formatExample}
             loadAISettings();
             initAIAnalysisWidget();
 
-            const optionsContainer = $('optionsContainer');
+            const optionsContainer = getCachedElement('optionsContainer');
             if (optionsContainer) {
                 optionsContainer.addEventListener('click', (e) => {
                     const item = e.target.closest('.option-item');
@@ -3885,7 +4026,7 @@ ${formatExample}
                 });
             }
 
-            const resultGrid = $('resultGrid');
+            const resultGrid = getCachedElement('resultGrid');
             if (resultGrid) {
                 resultGrid.addEventListener('click', (e) => {
                     const dot = e.target.closest('.grid-dot');
@@ -3927,31 +4068,44 @@ ${formatExample}
             document.querySelectorAll('#area-paste > .input-area').forEach(a => a.classList.remove('active'));
             const tabs = document.querySelectorAll('#area-paste .sub-tab-btn');
             if (mode === 'preset') {
-                tabs[0].classList.add('active');
-                $('sub-preset').classList.add('active');
+                if (tabs[0]) tabs[0].classList.add('active');
+                const subPreset = $('sub-preset');
+                if (subPreset) subPreset.classList.add('active');
             } else {
-                tabs[1].classList.add('active');
-                $('sub-custom').classList.add('active');
+                if (tabs[1]) tabs[1].classList.add('active');
+                const subCustom = $('sub-custom');
+                if (subCustom) subCustom.classList.add('active');
             }
+            if (mode === 'preset') editingCustomFormatId = null;
             hideErrors();
         }
 
         function setCustomMode(mode) {
             currentCustomMode = mode;
-            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector(`.mode-btn:nth-child(${mode === 'simple' ? 1 : 2})`).classList.add('active');
-            document.querySelector('.custom-simple-mode').classList.toggle('active', mode === 'simple');
-            document.querySelector('.custom-advanced-mode').classList.toggle('active', mode === 'advanced');
+            const modeButtons = document.querySelectorAll('.mode-btn');
+            modeButtons.forEach(b => b.classList.remove('active'));
+
+            const activeBtn = document.querySelector(`.mode-btn:nth-child(${mode === 'simple' ? 1 : 2})`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            const simpleModePanel = document.querySelector('.custom-simple-mode');
+            const advancedModePanel = document.querySelector('.custom-advanced-mode');
+            if (simpleModePanel) simpleModePanel.classList.toggle('active', mode === 'simple');
+            if (advancedModePanel) advancedModePanel.classList.toggle('active', mode === 'advanced');
         }
 
         function hideErrors() {
-            $('fileError').style.display = 'none';
-            $('pasteError').style.display = 'none';
+            const fileError = $('fileError');
+            const pasteError = $('pasteError');
+            if (fileError) fileError.style.display = 'none';
+            if (pasteError) pasteError.style.display = 'none';
         }
 
         // ===== 预设格式 =====
         function renderPresets() {
-            const container = $('presetList');
+            const container = getCachedElement('presetList');
+            if (!container) return;
+
             container.innerHTML = '';
             PRESET_FORMATS.forEach(preset => {
                 const card = document.createElement('div');
@@ -4036,11 +4190,11 @@ ${formatExample}
         }
 
         function closeExampleModal() {
-            const modal = $('exampleModal');
+            const modal = getCachedElement('exampleModal');
             if (modal) modal.classList.remove('active');
         }
 
-        const exampleModalEl = $('exampleModal');
+        const exampleModalEl = getCachedElement('exampleModal');
         if (exampleModalEl) {
             exampleModalEl.addEventListener('click', function(e) {
                 if (e.target === this) closeExampleModal();
@@ -4049,7 +4203,7 @@ ${formatExample}
 
         function parseWithSelectedPreset() {
             if (!selectedPreset) { showError('请先选择一个格式', 'paste'); return; }
-            const input = $('presetInput');
+            const input = getCachedElement('presetInput');
             const text = input ? input.value.trim() : '';
             if (!text) { showError('请先粘贴题目内容', 'paste'); return; }
             const allFormats = [...PRESET_FORMATS, ...getCustomFormats()];
@@ -4094,9 +4248,11 @@ ${formatExample}
                 explanationMarkers: em ? [em] : [],
                 separators: [sep === '\\n\\n' ? '\\n\\n' : sep]
             };
-            saveFormatToStorage(name, config, 'simple');
+            const isEditing = !!editingCustomFormatId;
+            saveFormatToStorage(name, config, 'simple', editingCustomFormatId);
+            editingCustomFormatId = null;
             ['simpleFormatName','simpleQuestionMarker','simpleOptionMarker','simpleAnswerMarker','simpleExplanationMarker','simpleSeparator'].forEach(id => $(id).value = '');
-            await showAlert('格式已保存！', '✅');
+            await showAlert(isEditing ? '格式已更新！' : '格式已保存！', '✅');
             loadCustomFormats();
             renderPresets();
         }
@@ -4123,17 +4279,34 @@ ${formatExample}
             catch (e) { await showAlert('正则表达式错误: ' + e.message, '❌'); return; }
 
             const config = { questionPattern: qr, optionPattern: or_, answerPattern: ar, explanationPattern: er || null, separatorPattern: sep };
-            saveFormatToStorage(name, config, 'advanced');
+            const isEditing = !!editingCustomFormatId;
+            saveFormatToStorage(name, config, 'advanced', editingCustomFormatId);
+            editingCustomFormatId = null;
             ['advancedFormatName','advancedQuestionRegex','advancedOptionRegex','advancedAnswerRegex','advancedExplanationRegex','advancedSeparator'].forEach(id => $(id).value = '');
-            await showAlert('高级格式已保存！', '✅');
+            await showAlert(isEditing ? '高级格式已更新！' : '高级格式已保存！', '✅');
             loadCustomFormats();
             renderPresets();
         }
 
         // ===== 格式存储 =====
-        function saveFormatToStorage(name, config, mode) {
+        function saveFormatToStorage(name, config, mode, targetId = null) {
             const formats = getCustomFormats();
-            formats.push({ id: 'custom_' + Date.now(), name, config, mode, createdAt: new Date().toISOString() });
+            const id = targetId || ('custom_' + Date.now());
+            const idx = formats.findIndex(f => f.id === id);
+
+            if (idx >= 0) {
+                const old = formats[idx] || {};
+                formats[idx] = {
+                    id,
+                    name,
+                    config,
+                    mode,
+                    createdAt: old.createdAt || new Date().toISOString()
+                };
+            } else {
+                formats.push({ id, name, config, mode, createdAt: new Date().toISOString() });
+            }
+
             safeLocalStorageSet('customFormats', JSON.stringify(formats));
         }
 
@@ -4149,7 +4322,9 @@ ${formatExample}
 
         function loadCustomFormats() {
             const formats = getCustomFormats();
-            const container = $('savedFormatsList');
+            const container = getCachedElement('savedFormatsList');
+            if (!container) return;
+
             container.innerHTML = '';
             if (!formats.length) {
                 container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary);font-size:13px;">暂无保存的格式</div>';
@@ -4201,7 +4376,7 @@ ${formatExample}
                 $('simpleExplanationMarker').value = (c.explanationMarkers && c.explanationMarkers[0]) || '';
                 $('simpleSeparator').value = (c.separators && c.separators[0]) || '';
             }
-            deleteCustomFormatSilent(id);
+            editingCustomFormatId = id;
         }
 
         async function deleteCustomFormat(id) {
@@ -4214,6 +4389,7 @@ ${formatExample}
         function deleteCustomFormatSilent(id) {
             let formats = getCustomFormats();
             formats = formats.filter(f => f.id !== id);
+            if (editingCustomFormatId === id) editingCustomFormatId = null;
             safeLocalStorageSet('customFormats', JSON.stringify(formats));
             loadCustomFormats();
             renderPresets();
@@ -4259,28 +4435,32 @@ ${formatExample}
 
         function showError(msg, target) {
             const el = $(target === 'paste' ? 'pasteError' : 'fileError');
-            el.textContent = msg;
-            el.style.display = 'block';
+            if (el) {
+                el.textContent = msg;
+                el.style.display = 'block';
+            }
         }
 
         // ===== 文件导入 =====
-        const uploadZone = $('uploadZone');
+        const uploadZone = getCachedElement('uploadZone');
 
-        uploadZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadZone.classList.add('drag-over');
-        });
+        if (uploadZone) {
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('drag-over');
+            });
 
-        uploadZone.addEventListener('dragleave', () => {
-            uploadZone.classList.remove('drag-over');
-        });
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('drag-over');
+            });
 
-        uploadZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadZone.classList.remove('drag-over');
-            const file = e.dataTransfer.files[0];
-            if (file) processFile(file);
-        });
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('drag-over');
+                const file = e.dataTransfer.files[0];
+                if (file) processFile(file);
+            });
+        }
 
         function handleFileSelect(event) {
             const file = event.target.files[0];
@@ -4305,9 +4485,24 @@ ${formatExample}
                 return;
             }
 
+            currentFileReadVersion++;
+            const readVersion = currentFileReadVersion;
+
+            if (currentFileReader && currentFileReader.readyState === FileReader.LOADING) {
+                try { currentFileReader.abort(); } catch (_) {}
+            }
+
             const reader = new FileReader();
-            reader.onerror = () => showError('文件读取失败，请重试', 'file');
+            currentFileReader = reader;
+
+            reader.onerror = () => {
+                if (readVersion !== currentFileReadVersion) return;
+                showError('文件读取失败，请重试', 'file');
+            };
+
             reader.onload = (e) => {
+                if (readVersion !== currentFileReadVersion) return;
+
                 const content = typeof (e && e.target && e.target.result) === 'string' ? e.target.result : '';
                 if (!content.trim()) {
                     showError('文件内容为空', 'file');
@@ -4333,7 +4528,20 @@ ${formatExample}
                 // txt 文件，自动尝试所有预设格式
                 tryParseText(content);
             };
-            reader.readAsText(file, 'utf-8');
+
+            reader.onloadend = () => {
+                if (readVersion === currentFileReadVersion) {
+                    currentFileReader = null;
+                }
+            };
+
+            try {
+                reader.readAsText(file, 'utf-8');
+            } catch (_) {
+                if (readVersion !== currentFileReadVersion) return;
+                currentFileReader = null;
+                showError('文件读取失败，请重试', 'file');
+            }
         }
 
         function tryParseText(text) {
@@ -4360,17 +4568,22 @@ ${formatExample}
             
             if ($('shuffleOptions').checked) {
                 for (const q of questions) {
-                    const correctOption = q.options.find(o => o.letter === q.answer);
-                    if (!correctOption) continue;
+                    // 修复：使用标记法而非文本匹配，避免重复选项导致答案错位
+                    const correctIndex = q.options.findIndex(o => o.letter === q.answer);
+                    if (correctIndex === -1) continue;
                     
-                    const correctText = correctOption.text;
+                    // 给正确选项打标记
+                    q.options[correctIndex].isCorrect = true;
+                    
+                    // 打乱选项
                     shuffleArray(q.options);
                     
-                    // 重新分配字母并找到正确答案
+                    // 重新分配字母并根据标记回填正确答案
                     for (let i = 0; i < q.options.length; i++) {
                         q.options[i].letter = String.fromCharCode(65 + i);
-                        if (q.options[i].text === correctText) {
+                        if (q.options[i].isCorrect) {
                             q.answer = q.options[i].letter;
+                            delete q.options[i].isCorrect; // 清理临时标记
                         }
                     }
                 }
@@ -4397,7 +4610,7 @@ ${formatExample}
             $('questionText').textContent = q.question;
 
             // 使用DocumentFragment优化DOM插入
-            const container = $('optionsContainer');
+            const container = getCachedElement('optionsContainer');
             const fragment = document.createDocumentFragment();
 
             for (const opt of q.options) {
@@ -4420,7 +4633,7 @@ ${formatExample}
             container.replaceChildren(fragment);
 
             // 更新解析显示
-            const analysisBox = $('analysisBox');
+            const analysisBox = getCachedElement('analysisBox');
             if ((answered || isReviewMode) && q.explanation) {
                 $('analysisContent').textContent = q.explanation;
                 analysisBox.style.display = 'block';
@@ -4505,7 +4718,7 @@ ${formatExample}
             $('scoreVal').textContent = pct;
 
             // SVG 动画
-            const circle = $('scoreCircle');
+            const circle = getCachedElement('scoreCircle');
             const circumference = 2 * Math.PI * 60;
             circle.style.strokeDasharray = circumference;
             circle.style.strokeDashoffset = circumference;
@@ -4522,7 +4735,7 @@ ${formatExample}
             });
 
             // 结果网格
-            const grid = $('resultGrid');
+            const grid = getCachedElement('resultGrid');
             const fragment = document.createDocumentFragment();
             questions.forEach((q, i) => {
                 const dot = document.createElement('div');
@@ -4547,6 +4760,13 @@ ${formatExample}
 
         function resetImport() {
             clearAIChatCache();
+
+            currentFileReadVersion++;
+            if (currentFileReader && currentFileReader.readyState === FileReader.LOADING) {
+                try { currentFileReader.abort(); } catch (_) {}
+            }
+            currentFileReader = null;
+
             questions = [];
             originalQuestions = [];
             userAnswers = [];
@@ -4576,7 +4796,7 @@ ${formatExample}
 
         // ===== AI解析小球拖拽 =====
         (function() {
-            const fab = $('aiAnalyzeFab');
+            const fab = getCachedElement('aiAnalyzeFab');
             if (!fab) return;
             let isDragging = false;
             let hasMoved = false;

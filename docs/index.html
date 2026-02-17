@@ -740,7 +740,8 @@
         .settings-fab:hover svg { color: var(--primary-color); }
 
         /* ===== 设置面板 ===== */
-        .settings-panel { z-index: 1500; }
+        /* 高于 AI 出题弹窗（1500），避免“设置被遮挡在后面” */
+        .settings-panel { z-index: 1600; }
 
         .settings-content {
             background: white;
@@ -3922,7 +3923,7 @@ ${formatExample}
 
 请直接输出题目文本，不要使用 JSON 或其他格式。`;
 
-                const response = await fetchWithTimeout(aiConfig.apiUrl, {
+                const response = await fetch(aiConfig.apiUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

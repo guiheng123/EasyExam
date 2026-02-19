@@ -3144,7 +3144,7 @@
                         { role: 'user', content: text + context }
                     ];
 
-                    const response = await fetchWithTimeout(aiConfig.apiUrl, {
+                    const response = await fetch(aiConfig.apiUrl, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -3158,10 +3158,30 @@
                     });
 
                     if (!response.ok) {
-                        throw new Error(`AI 请求失败：${response.status} ${response.statusText || ''}`);
+                        const rawErrorText = await response.text();
+                        let apiErrorMessage = rawErrorText ? rawErrorText.trim() : '';
+                        try {
+                            const parsedError = rawErrorText ? JSON.parse(rawErrorText) : null;
+                            const preferredError = parsedError?.error?.message || parsedError?.message || parsedError?.detail;
+                            if (preferredError) {
+                                apiErrorMessage = String(preferredError).trim();
+                            }
+                        } catch (_) {}
+
+                        const statusSummary = `${response.status} ${response.statusText || ''}`.trim();
+                        throw new Error(
+                            apiErrorMessage
+                                ? `AI 请求失败（${statusSummary}）：${apiErrorMessage}`
+                                : `AI 请求失败（${statusSummary}）`
+                        );
                     }
 
                     const data = await response.json();
+                    const payloadErrorMessage = data?.error?.message || data?.message || data?.detail;
+                    if (payloadErrorMessage) {
+                        throw new Error(`AI 接口返回错误：${payloadErrorMessage}`);
+                    }
+
                     replyText = String(data.choices?.[0]?.message?.content || '').trim();
                     if (!replyText) {
                         throw new Error('AI 返回为空');

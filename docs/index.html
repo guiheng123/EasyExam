@@ -1974,7 +1974,6 @@
         let aiConfig = { apiUrl: '', apiToken: '', model: '' };
         let aiGeneratedQuestions = [];
         let aiHistory = [];
-        let aiChatHistory = [];
         let aiChatSessions = Object.create(null);
         let aiChatCurrentSessionKey = 'global';
         let aiChatPanelPinnedPosition = null;
@@ -2887,9 +2886,7 @@
                 cancelAIChatPendingRequest();
             }
             aiChatCurrentSessionKey = nextKey;
-            const session = ensureAIChatSession(nextKey, forceNew);
-            aiChatHistory = session.history.slice();
-            return session;
+            return ensureAIChatSession(nextKey, forceNew);
         }
 
         function renderAIChatSession(session) {
@@ -2907,7 +2904,6 @@
             cancelAIChatPendingRequest();
             aiChatSessions = Object.create(null);
             aiChatCurrentSessionKey = 'global';
-            aiChatHistory = [];
             aiChatPanelPinnedPosition = null;
             const wrap = getCachedElement('aiChatMessages');
             if (wrap) wrap.innerHTML = '';
@@ -3195,7 +3191,6 @@
                 session.history.push({ role: 'user', content: text });
                 session.history.push({ role: 'assistant', content: replyText });
                 if (session.history.length > 20) session.history = session.history.slice(-20);
-                aiChatHistory = session.history.slice();
             } catch (error) {
                 if (requestVersion !== aiChatRequestVersion || sessionKey !== aiChatCurrentSessionKey) return;
                 if (loadingNode && loadingNode.parentNode) loadingNode.remove();
@@ -3229,8 +3224,6 @@
             let startY = 0;
             let originLeft = 0;
             let originTop = 0;
-            let pendingX = 0;
-            let pendingY = 0;
             let lastClamped = null;
 
             const clampPos = (left, top) => {
@@ -3266,8 +3259,6 @@
                 startY = e.clientY;
                 originLeft = rect.left;
                 originTop = rect.top;
-                pendingX = e.clientX;
-                pendingY = e.clientY;
                 lastClamped = { left: originLeft, top: originTop };
 
                 panel.style.left = originLeft + 'px';
@@ -3476,15 +3467,14 @@
             return false;
         }
 
-        function addToAIHistory(questions, prompt, count) {
+        function addToAIHistory(questions, prompt) {
             const historyItem = {
                 id: Date.now(),
                 model: aiConfig.model || '未知模型',
                 questionCount: questions.length,
                 prompt: prompt,
                 questions: questions,
-                createdAt: new Date().toISOString(),
-                timestamp: Date.now()
+                createdAt: new Date().toISOString()
             };
             
             // 添加到历史记录开头
@@ -3980,7 +3970,7 @@ ${formatExample}
                 aiGeneratedQuestions = parsed;
 
                 // 添加到历史记录
-                addToAIHistory(aiGeneratedQuestions, prompt, count);
+                addToAIHistory(aiGeneratedQuestions, prompt);
 
                 // 显示成功信息和操作按钮
                 resultContent.innerHTML = `

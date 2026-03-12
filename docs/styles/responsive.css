@@ -1,0 +1,88 @@
+/* ===== 响应式 - 移动端 (max-width: 767px) ===== */
+@media (max-width: 767px) {
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: stretch;
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+    }
+    .container {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    .view-section { flex: 1; overflow: hidden; }
+    .home-layout {
+        flex: 1;
+        overflow-y: auto;
+        justify-content: flex-start;
+        padding-top: 40px;
+    }
+    .quiz-layout-wrapper { display: flex; flex-direction: column; }
+    .question-text { font-size: 17px; }
+    .result-stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .result-layout { padding: 20px 16px; gap: 16px; }
+    .result-actions { flex-direction: column; }
+    .result-action-btn { padding: 12px 14px; font-size: 14px; }
+    .ai-chat-panel {
+        right: 12px;
+        bottom: 132px;
+        left: 12px;
+        width: auto;
+        height: min(56vh, 460px);
+    }
+    .ai-analyze-fab {
+        bottom: 76px;
+        right: 24px;
+    }
+}
+
+/* ===== 响应式 - 桌面端 (min-width: 768px) ===== */
+@media (min-width: 768px) {
+    body {
+        background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+        background-attachment: fixed;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 40px 0;
+        min-height: 100vh;
+        min-height: 100dvh;
+    }
+    .container {
+        width: 90%;
+        max-width: 1000px;
+        border-radius: 20px;
+        box-shadow: var(--shadow-md);
+        max-height: calc(100vh - 80px);
+        max-height: calc(100dvh - 80px);
+    }
+    .container:has(#homeView.active) { height: auto; }
+    .container:has(#quizView.active),
+    .container:has(#resultView.active) { height: calc(100vh - 80px); height: calc(100dvh - 80px); }
+    #homeView { height: auto; min-height: 0; }
+    #quizView, #resultView { flex: 1; overflow: hidden; }
+    .header { border-radius: 20px 20px 0 0; }
+    .home-layout { padding: 40px 30px; overflow-y: auto; flex: 1; }
+    .quiz-layout-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; height: 100%; }
+    .quiz-left-panel { border-right: 1px solid #eee; padding-right: 20px; display: flex; flex-direction: column; }
+    .quiz-right-panel { padding-left: 10px; overflow-y: auto; }
+    .question-text { font-size: 20px; }
+    .quiz-footer { border-radius: 0 0 20px 20px; }
+}
+
+/* ===== 减少动画偏好 ===== */
+@media (prefers-reduced-motion: reduce) {
+    html:focus-within { scroll-behavior: auto; }
+    *, *::before, *::after {
+        animation-duration: 0.2s !important;
+        transition-duration: 0.2s !important;
+    }
+    .ai-loading-spinner {
+        animation-duration: 1.2s !important;
+    }
+}

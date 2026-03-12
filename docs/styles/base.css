@@ -1,0 +1,121 @@
+/* ===== 变量 ===== */
+:root {
+    --primary-color: #4e6ef2;
+    --primary-hover: #405bd4;
+    --bg-color: #f0f2f5;
+    --card-bg: #ffffff;
+    --text-main: #333333;
+    --text-secondary: #666666;
+    --correct-color: #e5f9e7;
+    --correct-text: #2ba471;
+    --wrong-color: #feebeb;
+    --wrong-text: #d93025;
+    --border-radius: 16px;
+    --shadow-md: 0 8px 30px rgba(0,0,0,0.08);
+    --border-light: #e2e8f0;
+    --bg-subtle: #f8fafc;
+    --overlay-bg: rgba(0,0,0,0.35);
+}
+
+/* ===== 重置 ===== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* ===== 通用 overlay 基类 ===== */
+.overlay-base {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--overlay-bg);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+.overlay-base.active { display: flex; }
+
+/* ===== Body ===== */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+/* ===== 容器 ===== */
+.container {
+    background-color: var(--card-bg);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* ===== 视图区块 ===== */
+.view-section {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    animation: fadeIn 0.3s ease;
+    min-height: 0;
+}
+.view-section.active { display: flex; }
+
+/* ===== 动画 ===== */
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+@keyframes scaleIn { from { transform: scale(0.92); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+@keyframes spin { to { transform: rotate(360deg) } }
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(245,158,11,0.1) }
+    50% { box-shadow: 0 0 0 6px rgba(245,158,11,0.15) }
+}
+
+/* ===== will-change 优化 ===== */
+.view-section.active,
+.modal-content,
+.dialog-box,
+.settings-content,
+.ai-modal-content {
+    will-change: opacity, transform;
+}
+
+/* ===== Header ===== */
+.header {
+    padding: 15px 25px;
+    display: flex;
+    align-items: center;
+    font-size: 18px;
+    font-weight: 700;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fff;
+    flex-shrink: 0;
+    z-index: 10;
+}
+
+.back-icon {
+    margin-right: 15px;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    color: var(--text-secondary);
+    border: 2px solid transparent;
+}
+.back-icon:hover {
+    background-color: #f0f7ff;
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    transform: translateX(-2px);
+    box-shadow: 0 2px 12px rgba(78, 110, 242, 0.25);
+}
+
+/* ===== 通用工具类 ===== */
+.hidden { display: none; }

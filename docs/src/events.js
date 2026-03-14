@@ -150,7 +150,7 @@ export function initEventListeners() {
         });
     });
 
-    document.querySelectorAll('.custom-mode-btn').forEach(btn => {
+    document.querySelectorAll('.mode-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const mode = btn.dataset.mode;
             if (mode) setCustomMode(mode);
@@ -190,9 +190,16 @@ export function initEventListeners() {
         copyExampleBtn.addEventListener('click', () => copyExample());
     }
 
-    const fillTemplateBtn = $('fillTemplateBtn');
-    if (fillTemplateBtn) {
-        fillTemplateBtn.addEventListener('click', () => fillTemplate());
+    // 模板填充（事件委托）
+    const simpleFormatBuilder = document.querySelector('.simple-format-builder');
+    if (simpleFormatBuilder) {
+        simpleFormatBuilder.addEventListener('click', (e) => {
+            const chip = e.target.closest('.template-chip[data-action="fillTemplate"]');
+            if (!chip) return;
+            const field = chip.dataset.field;
+            const value = chip.dataset.value;
+            if (field && value) fillTemplate(field, value);
+        });
     }
 
     // 自定义格式

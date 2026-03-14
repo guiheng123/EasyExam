@@ -617,6 +617,23 @@ details[open] > .ai-stream-summary::before {
     color: #64748b;
     font-style: italic;
 }
+.ai-chat-msg.markdown {
+    white-space: normal;
+}
+.ai-chat-msg.streaming {
+    min-height: 20px;
+}
+.streaming-cursor::after {
+    content: '▍';
+    display: inline;
+    animation: ai-cursor-blink 0.6s steps(2) infinite;
+    color: var(--primary-color, #6366f1);
+    font-weight: bold;
+}
+@keyframes ai-cursor-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
 .ai-chat-msg.markdown h1,
 .ai-chat-msg.markdown h2,
 .ai-chat-msg.markdown h3,

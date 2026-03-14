@@ -82,6 +82,10 @@ function fillFormFromConfig() {
 // 切换到指定配置
 export function switchConfig(id) {
     syncFormToActiveConfig(); // 先保存当前表单
+    if (id === undefined) {
+        const select = $('aiConfigSelect');
+        id = select ? Number(select.value) : undefined;
+    }
     const target = aiConfigs.find(c => c.id === id);
     if (!target) return;
     activeConfigId = id;

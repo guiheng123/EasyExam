@@ -293,6 +293,26 @@ function scrollAIChatToBottom() {
     wrap.scrollTop = wrap.scrollHeight;
 }
 
+// 流式渲染时的智能滚动：仅在用户未手动上滚时自动滚到底部
+function smartScrollToBottom() {
+    const wrap = $('aiChatMessages');
+    if (!wrap) return;
+    const threshold = 80;
+    if (wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight < threshold) {
+        wrap.scrollTop = wrap.scrollHeight;
+    }
+}
+
+// 在流式渲染的 HTML 末尾插入光标（插入到最后一个闭合标签之前，保持光标与文字同行）
+function addStreamCursor(html) {
+    const cursor = '<span class="streaming-cursor"></span>';
+    if (!html) return cursor;
+    const trailing = /(<\/[^>]+>\s*)+$/;
+    const m = html.match(trailing);
+    if (m) return html.slice(0, m.index) + cursor + html.slice(m.index);
+    return html + cursor;
+}
+
 // 获取当前题目快照
 export function getCurrentQuestionSnapshot() {
     const questions = getQuestions();
@@ -353,6 +373,7 @@ export async function sendAIChatMessage(customText) {
         const aiConfig = getAIConfig();
         const hasApi = !!(aiConfig.apiUrl && aiConfig.apiToken && aiConfig.model);
 
+        let streamNode = null;
         let replyText = '';
         if (!hasApi) {
             if (snap) {
@@ -382,7 +403,8 @@ export async function sendAIChatMessage(customText) {
                 body: JSON.stringify({
                     model: aiConfig.model,
                     messages,
-                    temperature: 0.4
+                    temperature: 0.4,
+                    stream: true
                 })
             });
 
@@ -405,27 +427,103 @@ export async function sendAIChatMessage(customText) {
                 );
             }
 
-            const data = await response.json();
-            const payloadErrorMessage = data?.error?.message || data?.message || data?.detail;
-            if (payloadErrorMessage) {
-                throw new Error(`AI 接口返回错误：${payloadErrorMessage}`);
+            // 流式读取响应
+            if (loadingNode && loadingNode.parentNode) loadingNode.remove();
+            streamNode = appendAIChatMessage('assistant', '', 'streaming', { sessionKey, skipCache: true });
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let buffer = '';
+            let streamedContent = '';
+            let rafId = null;
+            let pendingRender = false;
+
+            // 使用 requestAnimationFrame 节流渲染，避免每个 chunk 都重建 DOM
+            const doRender = () => {
+                if (streamNode) {
+                    streamNode.innerHTML = addStreamCursor(renderMarkdownToHtml(streamedContent));
+                    smartScrollToBottom();
+                }
+                pendingRender = false;
+            };
+
+            const scheduleRender = () => {
+                pendingRender = true;
+                if (rafId === null) {
+                    rafId = requestAnimationFrame(() => {
+                        rafId = null;
+                        if (pendingRender) doRender();
+                    });
+                }
+            };
+
+            const flushRender = () => {
+                if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
+                if (pendingRender) doRender();
+            };
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                if (requestVersion !== aiChatRequestVersion || sessionKey !== aiChatCurrentSessionKey) {
+                    if (rafId !== null) cancelAnimationFrame(rafId);
+                    if (streamNode && streamNode.parentNode) streamNode.remove();
+                    reader.cancel();
+                    return;
+                }
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (!trimmed || !trimmed.startsWith('data:')) continue;
+                    const dataStr = trimmed.slice(5).trim();
+                    if (dataStr === '[DONE]') continue;
+
+                    try {
+                        const chunk = JSON.parse(dataStr);
+                        const delta = chunk.choices?.[0]?.delta?.content || '';
+                        if (delta) {
+                            streamedContent += delta;
+                            scheduleRender();
+                        }
+                    } catch (_) { /* 忽略非 JSON 行 */ }
+                }
             }
 
-            replyText = String(data.choices?.[0]?.message?.content || '').trim();
+            // 确保最后一帧内容已渲染
+            flushRender();
+
+            replyText = streamedContent.trim();
             if (!replyText) {
                 throw new Error('AI 返回为空');
             }
+
+            // 就地更新流式节点为正式消息，避免删除再创建导致的闪烁
+            if (streamNode) {
+                streamNode.classList.remove('streaming');
+                streamNode.innerHTML = renderMarkdownToHtml(replyText);
+                scrollAIChatToBottom();
+            }
+            // 缓存到会话
+            session.messages.push({ role: 'assistant', text: replyText, extraClass: '' });
         }
 
         if (requestVersion !== aiChatRequestVersion || sessionKey !== aiChatCurrentSessionKey) return;
 
-        if (loadingNode && loadingNode.parentNode) loadingNode.remove();
-        appendAIChatMessage('assistant', replyText, '', { sessionKey });
+        // 非流式路径：移除加载提示并显示回复（流式路径已就地更新，无需重复）
+        if (!streamNode) {
+            if (loadingNode && loadingNode.parentNode) loadingNode.remove();
+            appendAIChatMessage('assistant', replyText, '', { sessionKey });
+        }
         session.history.push({ role: 'user', content: text });
         session.history.push({ role: 'assistant', content: replyText });
         if (session.history.length > 20) session.history = session.history.slice(-20);
     } catch (error) {
         if (requestVersion !== aiChatRequestVersion || sessionKey !== aiChatCurrentSessionKey) return;
+        if (streamNode && streamNode.parentNode) streamNode.remove();
         if (loadingNode && loadingNode.parentNode) loadingNode.remove();
         appendAIChatMessage('assistant', `解析失败：${error.message || '未知错误'}`, '', { sessionKey });
     } finally {

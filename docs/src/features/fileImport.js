@@ -6,6 +6,7 @@ import { normalizeQuestions } from '../core/dataProcessor.js';
 import { parseTextWithConfig } from '../core/parser.js';
 import { PRESET_FORMATS } from '../config/presets.js';
 import { showError, hideErrors } from './viewManager.js';
+import { getSelectedPreset, getAllFormats } from './formatManager.js';
 
 const FILE_SIZE_LIMIT = 5 * 1024 * 1024; // 5MB
 let currentFileReadVersion = 0;
@@ -22,6 +23,11 @@ export function initFileUpload() {
     const uploadZone = $('uploadZone');
 
     if (uploadZone) {
+        uploadZone.addEventListener('click', () => {
+            const fileInput = $('fileInput');
+            if (fileInput) fileInput.click();
+        });
+
         uploadZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             uploadZone.classList.add('drag-over');
@@ -134,7 +140,9 @@ function tryParseText(text) {
 }
 
 // 解析预设格式
-export function parseWithSelectedPreset(selectedPreset, allFormats) {
+export function parseWithSelectedPreset() {
+    const selectedPreset = getSelectedPreset();
+    const allFormats = getAllFormats();
     if (!selectedPreset) {
         showError('请先选择一个格式', 'paste');
         return;

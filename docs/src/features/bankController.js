@@ -2,7 +2,7 @@
 
 import { $ } from '../utils/dom.js';
 import { showAlert } from '../components/Dialog.js';
-import { confirmAction } from '../components/Dialog.js';
+import { confirmAction, showPrompt } from '../components/Dialog.js';
 import {
     loadQuestionBanks,
     addQuestionBank,
@@ -242,6 +242,39 @@ export async function clearAllBanksAction() {
     }
     refreshBankList();
     await showAlert('✅ 已清空所有题库', '🗑️');
+}
+
+export async function exportWrongToBank() {
+    const qs = getQuestions();
+    const answers = getUserAnswers();
+    if (!qs.length || !answers.length) return;
+
+    const wrongQs = qs.filter((q, i) => answers[i] !== null && answers[i] !== q.answer);
+    if (!wrongQs.length) {
+        await showAlert('没有错题可导入', '✅');
+        return;
+    }
+
+    const bankName = await showPrompt({
+        icon: '❌',
+        title: '导入错题到题库',
+        message: `共 ${wrongQs.length} 道错题，同名题库将自动合并`,
+        placeholder: '输入题库名称',
+        defaultValue: '错题集',
+        confirmText: '导入'
+    });
+    if (!bankName) return;
+
+    const result = addQuestionBank(bankName, wrongQs);
+    if (!result.bank || !result.saved) {
+        await showAlert('导入失败：存储空间不足或无有效题目', '⚠️');
+        return;
+    }
+    if (result.merged) {
+        await showAlert(`已合并到「${bankName}」，新增 ${result.added} 题，共 ${result.total} 题`, '📚');
+    } else {
+        await showAlert(`已导入到「${bankName}」，共 ${result.total} 题`, '📚');
+    }
 }
 
 export function startBankQuiz(bankId, mode) {

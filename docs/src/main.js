@@ -15,12 +15,12 @@ import { setFinishParsingCallback } from './features/fileImport.js';
 import { setSetTabCallback } from './features/ai.js';
 import { initAIAnalysisWidget, toggleAIChatPanel, activateAIChatSessionForQuestion, updateAIChatPanelPosition } from './features/aiChat.js';
 import { initDragFunctionality } from './utils/drag.js';
-import { setTab, showView } from './features/viewManager.js';
+import { setTab, showView, setOnBankTabCallback } from './features/viewManager.js';
 import { closeExampleModal } from './features/formatManager.js';
 import { getCurrentIndex, getQuestions, getIsReviewMode } from './features/quiz.js';
 
 // 控制器
-import { finishParsing, showResultView, nextQ, prevQ, setOnExitToBankCallback } from './features/quizController.js';
+import { finishParsing, showResultView, nextQ, prevQ, setOnExitToBankCallback, setOnResetCallback } from './features/quizController.js';
 import { refreshBankList } from './features/bankController.js';
 import { initEventListeners, openSettings, closeSettings } from './events.js';
 
@@ -36,6 +36,12 @@ function init() {
     setSetTabCallback(setTab);
     setOnExitToBankCallback(() => {
         setTab('bank');
+        refreshBankList();
+    });
+    setOnBankTabCallback(() => {
+        refreshBankList();
+    });
+    setOnResetCallback(() => {
         refreshBankList();
     });
 

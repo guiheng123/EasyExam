@@ -96,6 +96,35 @@
     color: var(--text-main);
 }
 .score-unit { font-size: 14px; color: #999; }
+.result-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 20px;
+}
+.stat-card {
+    padding: 12px 8px;
+    border-radius: 10px;
+    background: #f1f5f9;
+    text-align: center;
+}
+.stat-card.correct { background: var(--correct-color); }
+.stat-card.wrong { background: var(--wrong-color); cursor: pointer; }
+.stat-card.wrong:hover { opacity: 0.85; }
+.stat-num {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+.stat-card.correct .stat-num { color: var(--correct-text); }
+.stat-card.wrong .stat-num { color: var(--wrong-text); }
+.stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
 .result-hint {
     font-size: 13px;
     color: var(--text-secondary);

@@ -128,9 +128,11 @@ export function nextQ() {
     }
 }
 
-// _onExitToBank 回调，由 main.js 注入，避免循环依赖
+// 回调，由 main.js 注入，避免循环依赖
 let _onExitToBank = null;
 export function setOnExitToBankCallback(fn) { _onExitToBank = fn; }
+let _onReset = null;
+export function setOnResetCallback(fn) { _onReset = fn; }
 
 export async function confirmExitQuiz() {
     const result = await confirmExit();
@@ -175,5 +177,6 @@ export function resetImportData() {
     setActiveBankId(null);
     resetToSetupPanel();
     showView('homeView');
+    if (typeof _onReset === 'function') _onReset();
 }
 

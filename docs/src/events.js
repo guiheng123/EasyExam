@@ -78,7 +78,8 @@ import {
     deleteBankAction,
     resetBankAction,
     clearAllBanksAction,
-    startBankQuiz
+    startBankQuiz,
+    exportWrongToBank
 } from './features/bankController.js';
 import {
     exportAIQuestions,
@@ -122,6 +123,12 @@ export function initEventListeners() {
             const idx = Number(dot.dataset.index);
             if (Number.isInteger(idx) && idx >= 0) reviewQuestionAt(idx);
         });
+    }
+
+    // 错题卡片点击 → 导入到题库
+    const statWrongCard = document.querySelector('.stat-card.wrong');
+    if (statWrongCard) {
+        statWrongCard.addEventListener('click', () => exportWrongToBank());
     }
 
     // 模态框点击关闭

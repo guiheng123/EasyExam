@@ -173,6 +173,17 @@
 .dialog-btn-confirm:hover { background: var(--primary-hover); }
 .dialog-btn-danger { background: #ef4444; color: white; }
 .dialog-btn-danger:hover { background: #dc2626; }
+.dialog-prompt-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+.dialog-prompt-input:focus { border-color: var(--primary-color); }
 
 /* ===== 模态框 ===== */
 .modal-overlay { animation: fadeIn 0.2s; }

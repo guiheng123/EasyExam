@@ -2,6 +2,9 @@
 
 import { $, $$ } from '../utils/dom.js';
 
+let onBankTabCallback = null;
+export function setOnBankTabCallback(cb) { onBankTabCallback = cb; }
+
 // 界面切换
 export function setTab(mode) {
     const btns = $$('.tab-group .tab-btn');
@@ -22,7 +25,8 @@ export function setTab(mode) {
     if (areas[mode]) {
         areas[mode].classList.add('active');
     }
-    
+
+    if (mode === 'bank' && onBankTabCallback) onBankTabCallback();
     hideErrors();
 }
 

@@ -109,6 +109,72 @@ export function closeDialog() {
     return false;
 }
 
+// 带输入框的提示框，返回输入内容或 null（取消）
+export function showPrompt({ title = '请输入', message = '', icon = '✏️', placeholder = '', defaultValue = '', confirmText = '确定' } = {}) {
+    return new Promise(resolve => {
+        const overlay = $('dialogOverlay');
+        const iconEl = $('dialogIcon');
+        const titleEl = $('dialogTitle');
+        const messageEl = $('dialogMessage');
+        const btnContainer = $('dialogButtons');
+
+        if (!overlay || !iconEl || !titleEl || !messageEl || !btnContainer) {
+            resolve(null);
+            return;
+        }
+
+        if (typeof dialogResolve === 'function') {
+            dialogResolve(false);
+        }
+
+        let finalized = false;
+        const finalize = (value) => {
+            if (finalized) return;
+            finalized = true;
+            overlay.classList.remove('active');
+            messageEl.textContent = '';
+            dialogResolve = null;
+            resolve(value);
+        };
+
+        dialogResolve = () => finalize(null);
+        iconEl.textContent = icon;
+        titleEl.textContent = title;
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'dialog-prompt-input';
+        input.placeholder = placeholder;
+        input.value = defaultValue;
+
+        messageEl.textContent = '';
+        if (message) {
+            const p = document.createElement('div');
+            p.textContent = message;
+            p.style.marginBottom = '12px';
+            messageEl.appendChild(p);
+        }
+        messageEl.appendChild(input);
+
+        btnContainer.innerHTML = '';
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'dialog-btn dialog-btn-cancel';
+        cancelBtn.textContent = '取消';
+        cancelBtn.onclick = () => finalize(null);
+
+        const confirmBtn = document.createElement('button');
+        confirmBtn.className = 'dialog-btn dialog-btn-confirm';
+        confirmBtn.textContent = confirmText;
+        confirmBtn.onclick = () => finalize(input.value.trim() || defaultValue);
+
+        btnContainer.appendChild(cancelBtn);
+        btnContainer.appendChild(confirmBtn);
+
+        overlay.classList.add('active');
+        setTimeout(() => input.focus(), 100);
+    });
+}
+
 // 通用确认对话框
 export async function confirmAction({ title = '提示', message = '', icon = '⚠️', confirmText = '确定', danger = false } = {}) {
     return showDialog({

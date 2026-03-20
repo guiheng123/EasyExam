@@ -1,6 +1,7 @@
 // AI 聊天面板模块
 import { $, escapeHtml } from '../utils/dom.js';
 import { getAIConfig } from './ai.js';
+import { fetchWithTimeout } from '../utils/api.js';
 import { getCurrentQuestion, getCurrentIndex, getQuestions, getUserAnswers } from './quiz.js';
 
 // AI 聊天状态
@@ -182,8 +183,15 @@ function restoreMathBlocks(html, mathBlocks) {
 // Markdown 渲染
 function formatInlineMarkdown(rawText) {
     return rawText
+        .replace(/`([^`]+?)`/g, '<code>$1</code>')
+        .replace(/\*\*\*([^*]+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+        .replace(/___([^_]+?)___/g, '<strong><em>$1</em></strong>')
         .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/`([^`]+?)`/g, '<code>$1</code>');
+        .replace(/__(.+?)__/g, '<strong>$1</strong>')
+        .replace(/(^|[^*])\*([^*]+?)\*(?!\*)/g, '$1<em>$2</em>')
+        .replace(/(^|[^_])_([^_]+?)_(?!_)/g, '$1<em>$2</em>')
+        .replace(/~~(.+?)~~/g, '<del>$1</del>')
+        .replace(/\[([^\]]+?)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
 }
 
 function renderMarkdownToHtml(markdownText) {
@@ -200,27 +208,77 @@ function renderMarkdownToHtml(markdownText) {
     const source = escapeHtml(textForMarkdown).replace(/\r\n?/g, '\n');
     const lines = source.split('\n');
     const html = [];
-    let inList = false;
+    let listType = '';
+    let inCodeBlock = false;
+    let codeBlockLanguage = '';
+    let codeBlockLines = [];
+    let inBlockquote = false;
 
     const closeList = () => {
-        if (inList) {
-            html.push('</ul>');
-            inList = false;
+        if (listType) {
+            html.push(`</${listType}>`);
+            listType = '';
         }
+    };
+
+    const openList = (nextType) => {
+        if (listType === nextType) return;
+        closeList();
+        html.push(`<${nextType}>`);
+        listType = nextType;
+    };
+
+    const closeBlockquote = () => {
+        if (!inBlockquote) return;
+        closeList();
+        html.push('</blockquote>');
+        inBlockquote = false;
+    };
+
+    const closeCodeBlock = () => {
+        if (!inCodeBlock) return;
+        closeBlockquote();
+        closeList();
+        const languageClass = codeBlockLanguage ? ` class="language-${codeBlockLanguage}"` : '';
+        html.push(`<pre><code${languageClass}>${codeBlockLines.join('\n')}</code></pre>`);
+        inCodeBlock = false;
+        codeBlockLanguage = '';
+        codeBlockLines = [];
     };
 
     for (const rawLine of lines) {
         const line = rawLine.trimEnd();
         const trimmed = line.trim();
+        const codeFenceMatch = trimmed.match(/^```\s*([A-Za-z0-9_-]+)?\s*$/);
+
+        if (codeFenceMatch) {
+            if (inCodeBlock) {
+                closeCodeBlock();
+            } else {
+                closeBlockquote();
+                closeList();
+                inCodeBlock = true;
+                codeBlockLanguage = (codeFenceMatch[1] || '').trim();
+                codeBlockLines = [];
+            }
+            continue;
+        }
+
+        if (inCodeBlock) {
+            codeBlockLines.push(line);
+            continue;
+        }
 
         if (!trimmed) {
             closeList();
+            closeBlockquote();
             continue;
         }
 
         const headingMatch = trimmed.match(/^(#{1,4})\s+(.+)$/);
         if (headingMatch) {
             closeList();
+            closeBlockquote();
             const level = headingMatch[1].length;
             html.push(`<h${level}>${formatInlineMarkdown(headingMatch[2])}</h${level}>`);
             continue;
@@ -228,17 +286,37 @@ function renderMarkdownToHtml(markdownText) {
 
         if (/^-{3,}$/.test(trimmed)) {
             closeList();
+            closeBlockquote();
             html.push('<hr>');
             continue;
         }
 
-        const listMatch = trimmed.match(/^[-*]\s+(.+)$/);
-        if (listMatch) {
-            if (!inList) {
-                html.push('<ul>');
-                inList = true;
+        const blockquoteMatch = line.match(/^>\s?(.*)$/);
+        if (blockquoteMatch) {
+            closeList();
+            if (!inBlockquote) {
+                html.push('<blockquote>');
+                inBlockquote = true;
             }
-            html.push(`<li>${formatInlineMarkdown(listMatch[1])}</li>`);
+            const quoteText = blockquoteMatch[1].trim();
+            if (quoteText) {
+                html.push(`<p>${formatInlineMarkdown(quoteText)}</p>`);
+            }
+            continue;
+        }
+        closeBlockquote();
+
+        const unorderedListMatch = trimmed.match(/^[-*]\s+(.+)$/);
+        if (unorderedListMatch) {
+            openList('ul');
+            html.push(`<li>${formatInlineMarkdown(unorderedListMatch[1])}</li>`);
+            continue;
+        }
+
+        const orderedListMatch = trimmed.match(/^\d+[.)]\s+(.+)$/);
+        if (orderedListMatch) {
+            openList('ol');
+            html.push(`<li>${formatInlineMarkdown(orderedListMatch[1])}</li>`);
             continue;
         }
 
@@ -246,7 +324,9 @@ function renderMarkdownToHtml(markdownText) {
         html.push(`<p>${formatInlineMarkdown(trimmed)}</p>`);
     }
 
+    closeCodeBlock();
     closeList();
+    closeBlockquote();
     let result = html.join('');
     // 还原数学公式为 KaTeX 渲染结果
     result = restoreMathBlocks(result, mathBlocks);
@@ -368,17 +448,16 @@ export async function sendAIChatMessage(customText) {
     const requestVersion = ++aiChatRequestVersion;
     const loadingNode = appendAIChatMessage('assistant', '正在思考中...', 'loading', { sessionKey });
 
+    let streamNode = null;
     try {
         const snap = getCurrentQuestionSnapshot();
         const aiConfig = getAIConfig();
         const hasApi = !!(aiConfig.apiUrl && aiConfig.apiToken && aiConfig.model);
-
-        let streamNode = null;
         let replyText = '';
         if (!hasApi) {
             if (snap) {
                 replyText = snap.explanation
-                    ? `参考题目解析：\n${snap.explanation}\n\n建议：先排除明显错误项，再对比剩余选项关键词。`
+                    ? `参考题目解析：\n${snap.explanation}`
                     : `当前未配置 AI API。\n你可在设置中填写 API 后获得更详细解析。\n\n临时建议：关注题干关键词，逐项对照定义与场景。`;
             } else {
                 replyText = '当前未配置 AI API，且没有题目上下文。请先开始答题，或在设置中配置 API。';
@@ -394,19 +473,21 @@ export async function sendAIChatMessage(customText) {
                 { role: 'user', content: text + context }
             ];
 
-            const response = await fetch(aiConfig.apiUrl, {
+            const requestBody = {
+                model: aiConfig.model,
+                messages,
+                temperature: 0.4,
+                stream: true
+            };
+
+            const response = await fetchWithTimeout(aiConfig.apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${aiConfig.apiToken}`
                 },
-                body: JSON.stringify({
-                    model: aiConfig.model,
-                    messages,
-                    temperature: 0.4,
-                    stream: true
-                })
-            });
+                body: JSON.stringify(requestBody)
+            }, 30000);
 
             if (!response.ok) {
                 const rawErrorText = await response.text();
@@ -427,86 +508,125 @@ export async function sendAIChatMessage(customText) {
                 );
             }
 
-            // 流式读取响应
-            if (loadingNode && loadingNode.parentNode) loadingNode.remove();
-            streamNode = appendAIChatMessage('assistant', '', 'streaming', { sessionKey, skipCache: true });
+            const contentType = (response.headers.get('content-type') || '').toLowerCase();
+            const isStreamResponse = !!response.body && (contentType.includes('text/event-stream') || contentType.includes('application/x-ndjson'));
 
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder('utf-8');
-            let buffer = '';
-            let streamedContent = '';
-            let rafId = null;
-            let pendingRender = false;
+            if (isStreamResponse) {
+                // 流式读取响应
+                if (loadingNode && loadingNode.parentNode) loadingNode.remove();
+                streamNode = appendAIChatMessage('assistant', '', 'streaming', { sessionKey, skipCache: true });
 
-            // 使用 requestAnimationFrame 节流渲染，避免每个 chunk 都重建 DOM
-            const doRender = () => {
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+                let buffer = '';
+                let streamedContent = '';
+                let rafId = null;
+                let pendingRender = false;
+
+                // 使用 requestAnimationFrame 节流渲染，避免每个 chunk 都重建 DOM
+                const doRender = () => {
+                    if (streamNode) {
+                        streamNode.innerHTML = addStreamCursor(renderMarkdownToHtml(streamedContent));
+                        smartScrollToBottom();
+                    }
+                    pendingRender = false;
+                };
+
+                const scheduleRender = () => {
+                    pendingRender = true;
+                    if (rafId === null) {
+                        rafId = requestAnimationFrame(() => {
+                            rafId = null;
+                            if (pendingRender) doRender();
+                        });
+                    }
+                };
+
+                const flushRender = () => {
+                    if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
+                    if (pendingRender) doRender();
+                };
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    if (requestVersion !== aiChatRequestVersion || sessionKey !== aiChatCurrentSessionKey) {
+                        if (rafId !== null) cancelAnimationFrame(rafId);
+                        if (streamNode && streamNode.parentNode) streamNode.remove();
+                        reader.cancel();
+                        return;
+                    }
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+
+                    for (const line of lines) {
+                        const trimmed = line.trim();
+                        if (!trimmed || !trimmed.startsWith('data:')) continue;
+                        const dataStr = trimmed.slice(5).trim();
+                        if (dataStr === '[DONE]') continue;
+
+                        try {
+                            const chunk = JSON.parse(dataStr);
+                            const delta = chunk.choices?.[0]?.delta?.content || '';
+                            if (delta) {
+                                streamedContent += delta;
+                                scheduleRender();
+                            }
+                        } catch (_) { /* 忽略非 JSON 行 */ }
+                    }
+                }
+
+                if (buffer.trim().startsWith('data:')) {
+                    const dataStr = buffer.trim().slice(5).trim();
+                    if (dataStr && dataStr !== '[DONE]') {
+                        try {
+                            const chunk = JSON.parse(dataStr);
+                            const delta = chunk.choices?.[0]?.delta?.content || '';
+                            if (delta) {
+                                streamedContent += delta;
+                                scheduleRender();
+                            }
+                        } catch (_) {}
+                    }
+                }
+
+                // 确保最后一帧内容已渲染
+                flushRender();
+
+                replyText = streamedContent.trim();
+                if (!replyText) {
+                    throw new Error('AI 返回为空');
+                }
+
+                // 就地更新流式节点为正式消息，避免删除再创建导致的闪烁
                 if (streamNode) {
-                    streamNode.innerHTML = addStreamCursor(renderMarkdownToHtml(streamedContent));
-                    smartScrollToBottom();
+                    streamNode.classList.remove('streaming');
+                    streamNode.innerHTML = renderMarkdownToHtml(replyText);
+                    scrollAIChatToBottom();
                 }
-                pendingRender = false;
-            };
+            } else {
+                const rawText = await response.text();
+                let parsedText = rawText.trim();
+                try {
+                    const parsed = rawText ? JSON.parse(rawText) : null;
+                    parsedText = String(
+                        parsed?.choices?.[0]?.message?.content
+                        || parsed?.choices?.[0]?.text
+                        || parsed?.message?.content
+                        || parsed?.message
+                        || parsed?.content
+                        || rawText
+                    ).trim();
+                } catch (_) {}
 
-            const scheduleRender = () => {
-                pendingRender = true;
-                if (rafId === null) {
-                    rafId = requestAnimationFrame(() => {
-                        rafId = null;
-                        if (pendingRender) doRender();
-                    });
-                }
-            };
-
-            const flushRender = () => {
-                if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
-                if (pendingRender) doRender();
-            };
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                if (requestVersion !== aiChatRequestVersion || sessionKey !== aiChatCurrentSessionKey) {
-                    if (rafId !== null) cancelAnimationFrame(rafId);
-                    if (streamNode && streamNode.parentNode) streamNode.remove();
-                    reader.cancel();
-                    return;
-                }
-
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || '';
-
-                for (const line of lines) {
-                    const trimmed = line.trim();
-                    if (!trimmed || !trimmed.startsWith('data:')) continue;
-                    const dataStr = trimmed.slice(5).trim();
-                    if (dataStr === '[DONE]') continue;
-
-                    try {
-                        const chunk = JSON.parse(dataStr);
-                        const delta = chunk.choices?.[0]?.delta?.content || '';
-                        if (delta) {
-                            streamedContent += delta;
-                            scheduleRender();
-                        }
-                    } catch (_) { /* 忽略非 JSON 行 */ }
+                replyText = parsedText;
+                if (!replyText) {
+                    throw new Error('AI 返回为空');
                 }
             }
 
-            // 确保最后一帧内容已渲染
-            flushRender();
-
-            replyText = streamedContent.trim();
-            if (!replyText) {
-                throw new Error('AI 返回为空');
-            }
-
-            // 就地更新流式节点为正式消息，避免删除再创建导致的闪烁
-            if (streamNode) {
-                streamNode.classList.remove('streaming');
-                streamNode.innerHTML = renderMarkdownToHtml(replyText);
-                scrollAIChatToBottom();
-            }
             // 缓存到会话
             session.messages.push({ role: 'assistant', text: replyText, extraClass: '' });
         }

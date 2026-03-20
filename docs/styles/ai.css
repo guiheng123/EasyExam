@@ -610,8 +610,10 @@ details[open] > .ai-stream-summary::before {
 .ai-chat-msg.assistant {
     margin-right: auto;
     color: #334155;
-    background: white;
-    border: 1px solid #e2e8f0;
+    background: transparent;
+    border: none;
+    padding: 0;
+    border-radius: 0;
 }
 .ai-chat-msg.loading {
     color: #64748b;

@@ -6,17 +6,14 @@ import { settingsSidebar, aiModal, exampleModal, setHasInitialized, hasInitializ
 
 // 初始化函数
 import { initDialogSystem, closeDialog } from './components/Dialog.js';
-import { loadCustomFormats, renderPresets } from './features/formatManager.js';
+import { loadCustomFormats, renderPresets, closeExampleModal } from './features/formatManager.js';
 import { loadHotkeySettings, initHotkeySystem, showHotkeyHint, cancelRecording } from './features/hotkeys.js';
-import { loadAISettings, closeAIModal } from './features/ai.js';
+import { loadAISettings, closeAIModal, setSetTabCallback } from './features/ai.js';
 import { loadQuestionBanks } from './features/questionBank.js';
-import { initFileUpload } from './features/fileImport.js';
-import { setFinishParsingCallback } from './features/fileImport.js';
-import { setSetTabCallback } from './features/ai.js';
+import { initFileUpload, setFinishParsingCallback } from './features/fileImport.js';
 import { initAIAnalysisWidget, toggleAIChatPanel, activateAIChatSessionForQuestion, updateAIChatPanelPosition } from './features/aiChat.js';
 import { initDragFunctionality } from './utils/drag.js';
 import { setTab, showView, setOnBankTabCallback } from './features/viewManager.js';
-import { closeExampleModal } from './features/formatManager.js';
 import { getCurrentIndex, getQuestions, getIsReviewMode } from './features/quiz.js';
 
 // 控制器
@@ -105,9 +102,7 @@ function init() {
             showHotkeyHint('选择 ' + (labels[index] || (index + 1)));
             options[index].click();
         },
-        prevQuestion: () => {
-            prevQ();
-        },
+        prevQuestion: prevQ,
         nextQuestion: () => {
             const isLast = getCurrentIndex() === getQuestions().length - 1;
             if (getIsReviewMode()) {

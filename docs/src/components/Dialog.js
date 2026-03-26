@@ -4,6 +4,14 @@ import { $ } from '../utils/dom.js';
 
 let dialogResolve = null;
 
+// 关闭当前对话框并 resolve（内部共用）
+function resolveDialog(value) {
+    if (typeof dialogResolve === 'function') {
+        dialogResolve(value);
+        dialogResolve = null;
+    }
+}
+
 // 显示对话框
 export function showDialog({ icon, title, message, buttons }) {
     return new Promise(resolve => {
@@ -86,10 +94,7 @@ export function initDialogSystem() {
         dialogOverlayEl.addEventListener('click', function(e) {
             if (e.target === this) {
                 this.classList.remove('active');
-                if (dialogResolve) { 
-                    dialogResolve(false); 
-                    dialogResolve = null; 
-                }
+                resolveDialog(false);
             }
         });
     }
@@ -100,10 +105,7 @@ export function closeDialog() {
     const dialogOverlay = $('dialogOverlay');
     if (dialogOverlay && dialogOverlay.classList.contains('active')) {
         dialogOverlay.classList.remove('active');
-        if (dialogResolve) { 
-            dialogResolve(false); 
-            dialogResolve = null; 
-        }
+        resolveDialog(false);
         return true;
     }
     return false;

@@ -129,17 +129,18 @@ export function resetBankResults(bankId) {
 export function getBankStats(bank) {
     const total = bank.questions.length;
     let correct = 0, wrong = 0;
-    for (const key in bank.results) {
+    for (const key of Object.keys(bank.results)) {
         if (bank.results[key].status === 'correct') correct++;
         else wrong++;
     }
     return { total, correct, wrong, pending: total - correct - wrong };
 }
 
-export function getCorrectQuestions(bank) {
+// 按答题状态筛选题目（内部共用）
+function getQuestionsByStatus(bank, status) {
     const out = [];
-    for (const key in bank.results) {
-        if (bank.results[key].status === 'correct') {
+    for (const key of Object.keys(bank.results)) {
+        if (bank.results[key].status === status) {
             const idx = Number(key);
             if (bank.questions[idx]) out.push({ ...bank.questions[idx], _bankIndex: idx, _userAnswer: bank.results[key].userAnswer });
         }
@@ -147,15 +148,12 @@ export function getCorrectQuestions(bank) {
     return out;
 }
 
+export function getCorrectQuestions(bank) {
+    return getQuestionsByStatus(bank, 'correct');
+}
+
 export function getWrongQuestions(bank) {
-    const out = [];
-    for (const key in bank.results) {
-        if (bank.results[key].status === 'wrong') {
-            const idx = Number(key);
-            if (bank.questions[idx]) out.push({ ...bank.questions[idx], _bankIndex: idx, _userAnswer: bank.results[key].userAnswer });
-        }
-    }
-    return out;
+    return getQuestionsByStatus(bank, 'wrong');
 }
 
 export function getPendingQuestions(bank) {

@@ -1,8 +1,7 @@
 // 题库操作控制器 - 从 main.js 提取的题库编排逻辑
 
 import { $ } from '../utils/dom.js';
-import { showAlert } from '../components/Dialog.js';
-import { confirmAction, showPrompt } from '../components/Dialog.js';
+import { showAlert, confirmAction, showPrompt } from '../components/Dialog.js';
 import {
     loadQuestionBanks,
     addQuestionBank,

@@ -101,6 +101,16 @@ function openSettings() {
 
 export { openSettings, closeSettings };
 
+/**
+ * 工具函数：若元素存在则绑定 click 事件
+ * @param {string|Element} idOrEl - 元素 ID 字符串或 DOM 元素
+ * @param {Function} handler
+ */
+function bindClick(idOrEl, handler) {
+    const el = typeof idOrEl === 'string' ? $(idOrEl) : idOrEl;
+    if (el) el.addEventListener('click', handler);
+}
+
 // 初始化所有事件监听
 export function initEventListeners() {
     // 选项点击事件
@@ -254,25 +264,10 @@ export function initEventListeners() {
         });
     }
 
-    const bankDetailBackBtn = $('bankDetailBackBtn');
-    if (bankDetailBackBtn) {
-        bankDetailBackBtn.addEventListener('click', () => closeBankDetail());
-    }
-
-    const startQuizBtn = $('startQuizBtn');
-    if (startQuizBtn) {
-        startQuizBtn.addEventListener('click', () => startQuizGame());
-    }
-
-    const resetImportBtn = $('resetImportBtn');
-    if (resetImportBtn) {
-        resetImportBtn.addEventListener('click', () => resetImportData());
-    }
-
-    const saveToBankBtn = $('saveToBankBtn');
-    if (saveToBankBtn) {
-        saveToBankBtn.addEventListener('click', () => saveToBankAction());
-    }
+    bindClick('bankDetailBackBtn', () => closeBankDetail());
+    bindClick('startQuizBtn', () => startQuizGame());
+    bindClick('resetImportBtn', () => resetImportData());
+    bindClick('saveToBankBtn', () => saveToBankAction());
 
     // 答题页
     const quizBackBtn = $('quizBackBtn');
@@ -355,16 +350,10 @@ export function initEventListeners() {
         });
     }
 
-    const confirmSaveBankBtn = $('confirmSaveBankBtn');
-    if (confirmSaveBankBtn) {
-        confirmSaveBankBtn.addEventListener('click', () => confirmSaveToBank());
-    }
+    bindClick('confirmSaveBankBtn', () => confirmSaveToBank());
 
     // 清空题库
-    const clearAllBanksBtn = $('clearAllBanksBtn');
-    if (clearAllBanksBtn) {
-        clearAllBanksBtn.addEventListener('click', () => clearAllBanksAction());
-    }
+    bindClick('clearAllBanksBtn', () => clearAllBanksAction());
 
     // AI 聊天
     const aiChatSendBtn = $('aiChatSendBtn');
@@ -387,28 +376,16 @@ export function initEventListeners() {
         aiChatAnalyzeBtn.addEventListener('click', () => askCurrentQuestionAnalysis());
     }
 
-    const aiChatCloseBtn = $('aiChatCloseBtn');
-    if (aiChatCloseBtn) {
-        aiChatCloseBtn.addEventListener('click', () => toggleAIChatPanel(false));
-    }
+    bindClick('aiChatCloseBtn', () => toggleAIChatPanel(false));
 
     // AI 配置
     const aiConfigSelect = $('aiConfigSelect');
     if (aiConfigSelect) {
         aiConfigSelect.addEventListener('change', () => switchConfig());
     }
-    const aiConfigAdd = $('aiConfigAdd');
-    if (aiConfigAdd) {
-        aiConfigAdd.addEventListener('click', () => addConfig());
-    }
-    const aiConfigDelete = $('aiConfigDelete');
-    if (aiConfigDelete) {
-        aiConfigDelete.addEventListener('click', () => deleteConfig());
-    }
-    const aiConfigRename = $('aiConfigRename');
-    if (aiConfigRename) {
-        aiConfigRename.addEventListener('click', () => renameConfig());
-    }
+    bindClick('aiConfigAdd', () => addConfig());
+    bindClick('aiConfigDelete', () => deleteConfig());
+    bindClick('aiConfigRename', () => renameConfig());
 
     // AI 设置
     const aiToggle = $('aiToggle');
@@ -473,20 +450,9 @@ export function initEventListeners() {
         closeAIModalBtn.addEventListener('keydown', (e) => handleAccessibleAction(e, closeAIModal, closeAIModalBtn));
     }
 
-    const aiGenerateBtn = $('aiGenerateBtn');
-    if (aiGenerateBtn) {
-        aiGenerateBtn.addEventListener('click', () => generateAIQuestions());
-    }
-
-    const exportAIQuestionsBtn = $('exportAIQuestionsBtn');
-    if (exportAIQuestionsBtn) {
-        exportAIQuestionsBtn.addEventListener('click', () => exportAIQuestions());
-    }
-
-    const importAIQuestionsBtn = $('importAIQuestionsBtn');
-    if (importAIQuestionsBtn) {
-        importAIQuestionsBtn.addEventListener('click', () => importAIQuestions());
-    }
+    bindClick('aiGenerateBtn', () => generateAIQuestions());
+    bindClick('exportAIQuestionsBtn', () => exportAIQuestions());
+    bindClick('importAIQuestionsBtn', () => importAIQuestions());
 
     // AI 历史记录列表（事件委托）
     const aiHistoryList = $('aiHistoryList');
@@ -528,10 +494,7 @@ export function initEventListeners() {
     }
 
     // 结果页返回首页
-    const resultBackBtn = $('resultBackBtn');
-    if (resultBackBtn) {
-        resultBackBtn.addEventListener('click', () => resetImportData());
-    }
+    bindClick('resultBackBtn', () => resetImportData());
 
     // 关闭示例模态框
     const closeExampleModalBtn = $('closeExampleModalBtn');

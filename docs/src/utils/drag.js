@@ -158,45 +158,36 @@ function createDraggableFab({ element, defaultBottom = 24, onMoveFrame, onSnapCo
         if (typeof onSnapComplete === 'function') onSnapComplete();
     }
 
-    fab.addEventListener('mousedown', function (e) {
-        e.preventDefault();
-        onStart(e.clientX, e.clientY);
-    });
+    function onMouseDown(e) { e.preventDefault(); onStart(e.clientX, e.clientY); }
+    function onMouseMove(e) { onMove(e.clientX, e.clientY); }
+    function onMouseUp() { onEnd(); }
+    function onTouchStart(e) { const t = e.touches[0]; if (!t) return; onStart(t.clientX, t.clientY); }
+    function onTouchMove(e) { if (!isDragging) return; e.preventDefault(); const t = e.touches[0]; if (!t) return; onMove(t.clientX, t.clientY); }
+    function onTouchEnd() { onEnd(); }
+    function onClickCapture(e) { if (hasMoved) e.stopPropagation(); }
+    function onResize() { clearTimeout(resizeTimer); resizeTimer = setTimeout(handleResize, 120); }
 
-    document.addEventListener('mousemove', function (e) {
-        onMove(e.clientX, e.clientY);
-    });
+    fab.addEventListener('mousedown', onMouseDown);
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+    fab.addEventListener('touchstart', onTouchStart, { passive: true });
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend', onTouchEnd);
+    fab.addEventListener('click', onClickCapture);
+    window.addEventListener('resize', onResize);
 
-    document.addEventListener('mouseup', function () {
-        onEnd();
-    });
-
-    fab.addEventListener('touchstart', function (e) {
-        const t = e.touches[0];
-        if (!t) return;
-        onStart(t.clientX, t.clientY);
-    }, { passive: true });
-
-    document.addEventListener('touchmove', function (e) {
-        if (!isDragging) return;
-        e.preventDefault();
-        const t = e.touches[0];
-        if (!t) return;
-        onMove(t.clientX, t.clientY);
-    }, { passive: false });
-
-    document.addEventListener('touchend', function () {
-        onEnd();
-    });
-
-    fab.addEventListener('click', function (e) {
-        if (hasMoved) {
-            e.stopPropagation();
-        }
-    });
-
-    window.addEventListener('resize', function () {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(handleResize, 120);
-    });
+    // 返回清理函数，供调用方按需销毁监听
+    return function destroy() {
+        fab.removeEventListener('mousedown', onMouseDown);
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        fab.removeEventListener('touchstart', onTouchStart);
+        document.removeEventListener('touchmove', onTouchMove);
+        document.removeEventListener('touchend', onTouchEnd);
+        fab.removeEventListener('click', onClickCapture);
+        window.removeEventListener('resize', onResize);
+        if (dragRafId) { cancelAnimationFrame(dragRafId); dragRafId = 0; }
+        if (snapTimer) { clearTimeout(snapTimer); snapTimer = null; }
+        if (resizeTimer) { clearTimeout(resizeTimer); resizeTimer = null; }
+    };
 }

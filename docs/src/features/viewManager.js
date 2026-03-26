@@ -5,6 +5,9 @@ import { $, $$ } from '../utils/dom.js';
 let onBankTabCallback = null;
 export function setOnBankTabCallback(cb) { onBankTabCallback = cb; }
 
+// tab 顺序与 HTML 中 .tab-btn 排列一致
+const TAB_ORDER = ['file', 'paste', 'ai', 'bank'];
+
 // 界面切换
 export function setTab(mode) {
     const btns = $$('.tab-group .tab-btn');
@@ -14,12 +17,12 @@ export function setTab(mode) {
         ai: $('area-ai'),
         bank: $('area-bank')
     };
-    
+
     btns.forEach(b => b.classList.remove('active'));
     Object.values(areas).forEach(area => area && area.classList.remove('active'));
-    
-    const modeIndex = { file: 0, paste: 1, ai: 2, bank: 3 }[mode];
-    if (modeIndex !== undefined && btns[modeIndex]) {
+
+    const modeIndex = TAB_ORDER.indexOf(mode);
+    if (modeIndex !== -1 && btns[modeIndex]) {
         btns[modeIndex].classList.add('active');
     }
     if (areas[mode]) {

@@ -29,6 +29,16 @@ function createDefaultConfig(id = 1, name = '默认配置') {
     return { id, name, apiUrl: '', apiToken: '', model: '' };
 }
 
+// 获取当前激活配置对象
+function getActiveConfig() {
+    return aiConfigs.find(c => c.id === activeConfigId) || aiConfigs[0] || createDefaultConfig();
+}
+
+// 将配置对象应用到 aiConfig
+function applyConfig(target) {
+    aiConfig = { apiUrl: target.apiUrl, apiToken: target.apiToken, model: target.model };
+}
+
 // 迁移旧版单配置到多配置格式
 function migrateOldSettings(saved) {
     if (saved.configs && Array.isArray(saved.configs)) return null; // 已是新格式
@@ -89,7 +99,7 @@ export function switchConfig(id) {
     const target = aiConfigs.find(c => c.id === id);
     if (!target) return;
     activeConfigId = id;
-    aiConfig = { apiUrl: target.apiUrl, apiToken: target.apiToken, model: target.model };
+    applyConfig(target);
     fillFormFromConfig();
     renderConfigSelector();
     renderModelDropdown();
@@ -131,8 +141,7 @@ export async function deleteConfig() {
     if (!confirmed) return;
     aiConfigs = aiConfigs.filter(c => c.id !== activeConfigId);
     activeConfigId = aiConfigs[0].id;
-    const target = aiConfigs[0];
-    aiConfig = { apiUrl: target.apiUrl, apiToken: target.apiToken, model: target.model };
+    applyConfig(aiConfigs[0]);
     fillFormFromConfig();
     renderConfigSelector();
     renderModelDropdown();
@@ -206,8 +215,7 @@ export function loadAISettings() {
                 aiConfigs = [createDefaultConfig()];
                 activeConfigId = 1;
             }
-            const active = aiConfigs.find(c => c.id === activeConfigId) || aiConfigs[0];
-            aiConfig = { apiUrl: active.apiUrl, apiToken: active.apiToken, model: active.model };
+            applyConfig(getActiveConfig());
         } else {
             aiConfigs = [createDefaultConfig()];
             activeConfigId = 1;

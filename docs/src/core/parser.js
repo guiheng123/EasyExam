@@ -39,10 +39,10 @@ function createParser(config) {
         return t;
     };
     
-    const isOption = (line) => optionRe && optionRe.test(line.trim());
-    const getOptionText = (line) => line.trim().replace(optionRe, '').trim();
+    const isOption = (line) => optionRe ? optionRe.test(line.trim()) : false;
+    const getOptionText = (line) => optionRe ? line.trim().replace(optionRe, '').trim() : line.trim();
     const getOptionLetter = (line) => {
-        const m = line.trim().match(/[A-Da-d]/);
+        const m = line.trim().match(/^[A-Da-d]/);
         return m ? m[0].toUpperCase() : null;
     };
     

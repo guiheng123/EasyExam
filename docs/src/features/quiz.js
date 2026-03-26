@@ -12,6 +12,23 @@ let currentIndex = 0;
 let isReviewMode = false;
 let quizStartTime = 0;
 
+// 打乱单道题目的选项并更新正确答案字母
+function shuffleQuestionOptions(q) {
+    if (!q || !Array.isArray(q.options) || q.options.length === 0) return;
+    const correctIndex = q.options.findIndex(o => o && o.letter === q.answer);
+    if (correctIndex === -1) return;
+    q.options[correctIndex].isCorrect = true;
+    shuffleArray(q.options);
+    for (let i = 0; i < q.options.length; i++) {
+        if (!q.options[i]) continue;
+        q.options[i].letter = String.fromCharCode(65 + i);
+        if (q.options[i].isCorrect) {
+            q.answer = q.options[i].letter;
+            delete q.options[i].isCorrect;
+        }
+    }
+}
+
 // 开始答题
 export function startQuiz(shuffleQuestions, shuffleOptions) {
     if (!Array.isArray(questions) || questions.length === 0) {
@@ -19,30 +36,8 @@ export function startQuiz(shuffleQuestions, shuffleOptions) {
         return false;
     }
 
-    if (shuffleQuestions) {
-        shuffleArray(questions);
-    }
-
-    if (shuffleOptions) {
-        for (const q of questions) {
-            if (!q || !Array.isArray(q.options) || q.options.length === 0) continue;
-
-            const correctIndex = q.options.findIndex(o => o && o.letter === q.answer);
-            if (correctIndex === -1) continue;
-
-            q.options[correctIndex].isCorrect = true;
-            shuffleArray(q.options);
-
-            for (let i = 0; i < q.options.length; i++) {
-                if (!q.options[i]) continue;
-                q.options[i].letter = String.fromCharCode(65 + i);
-                if (q.options[i].isCorrect) {
-                    q.answer = q.options[i].letter;
-                    delete q.options[i].isCorrect;
-                }
-            }
-        }
-    }
+    if (shuffleQuestions) shuffleArray(questions);
+    if (shuffleOptions) questions.forEach(shuffleQuestionOptions);
 
     userAnswers = new Array(questions.length).fill(null);
     currentIndex = 0;

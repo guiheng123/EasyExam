@@ -67,13 +67,9 @@ function checkLocalStorageSpace() {
         const testKey = '__storage_test__';
         const testData = new Array(1024).join('a');
         let size = 0;
-        
-        for (let key in localStorage) {
-            if (localStorage.hasOwnProperty(key)) {
-                size += localStorage[key].length + key.length;
-            }
+        for (const key of Object.keys(localStorage)) {
+            size += localStorage[key].length + key.length;
         }
-        
         localStorage.setItem(testKey, testData);
         localStorage.removeItem(testKey);
         

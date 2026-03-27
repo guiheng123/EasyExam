@@ -15,18 +15,16 @@ let quizStartTime = 0;
 // 打乱单道题目的选项并更新正确答案字母
 function shuffleQuestionOptions(q) {
     if (!q || !Array.isArray(q.options) || q.options.length === 0) return;
-    const correctIndex = q.options.findIndex(o => o && o.letter === q.answer);
-    if (correctIndex === -1) return;
-    q.options[correctIndex].isCorrect = true;
-    shuffleArray(q.options);
-    for (let i = 0; i < q.options.length; i++) {
-        if (!q.options[i]) continue;
-        q.options[i].letter = String.fromCharCode(65 + i);
-        if (q.options[i].isCorrect) {
-            q.answer = q.options[i].letter;
-            delete q.options[i].isCorrect;
-        }
+    const correctLetter = q.answer;
+    const shuffled = q.options.map(o => ({ ...o }));
+    shuffleArray(shuffled);
+    for (let i = 0; i < shuffled.length; i++) {
+        if (!shuffled[i]) continue;
+        const wasCorrect = shuffled[i].letter === correctLetter;
+        shuffled[i].letter = String.fromCharCode(65 + i);
+        if (wasCorrect) q.answer = shuffled[i].letter;
     }
+    q.options = shuffled;
 }
 
 // 开始答题

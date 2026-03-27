@@ -455,7 +455,7 @@ export function initEventListeners() {
     if (resetAnalysisPromptBtn) {
         resetAnalysisPromptBtn.addEventListener('click', () => {
             const el = $('aiAnalysisPrompt');
-            if (el) { el.value = ''; saveCustomPrompts(); }
+            if (el) { el.value = DEFAULT_ANALYSIS_PROMPT; saveCustomPrompts(); }
         });
     }
 
@@ -463,7 +463,7 @@ export function initEventListeners() {
     if (resetGeneratePromptBtn) {
         resetGeneratePromptBtn.addEventListener('click', () => {
             const el = $('aiGeneratePrompt');
-            if (el) { el.value = ''; saveCustomPrompts(); }
+            if (el) { el.value = DEFAULT_GENERATE_PROMPT; saveCustomPrompts(); }
         });
     }
 

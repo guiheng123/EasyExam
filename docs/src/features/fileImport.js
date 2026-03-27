@@ -44,6 +44,11 @@ export function initFileUpload() {
             if (file) processFile(file);
         });
     }
+
+    const fileInput = $('fileInput');
+    if (fileInput) {
+        fileInput.addEventListener('change', handleFileSelect);
+    }
 }
 
 export function handleFileSelect(event) {

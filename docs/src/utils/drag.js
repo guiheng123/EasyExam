@@ -161,7 +161,7 @@ function createDraggableFab({ element, defaultBottom = 24, onMoveFrame, onSnapCo
     function onMouseDown(e) { e.preventDefault(); onStart(e.clientX, e.clientY); }
     function onMouseMove(e) { onMove(e.clientX, e.clientY); }
     function onMouseUp() { onEnd(); }
-    function onTouchStart(e) { const t = e.touches[0]; if (!t) return; onStart(t.clientX, t.clientY); }
+    function onTouchStart(e) { const t = e.touches[0]; if (!t) return; e.preventDefault(); onStart(t.clientX, t.clientY); }
     function onTouchMove(e) { if (!isDragging) return; e.preventDefault(); const t = e.touches[0]; if (!t) return; onMove(t.clientX, t.clientY); }
     function onTouchEnd() { onEnd(); }
     function onClickCapture(e) { if (hasMoved) e.stopPropagation(); }
@@ -170,7 +170,7 @@ function createDraggableFab({ element, defaultBottom = 24, onMoveFrame, onSnapCo
     fab.addEventListener('mousedown', onMouseDown);
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
-    fab.addEventListener('touchstart', onTouchStart, { passive: true });
+    fab.addEventListener('touchstart', onTouchStart, { passive: false });
     document.addEventListener('touchmove', onTouchMove, { passive: false });
     document.addEventListener('touchend', onTouchEnd);
     fab.addEventListener('click', onClickCapture);

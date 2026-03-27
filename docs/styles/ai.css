@@ -564,7 +564,6 @@ details[open] > .ai-stream-summary::before {
     background: linear-gradient(90deg, #eef2ff, #f8fafc);
     cursor: grab;
     user-select: none;
-    touch-action: none;
 }
 .ai-chat-panel.dragging {
     will-change: transform;
@@ -582,6 +581,10 @@ details[open] > .ai-stream-summary::before {
     cursor: pointer;
     font-size: 16px;
     line-height: 1;
+    touch-action: auto;
+    pointer-events: auto;
+    position: relative;
+    z-index: 1;
 }
 .ai-chat-messages {
     flex: 1;

@@ -701,6 +701,7 @@ export function initAIAnalysisWidget() {
         if (e.pointerType === 'mouse' && e.button !== 0) return;
         if (e.target.closest('.ai-chat-close')) return;
 
+        e.preventDefault();
         dragging = true;
         aiChatPanelDragging = true;
         pointerId = e.pointerId;

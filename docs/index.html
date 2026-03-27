@@ -421,6 +421,36 @@
                 </div>
 
                 <div class="setting-group">
+                    <div class="setting-group-title">自定义 AI Prompt</div>
+                    <div class="ai-prompt-edit-block">
+                        <div class="ai-prompt-edit-label">
+                            <span>解析助手 Prompt</span>
+                            <button type="button" class="ai-prompt-reset-btn" id="resetAnalysisPromptBtn" title="恢复默认">↺ 恢复默认</button>
+                        </div>
+                        <textarea
+                            id="aiAnalysisPrompt"
+                            class="ai-prompt-textarea"
+                            rows="3"
+                            placeholder="默认：你是一个简洁、准确的答题解析助手。回答要聚焦题目，中文输出，先结论再理由。"
+                        ></textarea>
+                        <div class="ai-prompt-hint">留空则使用默认 Prompt。此 Prompt 用于 AI 解析当前题目时的系统指令。</div>
+                    </div>
+                    <div class="ai-prompt-edit-block">
+                        <div class="ai-prompt-edit-label">
+                            <span>AI 出题 Prompt</span>
+                            <button type="button" class="ai-prompt-reset-btn" id="resetGeneratePromptBtn" title="恢复默认">↺ 恢复默认</button>
+                        </div>
+                        <textarea
+                            id="aiGeneratePrompt"
+                            class="ai-prompt-textarea"
+                            rows="3"
+                            placeholder="默认：你是一个专业的出题助手。请根据用户要求生成选择题。"
+                        ></textarea>
+                        <div class="ai-prompt-hint">留空则使用默认 Prompt。此 Prompt 用于 AI 生成题目时的系统指令（格式说明会自动附加）。</div>
+                    </div>
+                </div>
+
+                <div class="setting-group">
                     <div class="setting-group-title">快捷键</div>
                     <div class="setting-row">
                         <div>

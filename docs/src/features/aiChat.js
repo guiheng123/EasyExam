@@ -1,6 +1,6 @@
 // AI 聊天面板模块
 import { $, escapeHtml } from '../utils/dom.js';
-import { getAIConfig } from './ai.js';
+import { getAIConfig, getAnalysisPrompt } from './ai.js';
 import { fetchWithTimeout } from '../utils/api.js';
 import { getCurrentQuestion, getCurrentIndex, getQuestions, getUserAnswers } from './quiz.js';
 
@@ -419,7 +419,7 @@ export function askCurrentQuestionAnalysis() {
         toggleAIChatPanel(true);
         return;
     }
-    const prompt = `请解析这道题，并说明各选项差异，最后给出记忆方法：\n题目：${snap.question}\n${snap.options}\n我的选择：${snap.selected}`;
+    const prompt = `题目：${snap.question}\n${snap.options}\n我的选择：${snap.selected}`;
     sendAIChatMessage(prompt);
 }
 
@@ -468,7 +468,7 @@ export async function sendAIChatMessage(customText) {
                 : '';
 
             const messages = [
-                { role: 'system', content: '你是一个简洁、准确的答题解析助手。回答要聚焦题目，中文输出，先结论再理由。' },
+                { role: 'system', content: getAnalysisPrompt() },
                 ...session.history.slice(-8),
                 { role: 'user', content: text + context }
             ];

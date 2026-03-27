@@ -26,7 +26,10 @@ import {
     switchConfig,
     addConfig,
     deleteConfig,
-    renameConfig
+    renameConfig,
+    saveCustomPrompts,
+    DEFAULT_ANALYSIS_PROMPT,
+    DEFAULT_GENERATE_PROMPT
 } from './features/ai.js';
 import { selectAnswer } from './features/quiz.js';
 import {
@@ -435,6 +438,33 @@ export function initEventListeners() {
     const testApiBtn = $('testApiBtn');
     if (testApiBtn) {
         testApiBtn.addEventListener('click', () => testAPIConnection());
+    }
+
+    // 自定义 Prompt 事件绑定
+    const aiAnalysisPrompt = $('aiAnalysisPrompt');
+    if (aiAnalysisPrompt) {
+        aiAnalysisPrompt.addEventListener('input', () => saveCustomPrompts());
+    }
+
+    const aiGeneratePrompt = $('aiGeneratePrompt');
+    if (aiGeneratePrompt) {
+        aiGeneratePrompt.addEventListener('input', () => saveCustomPrompts());
+    }
+
+    const resetAnalysisPromptBtn = $('resetAnalysisPromptBtn');
+    if (resetAnalysisPromptBtn) {
+        resetAnalysisPromptBtn.addEventListener('click', () => {
+            const el = $('aiAnalysisPrompt');
+            if (el) { el.value = ''; saveCustomPrompts(); }
+        });
+    }
+
+    const resetGeneratePromptBtn = $('resetGeneratePromptBtn');
+    if (resetGeneratePromptBtn) {
+        resetGeneratePromptBtn.addEventListener('click', () => {
+            const el = $('aiGeneratePrompt');
+            if (el) { el.value = ''; saveCustomPrompts(); }
+        });
     }
 
     // 快捷键设置

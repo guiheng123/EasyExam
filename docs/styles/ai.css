@@ -758,3 +758,63 @@ details[open] > .ai-stream-summary::before {
 #analysisContent .katex {
     font-size: 1em;
 }
+
+/* ===== 自定义 AI Prompt 编辑区 ===== */
+.ai-prompt-edit-block {
+    margin-bottom: 14px;
+}
+.ai-prompt-edit-block:last-child {
+    margin-bottom: 0;
+}
+.ai-prompt-edit-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-main);
+    margin-bottom: 6px;
+}
+.ai-prompt-reset-btn {
+    font-size: 12px;
+    padding: 3px 10px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 6px;
+    background: #f8fafc;
+    color: var(--text-sub, #64748b);
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+    line-height: 1.5;
+}
+.ai-prompt-reset-btn:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background: #eff6ff;
+}
+.ai-prompt-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 9px 11px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text-main);
+    background: #f8fafc;
+    resize: vertical;
+    min-height: 72px;
+    line-height: 1.6;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+}
+.ai-prompt-textarea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.10);
+    background: #fff;
+}
+.ai-prompt-hint {
+    font-size: 11.5px;
+    color: var(--text-sub, #94a3b8);
+    margin-top: 5px;
+    line-height: 1.5;
+}

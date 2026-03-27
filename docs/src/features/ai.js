@@ -18,6 +18,56 @@ let aiHistory = [];
 let aiAvailableModels = [];
 let aiModelDropdownVisible = false;
 
+// 默认 Prompt 常量
+export const DEFAULT_ANALYSIS_PROMPT = '你是一个简洁、准确的答题解析助手。回答要聚焦题目，中文输出，先结论再理由。';
+export const DEFAULT_GENERATE_PROMPT = '你是一个专业的出题助手。请根据用户要求生成选择题。';
+
+// 用户自定义 Prompt 配置
+let customPrompts = {
+    analysis: '',  // 空字符串 = 使用默认值
+    generate: ''
+};
+
+// 获取解析 Prompt（优先返回用户自定义值）
+export function getAnalysisPrompt() {
+    return customPrompts.analysis.trim() || DEFAULT_ANALYSIS_PROMPT;
+}
+
+// 获取出题 Prompt（优先返回用户自定义值）
+export function getGeneratePrompt() {
+    return customPrompts.generate.trim() || DEFAULT_GENERATE_PROMPT;
+}
+
+// 保存自定义 Prompt 到 localStorage
+export function saveCustomPrompts() {
+    const analysisInput = document.getElementById('aiAnalysisPrompt');
+    const generateInput = document.getElementById('aiGeneratePrompt');
+    if (analysisInput) customPrompts.analysis = analysisInput.value;
+    if (generateInput) customPrompts.generate = generateInput.value;
+    safeLocalStorageSet('aiCustomPrompts', JSON.stringify(customPrompts));
+}
+
+// 从 localStorage 加载自定义 Prompt
+export function loadCustomPrompts() {
+    try {
+        const raw = safeLocalStorageGet('aiCustomPrompts');
+        if (raw) {
+            const parsed = safeJsonParse(raw);
+            if (parsed && typeof parsed === 'object') {
+                customPrompts.analysis = parsed.analysis || '';
+                customPrompts.generate = parsed.generate || '';
+            }
+        }
+    } catch (e) {
+        console.warn('读取自定义 Prompt 失败:', e);
+    }
+    // 回填到表单
+    const analysisInput = document.getElementById('aiAnalysisPrompt');
+    const generateInput = document.getElementById('aiGeneratePrompt');
+    if (analysisInput) analysisInput.value = customPrompts.analysis;
+    if (generateInput) generateInput.value = customPrompts.generate;
+}
+
 // setTab 回调，由 main.js 注入
 let _setTabCallback = null;
 export function setSetTabCallback(fn) {
@@ -234,6 +284,7 @@ export function loadAISettings() {
     renderModelDropdown();
     toggleAI();
     loadAIHistory();
+    loadCustomPrompts();
 }
 
 function setResultBoxState(resultDiv, type, html) {
@@ -576,7 +627,8 @@ export async function generateAIQuestions() {
         const standardFormat = PRESET_FORMATS[0];
         const formatExample = standardFormat.example.replace(/\\n/g, '\n');
         
-        const systemPrompt = `你是一个专业的出题助手。请根据用户要求生成选择题。
+        const generateBasePrompt = getGeneratePrompt();
+        const systemPrompt = `${generateBasePrompt}
 
 输出格式要求：
 请严格按照以下格式输出题目，每道题之间用 --- 分隔：

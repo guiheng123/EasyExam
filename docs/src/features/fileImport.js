@@ -46,9 +46,7 @@ export function initFileUpload() {
     }
 
     const fileInput = $('fileInput');
-    if (fileInput) {
-        fileInput.addEventListener('change', handleFileSelect);
-    }
+    if (fileInput) fileInput.addEventListener('change', handleFileSelect);
 }
 
 export function handleFileSelect(event) {

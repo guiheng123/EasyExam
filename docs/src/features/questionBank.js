@@ -167,50 +167,40 @@ export function getPendingQuestions(bank) {
 // 获取题目列表HTML（用于查看详情）
 export function renderQuestionDetail(questions, title, bank) {
     if (!questions.length) return '<div class="bank-detail-empty">暂无题目</div>';
-    let html = '<div class="bank-detail-title">' + escapeHtml(title) + ' (' + questions.length + '题)</div>';
-    html += '<div class="bank-detail-list">';
-    for (let i = 0; i < questions.length; i++) {
-        const q = questions[i];
+    const items = questions.map((q, i) => {
         const idx = q._bankIndex !== undefined ? q._bankIndex : i;
         const result = bank && bank.results[idx];
         const statusClass = result ? (result.status === 'correct' ? 'detail-correct' : 'detail-wrong') : 'detail-pending';
         const statusIcon = result ? (result.status === 'correct' ? '✅' : '❌') : '⏳';
-
-        html += '<div class="bank-detail-item ' + statusClass + '">'
-            + '<div class="bank-detail-q">'
-            + '<span class="bank-detail-idx">' + (i + 1) + '.</span> '
-            + escapeHtml(q.question)
-            + '</div>'
-            + '<div class="bank-detail-options">';
-        for (const opt of q.options) {
+        const opts = q.options.map(opt => {
             let optClass = '';
             if (result) {
                 if (opt.letter === q.answer) optClass = 'opt-correct';
                 else if (opt.letter === result.userAnswer) optClass = 'opt-wrong';
             }
-            html += '<div class="bank-detail-opt ' + optClass + '">' + opt.letter + '. ' + escapeHtml(opt.text) + '</div>';
-        }
-        html += '</div>';
-        html += '<div class="bank-detail-meta">'
-            + '<span>正确答案: ' + q.answer + '</span>'
-            + (result ? ' <span>| 你的答案: ' + result.userAnswer + ' ' + statusIcon + '</span>' : ' <span>' + statusIcon + ' 未作答</span>');
-        if (q.explanation) {
-            html += '<div class="bank-detail-explain">💡 ' + escapeHtml(q.explanation) + '</div>';
-        }
-        html += '</div></div>';
-    }
-    html += '</div>';
-    return html;
+            return `<div class="bank-detail-opt ${optClass}">${opt.letter}. ${escapeHtml(opt.text)}</div>`;
+        }).join('');
+        const metaAnswer = result
+            ? `<span>正确答案: ${q.answer}</span> <span>| 你的答案: ${result.userAnswer} ${statusIcon}</span>`
+            : `<span>正确答案: ${q.answer}</span> <span>${statusIcon} 未作答</span>`;
+        const explain = q.explanation ? `<div class="bank-detail-explain">💡 ${escapeHtml(q.explanation)}</div>` : '';
+        return `<div class="bank-detail-item ${statusClass}">
+            <div class="bank-detail-q"><span class="bank-detail-idx">${i + 1}.</span> ${escapeHtml(q.question)}</div>
+            <div class="bank-detail-options">${opts}</div>
+            <div class="bank-detail-meta">${metaAnswer}${explain}</div>
+        </div>`;
+    });
+    return `<div class="bank-detail-title">${escapeHtml(title)} (${questions.length}题)</div><div class="bank-detail-list">${items.join('')}</div>`;
 }
 
 export function renderBankList(container) {
     if (!container) return;
     if (banks.length === 0) {
-        container.innerHTML = '<div class="bank-empty">'
-            + '<div style="font-size:36px;margin-bottom:10px">📚</div>'
-            + '<div style="color:var(--text-secondary);font-size:14px">暂无题库</div>'
-            + '<div style="color:#94a3b8;font-size:12px;margin-top:4px">通过文件导入、文本粘贴或AI出题添加题库</div>'
-            + '</div>';
+        container.innerHTML = `<div class="bank-empty">
+            <div style="font-size:36px;margin-bottom:10px">📚</div>
+            <div style="color:var(--text-secondary);font-size:14px">暂无题库</div>
+            <div style="color:#94a3b8;font-size:12px;margin-top:4px">通过文件导入、文本粘贴或AI出题添加题库</div>
+        </div>`;
         return;
     }
     const fragment = document.createDocumentFragment();
@@ -221,28 +211,28 @@ export function renderBankList(container) {
         card.className = 'bank-card';
         card.dataset.bankId = bank.id;
 
-        let footerBtns = '<button class="bank-start-btn" data-bank-action="startAll" data-bank-id="' + bank.id + '">📝 全部答题</button>';
-        if (s.wrong > 0) {
-            footerBtns += '<button class="bank-start-btn bank-start-wrong" data-bank-action="startWrong" data-bank-id="' + bank.id + '">❌ 错题重做 (' + s.wrong + ')</button>';
-        }
-        if (s.pending > 0) {
-            footerBtns += '<button class="bank-start-btn bank-start-pending" data-bank-action="startPending" data-bank-id="' + bank.id + '">⏳ 继续未完成 (' + s.pending + ')</button>';
-        }
+        const wrongBtn = s.wrong > 0 ? `<button class="bank-start-btn bank-start-wrong" data-bank-action="startWrong" data-bank-id="${bank.id}">❌ 错题重做 (${s.wrong})</button>` : '';
+        const pendingBtn = s.pending > 0 ? `<button class="bank-start-btn bank-start-pending" data-bank-action="startPending" data-bank-id="${bank.id}">⏳ 继续未完成 (${s.pending})</button>` : '';
 
-        card.innerHTML = '<div class="bank-card-header">'
-            + '<div class="bank-card-title">' + escapeHtml(bank.name) + '</div>'
-            + '<div class="bank-card-actions">'
-            + '<button class="bank-action-btn" data-bank-action="reset" data-bank-id="' + bank.id + '" title="重置记录">🔄</button>'
-            + '<button class="bank-action-btn bank-action-delete" data-bank-action="delete" data-bank-id="' + bank.id + '" title="删除题库">🗑️</button>'
-            + '</div></div>'
-            + '<div class="bank-card-stats">'
-            + '<div class="bank-stat bank-stat-clickable" data-bank-action="viewAll" data-bank-id="' + bank.id + '"><span class="bank-stat-num">' + s.total + '</span><span class="bank-stat-label">总题数</span></div>'
-            + '<div class="bank-stat bank-stat-correct bank-stat-clickable" data-bank-action="viewCorrect" data-bank-id="' + bank.id + '"><span class="bank-stat-num">' + s.correct + '</span><span class="bank-stat-label">已完成</span></div>'
-            + '<div class="bank-stat bank-stat-wrong bank-stat-clickable" data-bank-action="viewWrong" data-bank-id="' + bank.id + '"><span class="bank-stat-num">' + s.wrong + '</span><span class="bank-stat-label">错题</span></div>'
-            + '<div class="bank-stat bank-stat-pending bank-stat-clickable" data-bank-action="viewPending" data-bank-id="' + bank.id + '"><span class="bank-stat-num">' + s.pending + '</span><span class="bank-stat-label">未完成</span></div>'
-            + '</div>'
-            + '<div class="bank-progress-bar"><div class="bank-progress-fill" style="width:' + pct + '%"></div></div>'
-            + '<div class="bank-card-footer">' + footerBtns + '</div>';
+        card.innerHTML = `
+            <div class="bank-card-header">
+                <div class="bank-card-title">${escapeHtml(bank.name)}</div>
+                <div class="bank-card-actions">
+                    <button class="bank-action-btn" data-bank-action="reset" data-bank-id="${bank.id}" title="重置记录">🔄</button>
+                    <button class="bank-action-btn bank-action-delete" data-bank-action="delete" data-bank-id="${bank.id}" title="删除题库">🗑️</button>
+                </div>
+            </div>
+            <div class="bank-card-stats">
+                <div class="bank-stat bank-stat-clickable" data-bank-action="viewAll" data-bank-id="${bank.id}"><span class="bank-stat-num">${s.total}</span><span class="bank-stat-label">总题数</span></div>
+                <div class="bank-stat bank-stat-correct bank-stat-clickable" data-bank-action="viewCorrect" data-bank-id="${bank.id}"><span class="bank-stat-num">${s.correct}</span><span class="bank-stat-label">已完成</span></div>
+                <div class="bank-stat bank-stat-wrong bank-stat-clickable" data-bank-action="viewWrong" data-bank-id="${bank.id}"><span class="bank-stat-num">${s.wrong}</span><span class="bank-stat-label">错题</span></div>
+                <div class="bank-stat bank-stat-pending bank-stat-clickable" data-bank-action="viewPending" data-bank-id="${bank.id}"><span class="bank-stat-num">${s.pending}</span><span class="bank-stat-label">未完成</span></div>
+            </div>
+            <div class="bank-progress-bar"><div class="bank-progress-fill" style="width:${pct}%"></div></div>
+            <div class="bank-card-footer">
+                <button class="bank-start-btn" data-bank-action="startAll" data-bank-id="${bank.id}">📝 全部答题</button>
+                ${wrongBtn}${pendingBtn}
+            </div>`;
 
         fragment.appendChild(card);
     }

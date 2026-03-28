@@ -199,18 +199,11 @@ export function initHotkeySystem(callbacks) {
 
         const key = e.key;
 
-        if (key === hotkeyMap.optA) {
+        const optKeys = [hotkeyMap.optA, hotkeyMap.optB, hotkeyMap.optC, hotkeyMap.optD];
+        const optIdx = optKeys.indexOf(key);
+        if (optIdx !== -1) {
             e.preventDefault();
-            if (typeof _callbacks.triggerOption === 'function') _callbacks.triggerOption(0);
-        } else if (key === hotkeyMap.optB) {
-            e.preventDefault();
-            if (typeof _callbacks.triggerOption === 'function') _callbacks.triggerOption(1);
-        } else if (key === hotkeyMap.optC) {
-            e.preventDefault();
-            if (typeof _callbacks.triggerOption === 'function') _callbacks.triggerOption(2);
-        } else if (key === hotkeyMap.optD) {
-            e.preventDefault();
-            if (typeof _callbacks.triggerOption === 'function') _callbacks.triggerOption(3);
+            if (typeof _callbacks.triggerOption === 'function') _callbacks.triggerOption(optIdx);
         } else if (key === hotkeyMap.prev) {
             e.preventDefault();
             if (typeof _callbacks.prevQuestion === 'function') _callbacks.prevQuestion();

@@ -48,7 +48,8 @@ export function renderPresets() {
     const container = $('presetList');
     if (!container) return;
 
-    container.innerHTML = '';
+    const fragment = document.createDocumentFragment();
+
     PRESET_FORMATS.forEach(preset => {
         const card = document.createElement('div');
         card.className = 'preset-card';
@@ -58,7 +59,7 @@ export function renderPresets() {
             <div class="preset-card-desc">${preset.desc}</div>
             <div class="preset-card-example-btn" data-action="showExample" data-preset-id="${preset.id}">📖 查看例题</div>
         `;
-        container.appendChild(card);
+        fragment.appendChild(card);
     });
 
     const customFormats = getCustomFormats();
@@ -71,8 +72,10 @@ export function renderPresets() {
             <div class="preset-card-title">✨ ${escapeHtml(format.name)}</div>
             <div class="preset-card-desc">自定义格式 ${format.mode === 'advanced' ? '(高级)' : ''}</div>
         `;
-        container.appendChild(card);
+        fragment.appendChild(card);
     });
+
+    container.replaceChildren(fragment);
 
     // 事件委托：点击预设卡片
     container.onclick = (e) => {
@@ -101,11 +104,11 @@ export function loadCustomFormats() {
     const container = $('savedFormatsList');
     if (!container) return;
 
-    container.innerHTML = '';
     if (!formats.length) {
         container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary);font-size:13px;">暂无保存的格式</div>';
         return;
     }
+    const fragment = document.createDocumentFragment();
     formats.forEach(format => {
         const item = document.createElement('div');
         item.className = 'saved-format-item';
@@ -121,8 +124,9 @@ export function loadCustomFormats() {
                 <button class="icon-btn" data-format-action="delete" data-format-id="${safeId}">删除</button>
             </div>
         `;
-        container.appendChild(item);
+        fragment.appendChild(item);
     });
+    container.replaceChildren(fragment);
 
     // 事件委托
     container.onclick = (e) => {

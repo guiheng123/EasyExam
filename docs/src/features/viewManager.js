@@ -37,15 +37,10 @@ export function setSubTab(mode) {
     document.querySelectorAll('#area-paste .sub-tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('#area-paste > .input-area').forEach(a => a.classList.remove('active'));
     const tabs = document.querySelectorAll('#area-paste .sub-tab-btn');
-    if (mode === 'preset') {
-        if (tabs[0]) tabs[0].classList.add('active');
-        const subPreset = $('sub-preset');
-        if (subPreset) subPreset.classList.add('active');
-    } else {
-        if (tabs[1]) tabs[1].classList.add('active');
-        const subCustom = $('sub-custom');
-        if (subCustom) subCustom.classList.add('active');
-    }
+    const isPreset = mode === 'preset';
+    if (tabs[isPreset ? 0 : 1]) tabs[isPreset ? 0 : 1].classList.add('active');
+    const panel = $(isPreset ? 'sub-preset' : 'sub-custom');
+    if (panel) panel.classList.add('active');
     hideErrors();
 }
 

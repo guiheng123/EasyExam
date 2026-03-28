@@ -33,6 +33,7 @@
     border: none;
     background: transparent;
 }
+.tab-text-short { display: none; }
 .tab-btn.active {
     background: #fff;
     color: var(--primary-color);

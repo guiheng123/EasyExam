@@ -20,7 +20,27 @@
         flex: 1;
         overflow-y: auto;
         justify-content: flex-start;
-        padding-top: 40px;
+        padding-top: 24px;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+    .tab-group {
+        flex-wrap: nowrap;
+    }
+    .tab-btn {
+        font-size: 12px;
+        padding: 7px 4px;
+        white-space: nowrap;
+    }
+    .tab-text-full { display: none; }
+    .tab-text-short { display: inline; }
+    .sub-tab-btn {
+        padding: 7px 14px;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+    .preset-list {
+        grid-template-columns: 1fr;
     }
     .quiz-layout-wrapper { display: flex; flex-direction: column; }
     .question-text { font-size: 17px; }

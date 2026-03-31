@@ -35,9 +35,26 @@ export function openQuestionSelectModal(qs) {
     const list = $('questionSelectList');
     const selectAll = $('selectAllQuestions');
     const bankNameInput = $('bankNameInput');
+    const bankNameSelect = $('bankNameSelect');
     if (!overlay || !list || !selectAll || !bankNameInput) {
         console.warn('打开题库保存弹窗失败：缺少必要 DOM 节点');
         return false;
+    }
+
+    // 填充已有题库下拉列表
+    if (bankNameSelect) {
+        const existingBanks = getQuestionBanks();
+        bankNameSelect.innerHTML = '<option value="">— 选择已有题库 —</option>';
+        existingBanks.forEach(bank => {
+            const opt = document.createElement('option');
+            opt.value = bank.name;
+            opt.textContent = bank.name + '（' + bank.questions.length + ' 题）';
+            bankNameSelect.appendChild(opt);
+        });
+        bankNameSelect.value = '';
+        bankNameSelect.onchange = () => {
+            if (bankNameSelect.value) bankNameInput.value = bankNameSelect.value;
+        };
     }
 
     bankNameInput.value = '题库 ' + new Date().toLocaleDateString();

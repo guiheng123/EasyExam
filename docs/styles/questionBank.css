@@ -462,9 +462,38 @@
     flex-shrink: 0;
 }
 
-.bank-name-input {
+.bank-name-row {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.bank-name-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 13px;
+    background: #f8fafc;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+    appearance: auto;
+}
+.bank-name-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: #fff;
+}
+.bank-name-select option[value=""] {
+    color: var(--text-secondary);
+}
+
+.bank-name-input {
+    width: 100%;
     padding: 10px 14px;
     border: 1px solid #e2e8f0;
     border-radius: 10px;
@@ -482,4 +511,5 @@
 .question-select-footer .btn-primary {
     flex-shrink: 0;
     white-space: nowrap;
+    align-self: flex-end;
 }

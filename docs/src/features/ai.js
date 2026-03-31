@@ -602,8 +602,8 @@ export async function generateAIQuestions() {
         await showAlert('请输入出题要求', '📝');
         return;
     }
-    if (!Number.isInteger(count) || count < 1 || count > 50) {
-        await showAlert('题目数量必须是 1-50 的整数', '⚠️');
+    if (!Number.isInteger(count) || count < 1 || count > 999) {
+        await showAlert('题目数量必须是 1-999 的整数', '⚠️');
         return;
     }
     if (!isValidApiUrl(aiConfig.apiUrl)) {

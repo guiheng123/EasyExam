@@ -348,7 +348,12 @@
             </div>
             <div class="question-select-list" id="questionSelectList"></div>
             <div class="question-select-footer">
-                <input type="text" class="bank-name-input" id="bankNameInput" placeholder="输入题库名称（同名自动合并）">
+                <div class="bank-name-row">
+                    <select class="bank-name-select" id="bankNameSelect">
+                        <option value="">— 选择已有题库 —</option>
+                    </select>
+                    <input type="text" class="bank-name-input" id="bankNameInput" placeholder="输入题库名称（同名自动合并）">
+                </div>
                 <button class="action-btn btn-primary" id="confirmSaveBankBtn">确认保存</button>
             </div>
         </div>

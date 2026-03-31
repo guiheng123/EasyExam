@@ -496,6 +496,19 @@ export function initEventListeners() {
         });
     }
 
+    // AI 历史记录详情模态框内按钮（事件委托）
+    // viewHistoryQuestions() 在 exampleModal 内动态渲染 copy/export/importAndClose 按钮
+    const exampleModalEl = document.getElementById('exampleModal');
+    if (exampleModalEl) {
+        exampleModalEl.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-history-action]');
+            if (!btn) return;
+            const histAction = btn.dataset.historyAction;
+            const id = Number(btn.dataset.historyId);
+            handleAIHistoryAction(histAction, id);
+        });
+    }
+
     // === 以下为补充的遗漏绑定 ===
 
     // 打开 AI 出题入口

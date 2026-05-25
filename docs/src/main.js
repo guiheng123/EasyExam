@@ -13,6 +13,7 @@ import { loadQuestionBanks } from './features/questionBank.js';
 import { initFileUpload, setFinishParsingCallback } from './features/fileImport.js';
 import { initAIAnalysisWidget, toggleAIChatPanel, activateAIChatSessionForQuestion, updateAIChatPanelPosition } from './features/aiChat.js';
 import { initDragFunctionality } from './utils/drag.js';
+import { initIconHydration } from './utils/icons.js';
 import { setTab, showView, setOnBankTabCallback } from './features/viewManager.js';
 import { getCurrentIndex, getQuestions, getIsReviewMode } from './features/quiz.js';
 
@@ -43,6 +44,7 @@ function init() {
     });
 
     // 初始化各个系统
+    initIconHydration();
     initDialogSystem();
     loadCustomFormats();
     renderPresets();
@@ -107,13 +109,13 @@ function init() {
             const isLast = getCurrentIndex() === getQuestions().length - 1;
             if (getIsReviewMode()) {
                 showResultView();
-                showHotkeyHint('📊 返回结果');
+                showHotkeyHint('返回结果');
             } else if (isLast) {
                 showResultView();
-                showHotkeyHint('📊 提交');
+                showHotkeyHint('提交');
             } else {
                 nextQ();
-                showHotkeyHint('➡ 下一题');
+                showHotkeyHint('下一题');
             }
         }
     });

@@ -31,6 +31,10 @@ export function getSelectedPreset() {
     return selectedPreset;
 }
 
+export function resetSelectedPreset() {
+    selectedPreset = null;
+}
+
 export function getCurrentCustomMode() {
     return currentCustomMode;
 }

@@ -34,13 +34,22 @@ function createParser(config) {
                 if (t.startsWith(m)) return t.slice(m.length).trim();
             }
         }
-        if (questionRe)
+        if (questionRe) {
+            const m = t.match(questionRe);
+            if (m && m[1] !== undefined) return String(m[1]).trim();
             return t.replace(questionRe, '').trim();
+        }
         return t;
     };
     
     const isOption = (line) => optionRe ? optionRe.test(line.trim()) : false;
-    const getOptionText = (line) => optionRe ? line.trim().replace(optionRe, '').trim() : line.trim();
+    const getOptionText = (line) => {
+        const t = line.trim();
+        if (!optionRe) return t;
+        const m = t.match(optionRe);
+        if (m && m[1] !== undefined) return String(m[1]).trim();
+        return t.replace(optionRe, '').trim();
+    };
     const getOptionLetter = (line) => {
         const m = line.trim().match(/^[A-Da-d]/);
         return m ? m[0].toUpperCase() : null;
@@ -77,7 +86,7 @@ function createParser(config) {
         if (byMarker !== null) return byMarker;
         if (explanationRe) {
             const m = line.match(explanationRe);
-            return m && m[1] ? m[1].trim() : line.replace(explanationRe, '').trim();
+            return m && m[1] !== undefined ? String(m[1]).trim() : line.replace(explanationRe, '').trim();
         }
         return line.trim();
     };

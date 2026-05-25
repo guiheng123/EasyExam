@@ -1,6 +1,6 @@
 // 题库操作控制器 - 从 main.js 提取的题库编排逻辑
 
-import { $ } from '../utils/dom.js';
+import { $, escapeHtml } from '../utils/dom.js';
 import { showAlert, confirmAction, showPrompt } from '../components/Dialog.js';
 import {
     loadQuestionBanks,
@@ -67,7 +67,7 @@ export function openQuestionSelectModal(qs) {
         item.innerHTML =
             `<input type="checkbox" class="qs-check" data-index="${i}" checked>` +
             `<span class="qs-item-num">${i + 1}</span>` +
-            `<span class="qs-item-text">${q.question}</span>`;
+            `<span class="qs-item-text">${escapeHtml(q.question)}</span>`;
         fragment.appendChild(item);
     });
     list.replaceChildren(fragment);

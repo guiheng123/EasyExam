@@ -1,6 +1,7 @@
 // 对话框系统模块
 
 import { $ } from '../utils/dom.js';
+import { iconNameFromEmoji, iconPlaceholder } from '../utils/icons.js';
 
 let dialogResolve = null;
 
@@ -40,7 +41,7 @@ export function showDialog({ icon, title, message, buttons }) {
         };
 
         dialogResolve = finalize;
-        iconEl.textContent = icon || '💬';
+        iconEl.innerHTML = iconPlaceholder(iconNameFromEmoji(icon || '💬'), '', '');
         titleEl.textContent = title || '提示';
         messageEl.textContent = message || '';
         btnContainer.innerHTML = '';
@@ -140,7 +141,7 @@ export function showPrompt({ title = '请输入', message = '', icon = '✏️',
         };
 
         dialogResolve = () => finalize(null);
-        iconEl.textContent = icon;
+        iconEl.innerHTML = iconPlaceholder(iconNameFromEmoji(icon), '', '');
         titleEl.textContent = title;
 
         const input = document.createElement('input');

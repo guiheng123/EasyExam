@@ -177,12 +177,6 @@ export function initEventListeners() {
         });
     });
 
-    // 文件上传
-    const fileInput = $('fileInput');
-    if (fileInput) {
-        fileInput.addEventListener('change', (e) => handleFileSelect(e));
-    }
-
     // 预设格式
     const presetList = $('presetList');
     if (presetList) {

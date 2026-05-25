@@ -18,20 +18,20 @@
         <!-- 首页 -->
         <div id="homeView" class="view-section active">
             <div class="home-layout">
-                <div style="font-size: 40px; margin-bottom: 10px;">📝</div>
+                <div style="font-size: 40px; margin-bottom: 10px;"><span class="ui-icon-placeholder ui-icon-lg" data-ui-icon="app" aria-hidden="true"></span></div>
                 <h2 style="margin: 0 0 24px 0; color: var(--text-main); font-size: 20px;">极简答题 Pro</h2>
 
                 <div id="setup-panel">
                     <div class="tab-group">
-                        <button class="tab-btn active" data-action="setTab" data-tab="file"><span class="tab-text-full">📁 文件导入</span><span class="tab-text-short">📁 文件</span></button>
-                        <button class="tab-btn" data-action="setTab" data-tab="paste"><span class="tab-text-full">📋 文本粘贴</span><span class="tab-text-short">📋 粘贴</span></button>
-                        <button class="tab-btn" data-action="setTab" data-tab="ai" id="aiTabBtn" style="display:none;">🤖 AI出题</button>
-                        <button class="tab-btn" data-action="setTab" data-tab="bank"><span class="tab-text-full">📚 题库</span><span class="tab-text-short">📚 题库</span></button>
+                        <button class="tab-btn active" data-action="setTab" data-tab="file"><span class="tab-text-full"><span class="ui-icon-placeholder" data-ui-icon="file" aria-hidden="true"></span><span>文件导入</span></span><span class="tab-text-short"><span class="ui-icon-placeholder" data-ui-icon="file" aria-hidden="true"></span><span>文件</span></span></button>
+                        <button class="tab-btn" data-action="setTab" data-tab="paste"><span class="tab-text-full"><span class="ui-icon-placeholder" data-ui-icon="clipboard" aria-hidden="true"></span><span>文本粘贴</span></span><span class="tab-text-short"><span class="ui-icon-placeholder" data-ui-icon="clipboard" aria-hidden="true"></span><span>粘贴</span></span></button>
+                        <button class="tab-btn" data-action="setTab" data-tab="ai" id="aiTabBtn" style="display:none;"><span class="ui-icon-placeholder" data-ui-icon="bot" aria-hidden="true"></span><span>AI出题</span></button>
+                        <button class="tab-btn" data-action="setTab" data-tab="bank"><span class="tab-text-full"><span class="ui-icon-placeholder" data-ui-icon="library" aria-hidden="true"></span><span>题库</span></span><span class="tab-text-short"><span class="ui-icon-placeholder" data-ui-icon="library" aria-hidden="true"></span><span>题库</span></span></button>
                     </div>
 
                     <div id="area-file" class="input-area active">
                         <div class="upload-zone" id="uploadZone">
-                            <div class="upload-icon">📂</div>
+                            <div class="upload-icon"><span class="ui-icon-placeholder" data-ui-icon="folderOpen" aria-hidden="true"></span></div>
                             <div class="upload-text">点击选择文件或拖拽至此</div>
                             <div class="upload-hint">支持 .txt .json 格式</div>
                         </div>
@@ -41,8 +41,8 @@
 
                     <div id="area-paste" class="input-area">
                         <div class="sub-tab">
-                            <button class="sub-tab-btn active" data-action="setSubTab" data-subtab="preset">🎯 预设格式</button>
-                            <button class="sub-tab-btn" data-action="setSubTab" data-subtab="custom">⚙️ 自定义格式</button>
+                            <button class="sub-tab-btn active" data-action="setSubTab" data-subtab="preset"><span class="ui-icon-placeholder" data-ui-icon="target" aria-hidden="true"></span><span>预设格式</span></button>
+                            <button class="sub-tab-btn" data-action="setSubTab" data-subtab="custom"><span class="ui-icon-placeholder" data-ui-icon="settings" aria-hidden="true"></span><span>自定义格式</span></button>
                         </div>
 
                         <div id="sub-preset" class="input-area active">
@@ -55,11 +55,11 @@
                             <div class="custom-format-container">
                                 <div class="custom-mode-switch">
                                     <div class="mode-btn active" data-action="setCustomMode" data-mode="simple">
-                                        🎨 简单模式
+                                        <span class="ui-icon-placeholder" data-ui-icon="palette" aria-hidden="true"></span><span>简单模式</span>
                                         <span class="mode-desc">适合初学者</span>
                                     </div>
                                     <div class="mode-btn" data-action="setCustomMode" data-mode="advanced">
-                                        🔧 高级模式
+                                        <span class="ui-icon-placeholder" data-ui-icon="tool" aria-hidden="true"></span><span>高级模式</span>
                                         <span class="mode-desc">支持正则表达式</span>
                                     </div>
                                 </div>
@@ -123,7 +123,7 @@
                                                     <div class="template-chip" data-action="fillTemplate" data-field="separator" data-value="空行">空行</div>
                                             </div>
                                         </div>
-                                        <button class="action-btn btn-primary" id="saveSimpleFormatBtn">💾 保存格式</button>
+                                        <button class="action-btn btn-primary" id="saveSimpleFormatBtn"><span class="ui-icon-placeholder" data-ui-icon="save" aria-hidden="true"></span><span>保存格式</span></button>
                                     </div>
                                 </div>
 
@@ -156,12 +156,12 @@
                                             <label>题目分隔符正则</label>
                                             <input type="text" class="regex-input" id="advancedSeparator" placeholder="例如：^-{3,}$">
                                         </div>
-                                        <button class="action-btn btn-primary" id="saveAdvancedFormatBtn">💾 保存高级格式</button>
+                                        <button class="action-btn btn-primary" id="saveAdvancedFormatBtn"><span class="ui-icon-placeholder" data-ui-icon="save" aria-hidden="true"></span><span>保存高级格式</span></button>
                                     </div>
                                 </div>
 
                                 <div class="saved-formats">
-                                    <div class="saved-formats-title">📚 我的格式库</div>
+                                    <div class="saved-formats-title"><span class="ui-icon-placeholder" data-ui-icon="library" aria-hidden="true"></span><span>我的格式库</span></div>
                                     <div id="savedFormatsList"></div>
                                 </div>
                             </div>
@@ -172,19 +172,19 @@
 
                     <div id="area-ai" class="input-area">
                         <div class="ai-entry-panel">
-                            <div class="ai-entry-icon">🤖</div>
+                            <div class="ai-entry-icon"><span class="ui-icon-placeholder" data-ui-icon="bot" aria-hidden="true"></span></div>
                             <div class="ai-entry-title">AI 智能出题</div>
                             <div class="ai-entry-desc">
                                 描述您想要的题目类型和内容<br>AI 将为您生成专业的选择题
                             </div>
-                            <button class="action-btn btn-primary" id="openAIModalBtn">🚀 开始 AI 出题</button>
-                            <div class="ai-entry-hint">💡 请先在设置中配置 AI API</div>
+                            <button class="action-btn btn-primary" id="openAIModalBtn"><span class="ui-icon-placeholder" data-ui-icon="rocket" aria-hidden="true"></span><span>开始 AI 出题</span></button>
+                            <div class="ai-entry-hint"><span class="ui-icon-placeholder" data-ui-icon="lightbulb" aria-hidden="true"></span><span>请先在设置中配置 AI API</span></div>
                         </div>
                         
                         <!-- 历史记录区域 -->
                         <div class="ai-history-section">
                             <button class="ai-history-toggle-btn" id="aiHistoryToggleBtn">
-                                <span>📚 历史记录</span>
+                                <span><span class="ui-icon-placeholder" data-ui-icon="library" aria-hidden="true"></span><span>历史记录</span></span>
                                 <span class="ai-history-toggle-icon">▼</span>
                             </button>
                             <div class="ai-history-content" id="aiHistoryContent">
@@ -202,7 +202,7 @@
                     <div id="area-bank" class="input-area">
                         <div class="bank-panel">
                             <div class="bank-panel-header">
-                                <div class="bank-panel-title">📚 我的题库</div>
+                                <div class="bank-panel-title"><span class="ui-icon-placeholder" data-ui-icon="library" aria-hidden="true"></span><span>我的题库</span></div>
                                 <button class="bank-clear-btn" id="clearAllBanksBtn">清空全部</button>
                             </div>
                             <div class="bank-list" id="bankListContainer"></div>
@@ -219,17 +219,17 @@
                 <!-- 准备就绪 -->
                 <div id="ready-panel">
                     <div class="file-card">
-                        <div class="file-card-icon">✓</div>
+                        <div class="file-card-icon"><span class="ui-icon-placeholder" data-ui-icon="success" aria-hidden="true"></span></div>
                         <div class="file-card-title">题库已加载</div>
                         <div class="file-card-desc">共 <span id="qCount">0</span> 道题目</div>
                     </div>
                     <div class="shuffle-options">
-                        <div class="shuffle-title">🎲 答题设置</div>
+                        <div class="shuffle-title"><span class="ui-icon-placeholder" data-ui-icon="dice" aria-hidden="true"></span><span>答题设置</span></div>
                         <label><input type="checkbox" id="shuffleQuestions" checked> 打乱题目顺序</label>
                         <label><input type="checkbox" id="shuffleOptions" checked> 打乱选项顺序</label>
                     </div>
                     <button class="action-btn btn-primary" id="startQuizBtn">开始答题</button>
-                    <button class="action-btn btn-save-bank" id="saveToBankBtn">📚 保存到题库</button>
+                    <button class="action-btn btn-save-bank" id="saveToBankBtn"><span class="ui-icon-placeholder" data-ui-icon="library" aria-hidden="true"></span><span>保存到题库</span></button>
                     <button class="action-btn btn-outline" id="resetImportBtn">重新导入</button>
                 </div>
 
@@ -261,7 +261,7 @@
                     <div class="quiz-right-panel">
                         <div class="options-list" id="optionsContainer"></div>
                         <div class="analysis-box" id="analysisBox">
-                            <div class="analysis-label">💡 解析：</div>
+                            <div class="analysis-label"><span class="ui-icon-placeholder" data-ui-icon="lightbulb" aria-hidden="true"></span><span>解析：</span></div>
                             <div id="analysisContent"></div>
                         </div>
                     </div>
@@ -306,15 +306,15 @@
     </div>
 
     <!-- AI解析按钮与对话窗（不遮挡主流程） -->
-    <div class="ai-analyze-fab" id="aiAnalyzeFab" title="AI解析" role="button" tabindex="0" aria-label="打开AI解析">✨</div>
+    <div class="ai-analyze-fab" id="aiAnalyzeFab" title="AI解析" role="button" tabindex="0" aria-label="打开AI解析"><span class="ui-icon-placeholder" data-ui-icon="sparkle" aria-hidden="true"></span></div>
     <div class="ai-chat-panel" id="aiChatPanel" aria-live="polite">
         <div class="ai-chat-header">
-            <span>🤖 AI 解析</span>
+            <span><span class="ui-icon-placeholder" data-ui-icon="bot" aria-hidden="true"></span> AI 解析</span>
             <button class="ai-chat-close" type="button" id="aiChatCloseBtn">×</button>
         </div>
         <div class="ai-chat-messages" id="aiChatMessages"></div>
         <div class="ai-chat-footer">
-            <button class="ai-chat-quick" type="button" id="aiChatAnalyzeBtn">🧠 解析当前题目</button>
+            <button class="ai-chat-quick" type="button" id="aiChatAnalyzeBtn"><span class="ui-icon-placeholder" data-ui-icon="brain" aria-hidden="true"></span><span>解析当前题目</span></button>
             <div class="ai-chat-input-row">
                 <input class="ai-chat-input" id="aiChatInput" type="text" placeholder="输入你的问题，例如：为什么答案是B？">
                 <button class="ai-chat-send" id="aiChatSendBtn" type="button">发送</button>
@@ -337,7 +337,7 @@
     <div class="overlay-base question-select-overlay" id="questionSelectOverlay">
         <div class="question-select-box">
             <div class="question-select-header">
-                <span>📚 选择要导入的题目</span>
+                <span><span class="ui-icon-placeholder" data-ui-icon="library" aria-hidden="true"></span><span>选择要导入的题目</span></span>
                 <div class="modal-close" role="button" tabindex="0" aria-label="关闭" id="closeQuestionSelectBtn">×</div>
             </div>
             <div class="question-select-toolbar">
@@ -362,7 +362,7 @@
     <!-- 自定义对话框 -->
     <div class="overlay-base dialog-overlay" id="dialogOverlay">
         <div class="dialog-box">
-            <div class="dialog-icon" id="dialogIcon">💬</div>
+            <div class="dialog-icon" id="dialogIcon"><span class="ui-icon-placeholder" data-ui-icon="message" aria-hidden="true"></span></div>
             <div class="dialog-title" id="dialogTitle">提示</div>
             <div class="dialog-message" id="dialogMessage">内容</div>
             <div class="dialog-buttons" id="dialogButtons"></div>
@@ -399,8 +399,8 @@
                     <div class="ai-config-selector">
                         <select id="aiConfigSelect" title="选择 API 配置"></select>
                         <button type="button" class="ai-config-btn" id="aiConfigAdd" title="新增配置">＋</button>
-                        <button type="button" class="ai-config-btn" id="aiConfigRename" title="重命名配置">✏️</button>
-                        <button type="button" class="ai-config-btn ai-config-btn-danger" id="aiConfigDelete" title="删除配置">🗑️</button>
+                        <button type="button" class="ai-config-btn" id="aiConfigRename" title="重命名配置"><span class="ui-icon-placeholder" data-ui-icon="edit" aria-hidden="true"></span></button>
+                        <button type="button" class="ai-config-btn ai-config-btn-danger" id="aiConfigDelete" title="删除配置"><span class="ui-icon-placeholder" data-ui-icon="trash" aria-hidden="true"></span></button>
                     </div>
                     <div class="ai-input-field">
                         <label>API 地址</label>
@@ -419,10 +419,10 @@
                         <div class="ai-model-dropdown" id="aiModelDropdown"></div>
                     </div>
                     <button class="action-btn btn-primary" id="testApiBtn" style="margin-top:10px">
-                        🔍 测试 API 连接
+                        <span class="ui-icon-placeholder" data-ui-icon="search" aria-hidden="true"></span><span>测试 API 连接</span>
                     </button>
                     <div id="apiTestResult" class="api-test-result"></div>
-                    <div class="api-hint">💡 支持兼容 OpenAI API 格式的第三方服务</div>
+                    <div class="api-hint"><span class="ui-icon-placeholder" data-ui-icon="lightbulb" aria-hidden="true"></span><span>支持兼容 OpenAI API 格式的第三方服务</span></div>
                 </div>
 
                 <div class="setting-group">
@@ -525,30 +525,30 @@
     <div class="overlay-base ai-modal-overlay" id="aiModal">
         <div class="ai-modal-content">
             <div class="modal-header">
-                <div class="modal-title">🤖 AI 智能出题</div>
+                <div class="modal-title"><span class="ui-icon-placeholder" data-ui-icon="bot" aria-hidden="true"></span> AI 智能出题</div>
                 <div class="modal-close" role="button" tabindex="0" aria-label="关闭AI出题" id="closeAIModalBtn">×</div>
             </div>
             <div class="modal-body">
                 <div class="ai-input-field">
                     <label>题目数量</label>
-                    <input type="number" id="aiQuestionCount" value="5" min="1" max="50" placeholder="1-50">
+                    <input type="number" id="aiQuestionCount" value="5" min="1" max="999" placeholder="1-999">
                 </div>
                 <div class="ai-input-field">
                     <label>出题要求</label>
                     <textarea class="ai-prompt-area" id="aiPrompt" placeholder="例如：请出5道关于JavaScript基础知识的选择题，包含变量、函数、数组等内容，难度适中"></textarea>
                 </div>
                 <button class="action-btn btn-primary" id="aiGenerateBtn">
-                    🚀 生成题目
+                    <span class="ui-icon-placeholder" data-ui-icon="rocket" aria-hidden="true"></span><span>生成题目</span>
                 </button>
                 <div class="ai-result-box" id="aiResultBox">
                     <div id="aiResultContent"></div>
                 </div>
                 <div id="aiActionButtons" style="display:none;">
                     <button class="action-btn btn-primary" id="exportAIQuestionsBtn" style="margin-top: 10px;">
-                        📤 导出题目
+                        <span class="ui-icon-placeholder" data-ui-icon="export" aria-hidden="true"></span><span>导出题目</span>
                     </button>
                     <button class="action-btn btn-outline" id="importAIQuestionsBtn">
-                        📥 导入并开始答题
+                        <span class="ui-icon-placeholder" data-ui-icon="import" aria-hidden="true"></span><span>导入并开始答题</span>
                     </button>
                 </div>
             </div>

@@ -28,6 +28,7 @@ import {
 import { normalizeQuestions } from '../core/dataProcessor.js';
 import { updateBankResults } from './questionBank.js';
 import { activeBankId, setActiveBankId, updateSaveBankBtnVisibility } from '../state.js';
+import { resetSelectedPreset } from './formatManager.js';
 
 // 完成解析
 export function finishParsing(parsed) {
@@ -175,6 +176,7 @@ export function resetImportData() {
     clearAIChatCache();
     resetImport();
     setActiveBankId(null);
+    resetSelectedPreset();
     resetToSetupPanel();
     showView('homeView');
     if (typeof _onReset === 'function') _onReset();

@@ -682,3 +682,109 @@
 .result-hint { font-size: 13px; color: var(--text-secondary); margin-bottom: 15px; }
 .api-test-result { display: none; margin-top: 12px; padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.6; }
 .api-hint { margin-top: 10px; font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+/* ===== 平面化 UI 图标 ===== */
+.ui-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.15em;
+    height: 1.15em;
+    color: currentColor;
+    vertical-align: -0.18em;
+    flex-shrink: 0;
+}
+.ui-icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+.ui-icon-lg {
+    width: 40px;
+    height: 40px;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+.tab-btn,
+.sub-tab-btn,
+.mode-btn,
+.action-btn,
+.shuffle-title,
+.saved-formats-title,
+.bank-panel-title,
+.analysis-label,
+.modal-title,
+.question-select-header > span,
+.ai-chat-header > span,
+.ai-chat-quick,
+.ai-history-toggle-btn > span:first-child,
+.ai-entry-hint,
+.api-hint {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+.tab-btn,
+.action-btn,
+.ai-history-toggle-btn,
+.question-select-header > span,
+.modal-title,
+.ai-chat-header > span {
+    width: 100%;
+}
+.ai-entry-icon {
+    display: flex;
+    justify-content: center;
+    color: var(--primary-color);
+}
+.ai-entry-icon .ui-icon {
+    width: 48px;
+    height: 48px;
+}
+.upload-icon {
+    display: flex;
+    justify-content: center;
+    color: var(--primary-color);
+}
+.upload-icon .ui-icon {
+    width: 32px;
+    height: 32px;
+}
+.dialog-icon {
+    display: flex;
+    justify-content: center;
+    color: var(--primary-color);
+}
+.dialog-icon .ui-icon {
+    width: 36px;
+    height: 36px;
+}
+.file-card-icon {
+    display: flex;
+    justify-content: center;
+}
+.file-card-icon .ui-icon {
+    width: 24px;
+    height: 24px;
+}
+.ai-analyze-fab .ui-icon {
+    width: 20px;
+    height: 20px;
+}
+.ai-config-btn .ui-icon,
+.bank-action-btn .ui-icon {
+    width: 16px;
+    height: 16px;
+}
+.ai-history-card-model,
+.ai-history-card-meta span,
+.example-title,
+.bank-detail-explain,
+.bank-start-btn,
+.preset-card-example-btn,
+.copy-example-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}

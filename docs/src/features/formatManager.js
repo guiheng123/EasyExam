@@ -1,6 +1,6 @@
 // 格式管理模块 - 预设渲染、自定义格式的增删改查、示例模态框
 
-import { $, escapeHtml } from '../utils/dom.js';
+import { $, escapeAttr, escapeHtml } from '../utils/dom.js';
 import { safeJsonParse, safeLocalStorageGet, safeLocalStorageSet } from '../core/storage.js';
 import { PRESET_FORMATS } from '../config/presets.js';
 import { setSubTab, setCustomMode } from './viewManager.js';
@@ -116,7 +116,7 @@ export function loadCustomFormats() {
     formats.forEach(format => {
         const item = document.createElement('div');
         item.className = 'saved-format-item';
-        const safeId = escapeHtml(String(format.id));
+        const safeId = escapeAttr(String(format.id));
         item.innerHTML = `
             <div class="saved-format-info">
                 <div class="saved-format-name">${escapeHtml(format.name)}</div>
@@ -150,7 +150,7 @@ export function showExample(presetId, event) {
     const preset = PRESET_FORMATS.find(p => p.id === presetId);
     if (!preset || !preset.example) return;
     $('modalTitle').textContent = `${preset.name} - 格式示例`;
-    const safePresetId = escapeHtml(presetId);
+    const safePresetId = escapeAttr(presetId);
     const modalBody = $('modalBody');
     modalBody.innerHTML = `
         <div class="example-section">
@@ -317,21 +317,33 @@ export function editCustomFormat(id) {
     if (!format) return;
     if (format.mode === 'advanced') {
         setCustomMode('advanced');
-        $('advancedFormatName').value = format.name;
-        $('advancedQuestionRegex').value = format.config.questionPattern || '';
-        $('advancedOptionRegex').value = format.config.optionPattern || '';
-        $('advancedAnswerRegex').value = format.config.answerPattern || '';
-        $('advancedExplanationRegex').value = format.config.explanationPattern || '';
-        $('advancedSeparator').value = format.config.separatorPattern || '';
+        const nameEl = $('advancedFormatName');
+        if (nameEl) nameEl.value = format.name;
+        const qEl = $('advancedQuestionRegex');
+        if (qEl) qEl.value = format.config.questionPattern || '';
+        const oEl = $('advancedOptionRegex');
+        if (oEl) oEl.value = format.config.optionPattern || '';
+        const aEl = $('advancedAnswerRegex');
+        if (aEl) aEl.value = format.config.answerPattern || '';
+        const eEl = $('advancedExplanationRegex');
+        if (eEl) eEl.value = format.config.explanationPattern || '';
+        const sEl = $('advancedSeparator');
+        if (sEl) sEl.value = format.config.separatorPattern || '';
     } else {
         setCustomMode('simple');
-        $('simpleFormatName').value = format.name;
+        const nameEl = $('simpleFormatName');
+        if (nameEl) nameEl.value = format.name;
         const c = format.config;
-        $('simpleQuestionMarker').value = (c.questionMarkers && c.questionMarkers[0]) || '';
-        $('simpleOptionMarker').value = '';
-        $('simpleAnswerMarker').value = (c.answerMarkers && c.answerMarkers[0]) || '';
-        $('simpleExplanationMarker').value = (c.explanationMarkers && c.explanationMarkers[0]) || '';
-        $('simpleSeparator').value = (c.separators && c.separators[0]) || '';
+        const qEl = $('simpleQuestionMarker');
+        if (qEl) qEl.value = (c.questionMarkers && c.questionMarkers[0]) || '';
+        const oEl = $('simpleOptionMarker');
+        if (oEl) oEl.value = '';
+        const aEl = $('simpleAnswerMarker');
+        if (aEl) aEl.value = (c.answerMarkers && c.answerMarkers[0]) || '';
+        const eEl = $('simpleExplanationMarker');
+        if (eEl) eEl.value = (c.explanationMarkers && c.explanationMarkers[0]) || '';
+        const sEl = $('simpleSeparator');
+        if (sEl) sEl.value = (c.separators && c.separators[0]) || '';
     }
     editingCustomFormatId = id;
 }

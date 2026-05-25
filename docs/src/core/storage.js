@@ -68,7 +68,7 @@ function checkLocalStorageSpace() {
         const testData = new Array(1024).join('a');
         let size = 0;
         for (const key of Object.keys(localStorage)) {
-            size += localStorage[key].length + key.length;
+            size += ((localStorage.getItem(key) || '').length + key.length) * 2;
         }
         localStorage.setItem(testKey, testData);
         localStorage.removeItem(testKey);
@@ -91,7 +91,7 @@ function checkLocalStorageSpace() {
 // 带容量检查的安全设置
 export function safeLocalStorageSetWithCheck(key, value, maxSizeKB = 2048) {
     try {
-        const valueSize = (value.length + key.length) / 1024;
+        const valueSize = ((value.length + key.length) * 2) / 1024;
         
         if (valueSize > maxSizeKB) {
             console.error(`数据过大 (${valueSize.toFixed(2)}KB)，超过限制 ${maxSizeKB}KB`);

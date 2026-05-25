@@ -1,6 +1,6 @@
 // AI 功能模块 - AI 出题和 AI 解析
 
-import { $, escapeHtml } from '../utils/dom.js';
+import { $, escapeAttr, escapeHtml } from '../utils/dom.js';
 import { fetchWithTimeout, isValidApiUrl } from '../utils/api.js';
 import { safeLocalStorageGet, safeLocalStorageSet, safeJsonParse, obfuscateToken, deobfuscateToken, safeLocalStorageSetWithCheck } from '../core/storage.js';
 import { showAlert, showDialog } from '../components/Dialog.js';
@@ -217,7 +217,7 @@ async function promptConfigName(title, defaultName) {
         overlay.innerHTML = `
             <div class="ai-config-name-dialog">
                 <div class="ai-config-name-title">${escapeHtml(title)}</div>
-                <input type="text" class="ai-config-name-input" value="${escapeHtml(defaultName)}" maxlength="30" placeholder="输入配置名称">
+                <input type="text" class="ai-config-name-input" value="${escapeAttr(defaultName)}" maxlength="30" placeholder="输入配置名称">
                 <div class="ai-config-name-actions">
                     <button type="button" class="ai-config-name-btn cancel">取消</button>
                     <button type="button" class="ai-config-name-btn confirm">确定</button>
@@ -282,7 +282,11 @@ export function loadAISettings() {
     fillFormFromConfig();
     renderConfigSelector();
     renderModelDropdown();
-    toggleAI();
+    // 直接更新 UI 状态，避免调用 toggleAI() 触发不必要的 saveAISettings()
+    const panel = $('aiSettings');
+    if (panel) panel.classList.toggle('disabled', !aiEnabled);
+    const aiTabBtn = $('aiTabBtn');
+    if (aiTabBtn) aiTabBtn.style.display = aiEnabled ? 'block' : 'none';
     loadAIHistory();
     loadCustomPrompts();
 }
@@ -340,7 +344,7 @@ function renderModelDropdown(items = aiAvailableModels) {
     }
 
     dropdown.innerHTML = models.map(model => `
-        <button type="button" class="ai-model-dropdown-item" data-model-name="${escapeModelName(model)}">${escapeModelName(model)}</button>
+        <button type="button" class="ai-model-dropdown-item" data-model-name="${escapeAttr(model)}">${escapeModelName(model)}</button>
     `).join('');
 }
 
@@ -497,7 +501,7 @@ export async function testAPIConnection() {
 
     try {
         const startTime = Date.now();
-        const response = await fetch(apiUrl, {
+        const response = await fetchWithTimeout(apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -509,7 +513,7 @@ export async function testAPIConnection() {
                 max_tokens: 10,
                 temperature: 0.5
             })
-        });
+        }, 15000);
 
         const responseTime = Date.now() - startTime;
 
@@ -644,7 +648,7 @@ ${formatExample}
 
 请直接输出题目文本，不要使用 JSON 或其他格式。`;
 
-        const response = await fetch(aiConfig.apiUrl, {
+        const response = await fetchWithTimeout(aiConfig.apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -659,7 +663,7 @@ ${formatExample}
                 temperature: 0.7,
                 stream: true
             })
-        });
+        }, 120000);
 
         if (!response.ok) {
             throw new Error(`API 请求失败: ${response.status} ${response.statusText}`);

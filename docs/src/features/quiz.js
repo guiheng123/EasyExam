@@ -6,7 +6,6 @@ import { showAlert, showDangerConfirm } from '../components/Dialog.js';
 
 // 答题状态
 let questions = [];
-let originalQuestions = [];
 let userAnswers = [];
 let currentIndex = 0;
 let isReviewMode = false;
@@ -137,15 +136,6 @@ export function prevQuestion() {
 
 // 下一题
 export function nextQuestion() {
-    if (isReviewMode) {
-        if (currentIndex < questions.length - 1) {
-            currentIndex++;
-            renderQuestion();
-            return { action: 'next', index: currentIndex };
-        } else {
-            return { action: 'result' };
-        }
-    }
     if (currentIndex < questions.length - 1) {
         currentIndex++;
         renderQuestion();
@@ -177,33 +167,36 @@ export function showResult() {
     const elapsed = Date.now() - quizStartTime;
 
     // --- 环形进度 ---
-    $('scoreVal').textContent = pct;
+    const scoreVal = $('scoreVal');
+    if (scoreVal) scoreVal.textContent = pct;
 
     const circle = $('scoreCircle');
     const circumference = 2 * Math.PI * 60;
-    circle.style.strokeDasharray = circumference;
-    circle.style.strokeDashoffset = circumference;
-    circle.style.transform = 'rotate(-90deg)';
-    circle.style.transformOrigin = '50% 50%';
-    circle.style.transition = MOTION_REDUCED
-        ? 'stroke-dashoffset 0.35s ease-out'
-        : 'stroke-dashoffset 1s ease';
-    const targetOffset = circumference - (circumference * pct / 100);
+    if (circle) {
+        circle.style.strokeDasharray = circumference;
+        circle.style.strokeDashoffset = circumference;
+        circle.style.transform = 'rotate(-90deg)';
+        circle.style.transformOrigin = '50% 50%';
+        circle.style.transition = MOTION_REDUCED
+            ? 'stroke-dashoffset 0.35s ease-out'
+            : 'stroke-dashoffset 1s ease';
+        const targetOffset = circumference - (circumference * pct / 100);
 
-    // 根据正确率设置颜色
-    if (pct >= 80) {
-        circle.style.stroke = 'var(--correct-text)';
-    } else if (pct >= 60) {
-        circle.style.stroke = 'var(--primary-color)';
-    } else {
-        circle.style.stroke = 'var(--wrong-text)';
-    }
+        // 根据正确率设置颜色
+        if (pct >= 80) {
+            circle.style.stroke = 'var(--correct-text)';
+        } else if (pct >= 60) {
+            circle.style.stroke = 'var(--primary-color)';
+        } else {
+            circle.style.stroke = 'var(--wrong-text)';
+        }
 
-    requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-            circle.style.strokeDashoffset = targetOffset;
+            requestAnimationFrame(() => {
+                circle.style.strokeDashoffset = targetOffset;
+            });
         });
-    });
+    }
 
     // --- 统计卡片 ---
     const statCorrect = $('statCorrect');
@@ -229,15 +222,17 @@ export function showResult() {
 
     // --- 题目网格 ---
     const grid = $('resultGrid');
-    const fragment = document.createDocumentFragment();
-    questions.forEach((q, i) => {
-        const dot = document.createElement('div');
-        dot.className = 'grid-dot ' + (userAnswers[i] === q.answer ? 'correct' : 'wrong');
-        dot.dataset.index = String(i);
-        dot.textContent = i + 1;
-        fragment.appendChild(dot);
-    });
-    grid.replaceChildren(fragment);
+    if (grid) {
+        const fragment = document.createDocumentFragment();
+        questions.forEach((q, i) => {
+            const dot = document.createElement('div');
+            dot.className = 'grid-dot ' + (userAnswers[i] === q.answer ? 'correct' : 'wrong');
+            dot.dataset.index = String(i);
+            dot.textContent = i + 1;
+            fragment.appendChild(dot);
+        });
+        grid.replaceChildren(fragment);
+    }
 
     return pct;
 }
@@ -262,7 +257,6 @@ export async function confirmExit() {
 // 重置导入
 export function resetImport() {
     questions = [];
-    originalQuestions = [];
     userAnswers = [];
     currentIndex = 0;
     isReviewMode = false;
@@ -271,13 +265,6 @@ export function resetImport() {
 
 // 设置题目数据
 export function setQuestions(newQuestions) {
-    originalQuestions = newQuestions.map(q => ({
-        question: q.question,
-        options: q.options.map(opt => ({ letter: opt.letter, text: opt.text })),
-        answer: q.answer,
-        explanation: q.explanation || '',
-        ...(q._bankIndex !== undefined ? { _bankIndex: q._bankIndex } : {})
-    }));
     questions = newQuestions.map(q => ({
         question: q.question,
         options: q.options.map(opt => ({ letter: opt.letter, text: opt.text })),

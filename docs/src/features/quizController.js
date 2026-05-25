@@ -107,7 +107,6 @@ export function jumpToQuestion(idx) {
 
 export function prevQ() {
     prevQuestion();
-    activateAIChatSessionForQuestion(getCurrentIndex());
     const aiChatPanel = $('aiChatPanel');
     if (aiChatPanel?.classList.contains('active')) {
         const session = activateAIChatSessionForQuestion(getCurrentIndex());
@@ -120,7 +119,6 @@ export function nextQ() {
     if (result.action === 'result') {
         showResultView();
     } else {
-        activateAIChatSessionForQuestion(getCurrentIndex());
         const aiChatPanel = $('aiChatPanel');
         if (aiChatPanel?.classList.contains('active')) {
             const session = activateAIChatSessionForQuestion(getCurrentIndex());
@@ -165,10 +163,10 @@ export function showResultView() {
 export function reviewQuestionAt(idx) {
     reviewQuestion(idx);
     showView('quizView');
-    activateAIChatSessionForQuestion(idx);
+    const session = activateAIChatSessionForQuestion(idx);
     const aiChatPanel = $('aiChatPanel');
     if (aiChatPanel?.classList.contains('active')) {
-        toggleAIChatPanel(true);
+        renderAIChatSession(session);
     }
 }
 

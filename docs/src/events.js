@@ -42,9 +42,6 @@ import {
     parseWithSelectedPreset
 } from './features/fileImport.js';
 import {
-    selectPreset,
-    showExample,
-    copyExample,
     closeExampleModal,
     fillTemplate,
     saveSimpleFormat,
@@ -114,6 +111,14 @@ function bindClick(idOrEl, handler) {
     if (el) el.addEventListener('click', handler);
 }
 
+function debounce(fn, wait = 400) {
+    let timer = null;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn(...args), wait);
+    };
+}
+
 // 初始化所有事件监听
 export function initEventListeners() {
     // 选项点击事件
@@ -177,31 +182,9 @@ export function initEventListeners() {
         });
     });
 
-    // 预设格式
-    const presetList = $('presetList');
-    if (presetList) {
-        presetList.addEventListener('click', (e) => {
-            const card = e.target.closest('.preset-card');
-            if (!card) return;
-            const id = card.dataset.presetId;
-            if (id) selectPreset(id);
-        });
-    }
-
     const parseBtn = $('parseBtn') || $('parsePresetBtn');
     if (parseBtn) {
         parseBtn.addEventListener('click', () => parseWithSelectedPreset());
-    }
-
-    // 示例模态框
-    const showExampleBtn = $('showExampleBtn');
-    if (showExampleBtn) {
-        showExampleBtn.addEventListener('click', () => showExample());
-    }
-
-    const copyExampleBtn = $('copyExampleBtn');
-    if (copyExampleBtn) {
-        copyExampleBtn.addEventListener('click', () => copyExample());
     }
 
     // 模板填充（事件委托）
@@ -341,7 +324,8 @@ export function initEventListeners() {
             if (e.target.classList.contains('qs-check')) {
                 const all = document.querySelectorAll('.qs-check');
                 const checked = document.querySelectorAll('.qs-check:checked');
-                $('selectAllQuestions').checked = all.length === checked.length;
+                const selectAll = $('selectAllQuestions');
+                if (selectAll) selectAll.checked = all.length === checked.length;
                 updateSelectCount();
             }
         });
@@ -358,15 +342,7 @@ export function initEventListeners() {
         aiChatSendBtn.addEventListener('click', () => sendAIChatMessage());
     }
 
-    const aiChatInput = $('aiChatInput');
-    if (aiChatInput) {
-        aiChatInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendAIChatMessage();
-            }
-        });
-    }
+    // aiChatInput 的 Enter 键事件已在 aiChat.js:initAIAnalysisWidget() 中注册，此处不再重复
 
     const aiChatAnalyzeBtn = $('aiChatAnalyzeBtn');
     if (aiChatAnalyzeBtn) {
@@ -390,19 +366,20 @@ export function initEventListeners() {
         aiToggle.addEventListener('change', () => toggleAI());
     }
 
+    const debouncedSaveAISettings = debounce(saveAISettings, 400);
     const aiApiUrl = $('aiApiUrl');
     if (aiApiUrl) {
-        aiApiUrl.addEventListener('input', () => saveAISettings());
+        aiApiUrl.addEventListener('input', debouncedSaveAISettings);
     }
 
     const aiApiToken = $('aiApiToken');
     if (aiApiToken) {
-        aiApiToken.addEventListener('input', () => saveAISettings());
+        aiApiToken.addEventListener('input', debouncedSaveAISettings);
     }
 
     const aiModel = $('aiModel');
     if (aiModel) {
-        aiModel.addEventListener('input', () => saveAISettings());
+        aiModel.addEventListener('input', debouncedSaveAISettings);
         aiModel.addEventListener('focus', () => hideModelDropdown());
     }
 
@@ -435,14 +412,15 @@ export function initEventListeners() {
     }
 
     // 自定义 Prompt 事件绑定
+    const debouncedSaveCustomPrompts = debounce(saveCustomPrompts, 400);
     const aiAnalysisPrompt = $('aiAnalysisPrompt');
     if (aiAnalysisPrompt) {
-        aiAnalysisPrompt.addEventListener('input', () => saveCustomPrompts());
+        aiAnalysisPrompt.addEventListener('input', debouncedSaveCustomPrompts);
     }
 
     const aiGeneratePrompt = $('aiGeneratePrompt');
     if (aiGeneratePrompt) {
-        aiGeneratePrompt.addEventListener('input', () => saveCustomPrompts());
+        aiGeneratePrompt.addEventListener('input', debouncedSaveCustomPrompts);
     }
 
     const resetAnalysisPromptBtn = $('resetAnalysisPromptBtn');

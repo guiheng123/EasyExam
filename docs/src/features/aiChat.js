@@ -724,7 +724,6 @@ export function initAIAnalysisWidget() {
             try { header.setPointerCapture(pointerId); } catch (_) {}
         }
 
-        e.preventDefault();
     };
 
     const moveDrag = (e) => {

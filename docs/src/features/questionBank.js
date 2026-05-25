@@ -21,6 +21,13 @@ function saveBanks() {
 
 export function getQuestionBanks() { return banks; }
 
+function createBankId() {
+    let id = Date.now();
+    const usedIds = new Set(banks.map(bank => bank.id));
+    while (usedIds.has(id)) id++;
+    return id;
+}
+
 // 检查题库名称是否已存在
 export function bankNameExists(name) {
     return banks.some(b => b.name === name);
@@ -62,7 +69,7 @@ export function addQuestionBank(name, questions) {
     }
 
     const bank = {
-        id: Date.now(),
+        id: createBankId(),
         name: finalName,
         questions: newQs,
         createdAt: Date.now(),
